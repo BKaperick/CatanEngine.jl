@@ -1,18 +1,12 @@
 using Base
 
-TEAMS = [
-         :Blue,
-         :Orange,
-         :Green,
-         :Robo
-        ]
-
 struct Player
     resources::Dict{Symbol,Int}
     vp_count::Int
     dev_cards::Dict{Symbol,Int}
     dev_cards_used::Dict{Symbol,Int}
 end
+Player() = Player(Dict(), 0, Dict(), Dict())
 
 struct Public_Info
     resource_count::Int
@@ -50,17 +44,18 @@ struct Building
     type::Symbol
 end
 
-
-# Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
-RESOURCESTR_TO_SYMBOL = Dict(
-                              "W" => :Wood,
-                              "S" => :Stone,
-                              "G" => :Grain,
-                              "B" => :Brick,
-                              "P" => :Pasture,
-                              "D" => :Desert
-                            )
-
+TEAMS = [
+         :Blue,
+         :Orange,
+         :Green,
+         :Robo
+        ]
+TEAM_TO_PLAYER = Dict(
+         :Blue => Player(),
+         :Orange => Player(),
+         :Green => Player(),
+         :Robo => Player()
+                     )
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
 #end
 
@@ -121,12 +116,22 @@ TILE_TO_DICEVAL = Dict()
 TILE_TO_RESOURCE = Dict()
 
 function read_map(csvfile)
+
+    # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
+    resourcestr_to_symbol = Dict(
+                                  "W" => :Wood,
+                                  "S" => :Stone,
+                                  "G" => :Grain,
+                                  "B" => :Brick,
+                                  "P" => :Pasture,
+                                  "D" => :Desert
+                                )
     file_str = read(csvfile, String)
     board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
     for line in board_state
         tile_str,dice_str,resource_str = split(line,',')
         tile = Symbol(tile_str)
-        resource = RESOURCESTR_TO_SYMBOL[uppercase(resource_str)]
+        resource = resourcestr_to_symbol[uppercase(resource_str)]
         dice = parse(Int, dice_str)
 
         TILE_TO_DICEVAL[tile] = dice
@@ -151,6 +156,19 @@ function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
     for i in 1:quantity
         harvest_resource(TEAM_TO_PLAYER[team], resource)
     end
+end
+
+function build_settlement(buildings, team::Symbol, coord::Tuple{Int, Int})
+    settlement = Building(coord, :Settlement)
+    push!(buildings, settlement)
+    player = TEAM_TO_PLAYER[team]
+    player.vp_count++
+end
+function build_city(buildings, team::Symbol, coord::Tuple{Int, Int})
+    settlement = Building(coord, :City)
+    push!(buildings, settlement)
+    player = TEAM_TO_PLAYER[team]
+    player.vp_count += 2
 end
 
 function harvest_resource(building::Building, resource::Symbol)
