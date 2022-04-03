@@ -1,13 +1,5 @@
 include("human.jl")
-
-struct Board
-    tile_to_value::Dict{Symbol,Int}
-    tile_to_resource::Dict{Symbol,Symbol}
-    building::Array{Building,1}
-    roads::Array{Road,1}
-end
-Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = Board(tile_to_value, tile_to_resource, [], [])
-struct Player
+mutable struct Player
     resources::Dict{Symbol,Int}
     vp_count::Int
     dev_cards::Dict{Symbol,Int}
@@ -15,13 +7,13 @@ struct Player
 end
 Player() = Player(Dict(), 0, Dict(), Dict())
 
-struct Public_Info
+mutable struct Public_Info
     resource_count::Int
     dev_cards_count::Int
     dev_cards_used::Dict{Symbol,Int}
     vp_count::Int
 end
-struct Private_Info
+mutable struct Private_Info
     resources::Dict{Symbol,Int}
     dev_cards::Dict{Symbol,Int}
     private_vp_count::Int
@@ -37,19 +29,27 @@ function get_private_info(player::Player)::Private_Info
     return Private_Info(player.resources, player.dev_cards, player.vp_count)
 end
 
-struct Construction
+mutable struct Construction
 end
 
-struct Road
+mutable struct Road
     coord1::Tuple{Int,Int}
     coord2::Tuple{Int,Int}
     team
 end
 
-struct Building
+mutable struct Building
     coord::Tuple{Int,Int}
     type::Symbol
 end
+
+mutable struct Board
+    tile_to_dicevalue::Dict{Symbol,Int}
+    tile_to_resource::Dict{Symbol,Symbol}
+    buildings::Array{Building,1}
+    roads::Array{Road,1}
+end
+Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = Board(tile_to_value, tile_to_resource, [], [])
 
 TEAMS = [
          :Blue,
@@ -138,7 +138,7 @@ function read_map(csvfile)::Board
         resource = resourcestr_to_symbol[uppercase(resource_str)]
         dice = parse(Int, dice_str)
 
-        board.tile_to_diceval[tile] = dice
+        board.tile_to_dicevalue[tile] = dice
         board.tile_to_resource[tile] = resource
     end
     return board
@@ -168,19 +168,22 @@ function build_settlement(buildings, team::Symbol, coord::Tuple{Int, Int})
     push!(buildings, settlement)
     player = TEAM_TO_PLAYER[team]
     player.vp_count += 1
+    return settlement
 end
 
 function build_city(buildings, team::Symbol, coord::Tuple{Int, Int})
-    settlement = Building(coord, :City)
-    push!(buildings, settlement)
+    city = Building(coord, :City)
+    push!(buildings, city)
     player = TEAM_TO_PLAYER[team]
     player.vp_count += 2
+    return city
 end
 function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
     road = Road(coord1, coord2, team)
     push!(roads, road)
     player = TEAM_TO_PLAYER[team]
     award_longest_road(roads)
+    return road
 end
 
 function award_longest_road(roads::Array{Road, 1})
@@ -216,7 +219,7 @@ function roll_dice(buildings, value)
 end
 
 function do_turn(buildings, team)
-    value = input("Dice result:")
+    value = human_roll_dice(team)
     roll_dice(buildings, value)
     if team == :Robo
     end
@@ -235,22 +238,21 @@ function initialize_game(csvfile::String)
 end
 
 
-function do_first_turn(buildings, roads)
-
+function do_first_turn(board)
     for team in TEAMS
-        coord_settlement_str = input("$team places a settlement:")
-        coord_settlement = Tuple([parse(Int, x) for x in split(coord_str, ' ')])
-        build_settlement(buildings, team, coord_settlement)
-        coord_road_str = input("$team places a road:")
-        coord_road = [parse(Int, x) for x in split(coord_str, ' ')]
-        coord_road1 = Tuple(coord_road[1:2])
-        coord_road2 = Tuple(coord_road[3:4])
-        build_road(roads, team, coord_road1, coord_road2)
+        if team != :Robo
+            human_build_settlement(board.buildings, team)
+            human_build_road(board.roads, team)
+        end
     end
     for team in reverse(TEAMS)
-        if player != :Robo
-            human_build_settlement()
-            human_build_road()
+        if team != :Robo
+            settlement = human_build_settlement(board.buildings, team)
+            for tile in COORD_TO_TILES[settlement.coord]
+                resource = board.tile_to_resource[tile]
+                TEAM_TO_PLAYER[team].resources[resourse] += 1
+            end
+            human_build_road(board.roads, team)
         end
     end
 end
