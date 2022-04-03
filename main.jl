@@ -1,5 +1,12 @@
-using Base
+include("human.jl")
 
+struct Board
+    tile_to_value::Dict{Symbol,Int}
+    tile_to_resource::Dict{Symbol,Symbol}
+    building::Array{Building,1}
+    roads::Array{Road,1}
+end
+Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = Board(tile_to_value, tile_to_resource, [], [])
 struct Player
     resources::Dict{Symbol,Int}
     vp_count::Int
@@ -112,11 +119,8 @@ TILE_TO_COORDS = Dict(
                      )
 COORD_TO_TILES = Dict()
 
-TILE_TO_DICEVAL = Dict()
-TILE_TO_RESOURCE = Dict()
-
-function read_map(csvfile)
-
+function read_map(csvfile)::Board
+    board = Board(Dict(), Dict(), [], [])
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = Dict(
                                   "W" => :Wood,
@@ -134,9 +138,10 @@ function read_map(csvfile)
         resource = resourcestr_to_symbol[uppercase(resource_str)]
         dice = parse(Int, dice_str)
 
-        TILE_TO_DICEVAL[tile] = dice
-        TILE_TO_RESOURCE[tile] = resource
+        board.tile_to_diceval[tile] = dice
+        board.tile_to_resource[tile] = resource
     end
+    return board
 end
                        
 for elem in TILE_TO_COORDS
@@ -162,13 +167,24 @@ function build_settlement(buildings, team::Symbol, coord::Tuple{Int, Int})
     settlement = Building(coord, :Settlement)
     push!(buildings, settlement)
     player = TEAM_TO_PLAYER[team]
-    player.vp_count++
+    player.vp_count += 1
 end
+
 function build_city(buildings, team::Symbol, coord::Tuple{Int, Int})
     settlement = Building(coord, :City)
     push!(buildings, settlement)
     player = TEAM_TO_PLAYER[team]
     player.vp_count += 2
+end
+function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
+    road = Road(coord1, coord2, team)
+    push!(roads, road)
+    player = TEAM_TO_PLAYER[team]
+    award_longest_road(roads)
+end
+
+function award_longest_road(roads::Array{Road, 1})
+    # TODO
 end
 
 function harvest_resource(building::Building, resource::Symbol)
@@ -199,3 +215,53 @@ function roll_dice(buildings, value)
     end
 end
 
+function do_turn(buildings, team)
+    value = input("Dice result:")
+    roll_dice(buildings, value)
+    if team == :Robo
+    end
+end
+function someone_has_won()::Bool
+    for kvp in TEAM_TO_PLAYER
+        if kvp[2].vp_count >= 10
+            return kvp[1]
+        end
+    end
+    return Nothing
+end
+function initialize_game(csvfile::String)
+    board = read_map(csvfile)
+    do_game(board)
+end
+
+
+function do_first_turn(buildings, roads)
+
+    for team in TEAMS
+        coord_settlement_str = input("$team places a settlement:")
+        coord_settlement = Tuple([parse(Int, x) for x in split(coord_str, ' ')])
+        build_settlement(buildings, team, coord_settlement)
+        coord_road_str = input("$team places a road:")
+        coord_road = [parse(Int, x) for x in split(coord_str, ' ')]
+        coord_road1 = Tuple(coord_road[1:2])
+        coord_road2 = Tuple(coord_road[3:4])
+        build_road(roads, team, coord_road1, coord_road2)
+    end
+    for team in reverse(TEAMS)
+        if player != :Robo
+            human_build_settlement()
+            human_build_road()
+        end
+    end
+end
+
+        
+
+function do_game(board::Board)
+    do_first_turn(board.buildings, board.roads)
+    while someone_has_won() == Nothing
+        for team in TEAMS
+            do_turn(board.buildings, team)
+        end
+    end
+end
