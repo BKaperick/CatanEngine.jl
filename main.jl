@@ -66,6 +66,83 @@ TILE_TO_COORDS = Dict(
                       :S => Set([(6,5),(6,6),(6,7),(5,6),(5,7),(5,8)]),
                      )
 COORD_TO_TILES = Dict()
+TILE_TO_DICEVAL = Dict(
+                      :A => 
+                      :B => 
+                      :C => 
+                      
+                      :D => 
+                      :E => 
+                      :F => 
+                      :G => 
+                      
+                      :H => 
+                      :I => 
+                      :J => 
+                      :K => 
+                      :L => 
+                      
+                      :M => 
+                      :N => 
+                      :O => 
+                      :P => 
+                      
+                      :Q => 
+                      :R => 
+                      :S => 
+                      )
+
+TILE_TO_RESOURCE = Dict(
+                      :A => 
+                      :B => 
+                      :C => 
+                      
+                      :D => 
+                      :E => 
+                      :F => 
+                      :G => 
+                      
+                      :H => 
+                      :I => 
+                      :J => 
+                      :K => 
+                      :L => 
+                      
+                      :M => 
+                      :N => 
+                      :O => 
+                      :P => 
+                      
+                      :Q => 
+                      :R => 
+                      :S => 
+                      )
+TILE_TO_DICEVAL = Dict(
+                      :A => 
+                      :B => 
+                      :C => 
+                      
+                      :D => 
+                      :E => 
+                      :F => 
+                      :G => 
+                      
+                      :H => 
+                      :I => 
+                      :J => 
+                      :K => 
+                      :L => 
+                      
+                      :M => 
+                      :N => 
+                      :O => 
+                      :P => 
+                      
+                      :Q => 
+                      :R => 
+                      :S => 
+                      )
+                       
 for elem in TILE_TO_COORDS
     print("elem: ", elem, "\n")
     tile = elem[1]
