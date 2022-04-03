@@ -1,15 +1,55 @@
 using Base
 
-struct Public_Info
-    public_vp_count
-    resource_count
-    card_count
+TEAMS = [
+         :Blue,
+         :Orange,
+         :Green,
+         :Robo
+        ]
+
+struct Player
+    resources::Dict{Symbol,Int}
+    vp_count::Int
+    dev_cards::Dict{Symbol,Int}
+    dev_cards_used::Dict{Symbol,Int}
 end
 
-struct Private_Info
-    private_vp_count
-    resources::Dict{Symbol,Int}
+struct Public_Info
+    resource_count::Int
+    dev_cards_count::Int
+    dev_cards_used::Dict{Symbol,Int}
+    vp_count::Int
 end
+struct Private_Info
+    resources::Dict{Symbol,Int}
+    dev_cards::Dict{Symbol,Int}
+    private_vp_count::Int
+end
+
+function get_public_info(player::Player)::Public_Info
+    return Public_Info(
+                       sum(values(player.resources)), 
+                       sum(values(player.dev_cards)), 
+                       player.vp_count)
+end
+function get_private_info(player::Player)::Private_Info
+    return Private_Info(player.resources, player.dev_cards, player.vp_count)
+end
+
+struct Construction
+end
+
+struct Road
+    coord1::Tuple{Int,Int}
+    coord2::Tuple{Int,Int}
+    team
+end
+
+struct Building
+    coord::Tuple{Int,Int}
+    type::Symbol
+end
+
 
 # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
 RESOURCESTR_TO_SYMBOL = Dict(
@@ -17,7 +57,8 @@ RESOURCESTR_TO_SYMBOL = Dict(
                               "S" => :Stone,
                               "G" => :Grain,
                               "B" => :Brick,
-                              "P" => :Pasture
+                              "P" => :Pasture,
+                              "D" => :Desert
                             )
 
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
@@ -80,11 +121,12 @@ TILE_TO_DICEVAL = Dict()
 TILE_TO_RESOURCE = Dict()
 
 function read_map(csvfile)
-    board_state = [strip(line) for line in split(read(csvfile),'\n') if strip(line)[0] != '#']
+    file_str = read(csvfile, String)
+    board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
     for line in board_state
         tile_str,dice_str,resource_str = split(line,',')
         tile = Symbol(tile_str)
-        resource = RESOURCESTR_TO_SYMBOL[resource_str]
+        resource = RESOURCESTR_TO_SYMBOL[uppercase(resource_str)]
         dice = parse(Int, dice_str)
 
         TILE_TO_DICEVAL[tile] = dice
@@ -104,7 +146,38 @@ for elem in TILE_TO_COORDS
         end
     end
 end
-function roll_dice(value)
 
+function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
+    for i in 1:quantity
+        harvest_resource(TEAM_TO_PLAYER[team], resource)
+    end
+end
+
+function harvest_resource(building::Building, resource::Symbol)
+    if building.type == :Settlement
+        harvest_resource(building.team, resource, 1)
+    elseif building.type == :City
+        harvest_resource(building.team, resource, 2)
+    end
+end
+
+function building_gets_resource(building, dice_value)::Symbol
+    tile = COORD_TO_TILES[building.coord]
+    if TILE_TO_DICEVAL[tile] == dice_value
+        return TILE_TO_RESOURCE[tile]
+    end
+    return Nothing
+end
+
+buildings = Array{Building,1}()
+function roll_dice(buildings, value)
+
+    # In all cases except 7, we allocate resources
+    if value != 7
+        for building in buildings
+            resource = building_gets_resource(building, value)
+            harvest_resource(building, resource)
+        end
+    end
 end
 

@@ -1,7 +1,7 @@
 # Tile should be enumerate A - S
 # Dice is a value 2 - 12
 # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
-Tile,Dice,Resource
+# Tile,Dice,Resource
 A,
 B,
 C,
