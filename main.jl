@@ -11,6 +11,15 @@ struct Private_Info
     resources::Dict{Symbol,Int}
 end
 
+# Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
+RESOURCESTR_TO_SYMBOL = Dict(
+                              "W" => :Wood,
+                              "S" => :Stone,
+                              "G" => :Grain,
+                              "B" => :Brick,
+                              "P" => :Pasture
+                            )
+
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
 #end
 
@@ -66,82 +75,22 @@ TILE_TO_COORDS = Dict(
                       :S => Set([(6,5),(6,6),(6,7),(5,6),(5,7),(5,8)]),
                      )
 COORD_TO_TILES = Dict()
-TILE_TO_DICEVAL = Dict(
-                      :A => 
-                      :B => 
-                      :C => 
-                      
-                      :D => 
-                      :E => 
-                      :F => 
-                      :G => 
-                      
-                      :H => 
-                      :I => 
-                      :J => 
-                      :K => 
-                      :L => 
-                      
-                      :M => 
-                      :N => 
-                      :O => 
-                      :P => 
-                      
-                      :Q => 
-                      :R => 
-                      :S => 
-                      )
 
-TILE_TO_RESOURCE = Dict(
-                      :A => 
-                      :B => 
-                      :C => 
-                      
-                      :D => 
-                      :E => 
-                      :F => 
-                      :G => 
-                      
-                      :H => 
-                      :I => 
-                      :J => 
-                      :K => 
-                      :L => 
-                      
-                      :M => 
-                      :N => 
-                      :O => 
-                      :P => 
-                      
-                      :Q => 
-                      :R => 
-                      :S => 
-                      )
-TILE_TO_DICEVAL = Dict(
-                      :A => 
-                      :B => 
-                      :C => 
-                      
-                      :D => 
-                      :E => 
-                      :F => 
-                      :G => 
-                      
-                      :H => 
-                      :I => 
-                      :J => 
-                      :K => 
-                      :L => 
-                      
-                      :M => 
-                      :N => 
-                      :O => 
-                      :P => 
-                      
-                      :Q => 
-                      :R => 
-                      :S => 
-                      )
+TILE_TO_DICEVAL = Dict()
+TILE_TO_RESOURCE = Dict()
+
+function read_map(csvfile)
+    board_state = [strip(line) for line in split(read(csvfile),'\n') if strip(line)[0] != '#']
+    for line in board_state
+        tile_str,dice_str,resource_str = split(line,',')
+        tile = Symbol(tile_str)
+        resource = RESOURCESTR_TO_SYMBOL[resource_str]
+        dice = parse(Int, dice_str)
+
+        TILE_TO_DICEVAL[tile] = dice
+        TILE_TO_RESOURCE[tile] = resource
+    end
+end
                        
 for elem in TILE_TO_COORDS
     print("elem: ", elem, "\n")
