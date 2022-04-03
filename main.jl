@@ -52,7 +52,7 @@ TILE_TO_COORDS = Dict(
                       
                       :H => Set([(3,1),(3,2),(3,3),(4,1),(4,2),(4,3)]),
                       :I => Set([(3,3),(3,4),(3,5),(4,3),(4,4),(4,5)]),
-                      :I => Set([(3,5),(3,6),(3,7),(4,5),(4,6),(4,7)]),
+                      :J => Set([(3,5),(3,6),(3,7),(4,5),(4,6),(4,7)]),
                       :K => Set([(3,7),(3,8),(3,9),(4,7),(4,8),(4,9)]),
                       :L => Set([(3,9),(3,10),(3,11),(4,9),(4,10),(4,11)]),
                       
@@ -66,6 +66,18 @@ TILE_TO_COORDS = Dict(
                       :S => Set([(6,5),(6,6),(6,7),(5,6),(5,7),(5,8)]),
                      )
 COORD_TO_TILES = Dict()
+for elem in TILE_TO_COORDS
+    print("elem: ", elem, "\n")
+    tile = elem[1]
+    coords = elem[2]
+    for c in coords
+        if haskey(COORD_TO_TILES,c)
+            push!(COORD_TO_TILES[c], tile)
+        else
+            COORD_TO_TILES[c] = Set([tile])
+        end
+    end
+end
 function roll_dice(value)
 
 end
