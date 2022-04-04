@@ -1,3 +1,30 @@
+VP_AWARDS = Dict([
+                  :Settlement => 1,
+                  :City => 2,
+                  :Road => 0
+                 ])
+COSTS = Dict([
+              :Settlement => Dict([
+                                   :Wood => 1,
+                                   :Brick => 1,
+                                   :Pasture => 1,
+                                   :Grain => 1
+                                  ]),
+              :City => Dict([
+                             :Grain => 2,
+                             :Stone => 3
+                            ]),
+              :DevelopmentCard => Dict([
+                                        :Pasture => 1,
+                                        :Stone => 1,
+                                        :Grain => 1
+                                       ]),
+              :Road => Dict([
+                             :Brick => 1,
+                             :Wood => 1
+                            ])
+             ])
+
 RESOURCE_TO_COUNT = Dict([
     :Wood => 4
     :Stone => 3

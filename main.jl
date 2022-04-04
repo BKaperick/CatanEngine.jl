@@ -121,19 +121,40 @@ function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
     end
 end
 
-function build_settlement(buildings, team::Symbol, coord::Tuple{Int, Int})
-    settlement = Building(coord, :Settlement)
-    push!(buildings, settlement)
-    player = TEAM_TO_PLAYER[team]
-    player.vp_count += 1
-    return settlement
+function can_pay_price(player::Player, cost::Dict)::Bool
+    for resource in keys(cost)
+        if player.resources[resource] < cost[resource]
+            return false
+        end
+    end
+    return true
+end
+function pay_price(player::Player, cost::Dict)
+    for resource in keys(cost)
+        player.resources[resource] -= cost[resource]
+    end
 end
 
-function build_city(buildings, team::Symbol, coord::Tuple{Int, Int})
-    city = Building(coord, :City)
+function construct_city(buildings, team::Symbol, coord)
+    pay_construction(team, :City)
+    build_construction(buildings, team, coord, :City)
+end
+function construct_settlement(buildings, team::Symbol, coord)
+    pay_construction(team, :Settlement)
+    build_construction(buildings, team, coord, :Settlement)
+end
+
+function pay_construction(team::Symbol, construction::Symbol)
+    cost = COSTS[construction]
+    player = TEAM_TO_PLAYER[team]
+    pay_price(player, cost)
+end
+
+function build_building(buildings, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
+    city = Building(coord, type)
     push!(buildings, city)
     player = TEAM_TO_PLAYER[team]
-    player.vp_count += 2
+    player.vp_count += VP_AWARDS[type]
     return city
 end
 function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
