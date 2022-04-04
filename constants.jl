@@ -1,4 +1,11 @@
-
+RESOURCE_TO_COUNT = Dict([
+    :Wood => 4
+    :Stone => 3
+    :Grain => 4
+    :Brick => 3
+    :Pasture => 4
+    :Desert => 1
+   ]) 
 TEAMS = [
          :Blue,
          #:Orange,
