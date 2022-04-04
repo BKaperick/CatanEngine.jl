@@ -1,3 +1,4 @@
+include("constants.jl")
 include("human.jl")
 mutable struct Player
     resources::Dict{Symbol,Int}
@@ -51,13 +52,6 @@ mutable struct Board
 end
 Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = Board(tile_to_value, tile_to_resource, [], [])
 
-TEAMS = [
-         :Blue,
-         #:Orange,
-         #:Green,
-         :Robo
-        ]
-TEAM_TO_PLAYER = Dict([t => Player() for t in TEAMS])
 
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
 #end
@@ -87,33 +81,6 @@ TEAM_TO_PLAYER = Dict([t => Player() for t in TEAMS])
 #    21-22-23-24-25-26-27-28-29
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
-
-TILE_TO_COORDS = Dict(
-                      :A => Set([(1,1),(1,2),(1,3),(2,2),(2,3),(2,4)]),
-                      :B => Set([(1,3),(1,4),(1,5),(2,4),(2,5),(2,6)]),
-                      :C => Set([(1,5),(1,6),(1,7),(2,6),(2,7),(2,8)]),
-                      
-                      :D => Set([(2,1),(2,2),(2,3),(3,2),(3,3),(3,4)]),
-                      :E => Set([(2,3),(2,4),(2,5),(3,4),(3,5),(3,6)]),
-                      :F => Set([(2,5),(2,6),(2,7),(3,6),(3,7),(3,8)]),
-                      :G => Set([(2,7),(2,8),(2,9),(3,8),(3,9),(3,10)]),
-                      
-                      :H => Set([(3,1),(3,2),(3,3),(4,1),(4,2),(4,3)]),
-                      :I => Set([(3,3),(3,4),(3,5),(4,3),(4,4),(4,5)]),
-                      :J => Set([(3,5),(3,6),(3,7),(4,5),(4,6),(4,7)]),
-                      :K => Set([(3,7),(3,8),(3,9),(4,7),(4,8),(4,9)]),
-                      :L => Set([(3,9),(3,10),(3,11),(4,9),(4,10),(4,11)]),
-                      
-                      :M => Set([(5,1),(5,2),(5,3),(4,2),(4,3),(4,4)]),
-                      :N => Set([(5,3),(5,4),(5,5),(4,4),(4,5),(4,6)]),
-                      :O => Set([(5,5),(5,6),(5,7),(4,6),(4,7),(4,8)]),
-                      :P => Set([(5,7),(5,8),(5,9),(4,8),(4,9),(4,10)]),
-                      
-                      :Q => Set([(6,1),(6,2),(6,3),(5,2),(5,3),(5,4)]),
-                      :R => Set([(6,3),(6,4),(6,5),(5,4),(5,5),(5,6)]),
-                      :S => Set([(6,5),(6,6),(6,7),(5,6),(5,7),(5,8)]),
-                     )
-COORD_TO_TILES = Dict()
 
 function read_map(csvfile)::Board
     board = Board(Dict(), Dict(), [], [])
@@ -147,20 +114,6 @@ function read_map(csvfile)::Board
     @assert length([r for r in values(board.tile_to_resource) where r == :Desert]) == 1
     return board
 end
-                       
-for elem in TILE_TO_COORDS
-    print("elem: ", elem, "\n")
-    tile = elem[1]
-    coords = elem[2]
-    for c in coords
-        if haskey(COORD_TO_TILES,c)
-            push!(COORD_TO_TILES[c], tile)
-        else
-            COORD_TO_TILES[c] = Set([tile])
-        end
-    end
-end
-
 function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
     for i in 1:quantity
         harvest_resource(TEAM_TO_PLAYER[team], resource)
