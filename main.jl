@@ -53,16 +53,12 @@ Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = 
 
 TEAMS = [
          :Blue,
-         :Orange,
-         :Green,
+         #:Orange,
+         #:Green,
          :Robo
         ]
-TEAM_TO_PLAYER = Dict(
-         :Blue => Player(),
-         :Orange => Player(),
-         :Green => Player(),
-         :Robo => Player()
-                     )
+TEAM_TO_PLAYER = Dict([t => Player() for t in TEAMS])
+
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
 #end
 
@@ -141,6 +137,14 @@ function read_map(csvfile)::Board
         board.tile_to_dicevalue[tile] = dice
         board.tile_to_resource[tile] = resource
     end
+    @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 19
+    @assert sum(values(board.tile_to_dicevalue)) == 119
+    @assert length([r for r in values(board.tile_to_resource) where r == :Wood]) == 4
+    @assert length([r for r in values(board.tile_to_resource) where r == :Stone]) == 3
+    @assert length([r for r in values(board.tile_to_resource) where r == :Grain]) == 4
+    @assert length([r for r in values(board.tile_to_resource) where r == :Brick]) == 3
+    @assert length([r for r in values(board.tile_to_resource) where r == :Pasture]) == 4
+    @assert length([r for r in values(board.tile_to_resource) where r == :Desert]) == 1
     return board
 end
                        
