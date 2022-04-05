@@ -3,6 +3,11 @@ function input(prompt::String)
     return readline()
 end
 
+function human_move_robber(team)        
+    coord_settlement_str = input("$team places a settlement:")
+    coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])
+    build_settlement(buildings, team, coord_settlement)
+end
 function human_build_settlement(buildings, team)        
     coord_settlement_str = input("$team places a settlement:")
     coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])

@@ -1,24 +1,9 @@
+using StatsBase
+include("structs.jl")
 include("constants.jl")
 include("human.jl")
-mutable struct Player
-    resources::Dict{Symbol,Int}
-    vp_count::Int
-    dev_cards::Dict{Symbol,Int}
-    dev_cards_used::Dict{Symbol,Int}
-end
-Player() = Player(Dict(), 0, Dict(), Dict())
 
-mutable struct Public_Info
-    resource_count::Int
-    dev_cards_count::Int
-    dev_cards_used::Dict{Symbol,Int}
-    vp_count::Int
-end
-mutable struct Private_Info
-    resources::Dict{Symbol,Int}
-    dev_cards::Dict{Symbol,Int}
-    private_vp_count::Int
-end
+Board(tile_to_value::Dict, tile_to_resource::Dict) = Board(tile_to_value, tile_to_resource, [], [], ())
 
 function get_public_info(player::Player)::Public_Info
     return Public_Info(
@@ -30,27 +15,6 @@ function get_private_info(player::Player)::Private_Info
     return Private_Info(player.resources, player.dev_cards, player.vp_count)
 end
 
-mutable struct Construction
-end
-
-mutable struct Road
-    coord1::Tuple{Int,Int}
-    coord2::Tuple{Int,Int}
-    team
-end
-
-mutable struct Building
-    coord::Tuple{Int,Int}
-    type::Symbol
-end
-
-mutable struct Board
-    tile_to_dicevalue::Dict{Symbol,Int}
-    tile_to_resource::Dict{Symbol,Symbol}
-    buildings::Array{Building,1}
-    roads::Array{Road,1}
-end
-Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = Board(tile_to_value, tile_to_resource, [], [])
 
 
 #function Int turn(Private_Info current_player, List{Public_Info} other_players):
@@ -83,7 +47,7 @@ Board(tile_to_value::Dict{Symbol,Int}, tile_to_resource::Dict{Symbol,Symbol}) = 
 #       11-12-13-14-15-16-17
 
 function read_map(csvfile)::Board
-    board = Board(Dict(), Dict(), [], [])
+    board = Board(Dict(), Dict())
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = Dict(
                                   "W" => :Wood,
@@ -134,14 +98,15 @@ function pay_price(player::Player, cost::Dict)
         player.resources[resource] -= cost[resource]
     end
 end
-
+build_city(buildings, team, coord) = build_building(buildings, team, coord, :City)
+build_settlement(buildings, team, coord) = build_building(buildings, team, coord, :Settlement)
 function construct_city(buildings, team::Symbol, coord)
     pay_construction(team, :City)
-    build_construction(buildings, team, coord, :City)
+    build_city(buildings, team, coord)
 end
 function construct_settlement(buildings, team::Symbol, coord)
     pay_construction(team, :Settlement)
-    build_construction(buildings, team, coord, :Settlement)
+    build_settlement(buildings, team, coord)
 end
 
 function pay_construction(team::Symbol, construction::Symbol)
@@ -157,6 +122,7 @@ function build_building(buildings, team::Symbol, coord::Tuple{Int, Int}, type::S
     player.vp_count += VP_AWARDS[type]
     return city
 end
+
 function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
     road = Road(coord1, coord2, team)
     push!(roads, road)
@@ -177,7 +143,10 @@ function harvest_resource(building::Building, resource::Symbol)
     end
 end
 
-function building_gets_resource(building, dice_value)::Symbol
+function building_gets_resource(building, dice_value, robber_coord)::Symbol
+    if building.coord == robber_coord
+        return Nothing
+    end
     tile = COORD_TO_TILES[building.coord]
     if TILE_TO_DICEVAL[tile] == dice_value
         return TILE_TO_RESOURCE[tile]
@@ -186,15 +155,41 @@ function building_gets_resource(building, dice_value)::Symbol
 end
 
 buildings = Array{Building,1}()
-function roll_dice(buildings, value)
+
+function move_robber(board::Board, team, coord)
+    board.robber_coord = coord
+end
+function roll_dice(board::Board, value)
 
     # In all cases except 7, we allocate resources
     if value != 7
-        for building in buildings
-            resource = building_gets_resource(building, value)
+        for building in board.buildings
+            resource = building_gets_resource(building, value, board.robber_coord)
             harvest_resource(building, resource)
         end
+    else
+        do_robber_move(board)
     end
+end
+
+function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)
+    items = []
+    for (r,c) in resources
+        append!(items, repeate([r], c))
+    end
+    return sample(items, count, replace=false)
+end
+function do_robber_move(board, team)
+    move_robber(board)
+    for (t,p) in TEAM_TO_PLAYER
+        r_count = Public_Info(p).resource_count
+        if r_count > 7
+            to_lose = random_sample_resources(p.resources, Int(floor(r_count / 2)))
+            for r in to_lose
+                p.resources[r] -= 1
+            end
+        end
+    end  
 end
 
 function do_turn(buildings, team)
@@ -204,6 +199,9 @@ function do_turn(buildings, team)
     end
 end
 function someone_has_won()::Bool
+    return get_winner() != Nothing
+end
+function get_winner()#::Union{Player, Nothing}
     for kvp in TEAM_TO_PLAYER
         if kvp[2].vp_count >= 10
             return kvp[1]
@@ -229,20 +227,29 @@ function do_first_turn(board)
             settlement = human_build_settlement(board.buildings, team)
             for tile in COORD_TO_TILES[settlement.coord]
                 resource = board.tile_to_resource[tile]
-                TEAM_TO_PLAYER[team].resources[resourse] += 1
+                give_resource(TEAM_TO_PLAYER[team], resource)
             end
             human_build_road(board.roads, team)
         end
     end
 end
 
-        
+function give_resource(player::Player, resource::Symbol)
+    if haskey(player.resources, resource)
+        player.resources[resource] += 1
+    else
+        player.resources[resource] = 1
+    end
+end
 
 function do_game(board::Board)
-    do_first_turn(board.buildings, board.roads)
+    do_first_turn(board)
     while someone_has_won() == Nothing
         for team in TEAMS
             do_turn(board.buildings, team)
         end
     end
+end
+
+function print_board(board::Board)
 end
