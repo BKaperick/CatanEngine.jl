@@ -49,6 +49,13 @@ DIMS = [7,9,11,11,9,7]
 22,24,26,28,32,34,36,38,310,        
 
 function try_construct_settlement(buildings, team::Symbol, coord)::Bool
+    for neigh in get_neighbors(coord)
+        if any([b.coord == neigh for b in buildings])
+            return false
+        end
+    end
+    construct_settlement(buildings, team, coord)
+    return true
 end
 function get_neighbors(coord)
     neighbors = []
