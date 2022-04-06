@@ -48,8 +48,12 @@ end
 DIMS = [7,9,11,11,9,7]
 22,24,26,28,32,34,36,38,310,        
 
-function try_construct_settlement(buildings, team::Symbol, coord)::Bool
+function try_construct_settlement(buildings, roads, team::Symbol, coord)::Bool
     player = TEAM_TO_PLAYER[team]
+    team_with_roads_through_coord = team_with_two_adjacent_roads(roads, coord) 
+    if team_with_roads_through_coord != Nothing && team_with_roads_through_coord != team
+        return false
+    end
     if !has_enough_resources(player, COSTS[:Settlement])
         return false
     end
@@ -60,6 +64,38 @@ function try_construct_settlement(buildings, team::Symbol, coord)::Bool
     end
     construct_settlement(buildings, team, coord)
     return true
+end
+
+function try_construct_city(buildings, team::Symbol, coord)::Bool
+    player = TEAM_TO_PLAYER[team]
+    if !has_enough_resources(player, COSTS[:City])
+        return false
+    end
+    construct_city(buildings, team, coord)
+    return true
+end
+
+function team_with_two_adjacent_roads(roads, coord)
+    roads = get_adjacent_roads(roads, coord)
+    if length(roads) < 2
+        return Nothing
+    end
+    for team in TEAMS
+        if count([r for r in roads if r.team == team]) >= 2
+            return team
+        end
+    end
+    return Nothing
+end
+
+function get_adjacent_roads(roads, coord)
+    adjacent = []
+    for road in roads
+        if road.coord1 == coord || road.coord2 == coord
+            push!(adjacent, road)
+        end
+    end
+    return adjacent
 end
 function get_neighbors(coord)
     neighbors = []
