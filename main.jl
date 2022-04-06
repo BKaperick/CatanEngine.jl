@@ -59,23 +59,30 @@ function get_neighbors(coord)
     if c < DIMS[r]
         push!(neighbors, (r,c+1))
     end
-    if r < length(DIMS)-1 && DIMS[r]    < DIMS[r+1] && isodd(c)
-        push!(neighbors, (r+1,c+1))
-    end
-    if r < length(DIMS)-1 && DIMS[r]   == DIMS[r+1] && isodd(c)
-        push!(neighbors, (r+1,c))
-    end
-    if r > 1              && DIMS[r-1]  < DIMS[r]   && iseven(c)
+    if isodd(c)
+        if r < length(DIMS)-1
+            if DIMS[r]  < DIMS[r+1]
+                push!(neighbors, (r+1,c+1))
+            elseif DIMS[r] == DIMS[r+1]
+                push!(neighbors, (r+1,c))
+            end
+        elseif r > 1
+            if DIMS[r-1]  > DIMS[r]  
+                push!(neighbors, (r-1, c+1))
+            elseif DIMS[r-1] == DIMS[r]  
+                push!(neighbors, (r-1,c))
+            end
+        end
+    elseif r > 1 && DIMS[r-1]  < DIMS[r]
         push!(neighbors, (r-1, c-1))
     end
-    if r > 1              && DIMS[r-1]  > DIMS[r]   && isodd(c)
-        push!(neighbors, (r-1, c+1))
-    end
-    if r > 1              && DIMS[r-1] == DIMS[r]   && isodd(c)
-        push!(neighbors, (r-1,c))
-    end
-    return neighbors
+    return Set(neighbors)
 end
+
+@assert get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
+@assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
+@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
+@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
 function read_map(csvfile)::Board
     board = Board(Dict(), Dict())
