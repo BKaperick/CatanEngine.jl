@@ -2,6 +2,7 @@ using StatsBase
 include("structs.jl")
 include("constants.jl")
 include("human.jl")
+include("robo.jl")
 
 Board(tile_to_value::Dict, tile_to_resource::Dict) = Board(tile_to_value, tile_to_resource, [], [], ())
 
@@ -241,7 +242,7 @@ end
 
 buildings = Array{Building,1}()
 
-function move_robber(board::Board, team, coord)
+function move_robber(board::Board, coord)
     board.robber_coord = coord
 end
 function roll_dice(board::Board, value)
@@ -264,8 +265,17 @@ function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)
     end
     return sample(items, count, replace=false)
 end
+
+function get_new_robber_coord(team)
+    if TEAM_TO_TYPE == :Human
+        return human_get_new_robber_coord(team)
+    else
+        return robo_get_new_robber_coord(team)
+    end
+end
+
 function do_robber_move(board, team)
-    move_robber(board)
+    move_robber(board, coord, get_new_robber_coord(team))
     for (t,p) in TEAM_TO_PLAYER
         r_count = Public_Info(p).resource_count
         if r_count > 7
