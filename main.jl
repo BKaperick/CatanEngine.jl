@@ -49,6 +49,10 @@ DIMS = [7,9,11,11,9,7]
 22,24,26,28,32,34,36,38,310,        
 
 function try_construct_settlement(buildings, team::Symbol, coord)::Bool
+    player = TEAM_TO_PLAYER[team]
+    if !has_enough_resources(player, COSTS[:Settlement])
+        return false
+    end
     for neigh in get_neighbors(coord)
         if any([b.coord == neigh for b in buildings])
             return false
@@ -279,6 +283,17 @@ function do_first_turn(board)
     end
 end
 
+function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
+    for (r,amt) in resources
+        if !haskey(player.resources, r)
+            return false
+        end
+        if player.resources[r] < amt
+            return false
+        end
+    end
+    return true
+end
 function give_resource(player::Player, resource::Symbol)
     if haskey(player.resources, resource)
         player.resources[resource] += 1
