@@ -45,6 +45,37 @@ end
 #    21-22-23-24-25-26-27-28-29
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
+DIMS = [7,9,11,11,9,7]
+22,24,26,28,32,34,36,38,310,        
+
+function try_construct_settlement(buildings, team::Symbol, coord)::Bool
+end
+function get_neighbors(coord)
+    neighbors = []
+    r,c = coord
+    if 1 < c
+        push!(neighbors, (r,c-1))
+    end
+    if c < DIMS[r]
+        push!(neighbors, (r,c+1))
+    end
+    if r < length(DIMS)-1 && DIMS[r]    < DIMS[r+1] && isodd(c)
+        push!(neighbors, (r+1,c+1))
+    end
+    if r < length(DIMS)-1 && DIMS[r]   == DIMS[r+1] && isodd(c)
+        push!(neighbors, (r+1,c))
+    end
+    if r > 1              && DIMS[r-1]  < DIMS[r]   && iseven(c)
+        push!(neighbors, (r-1, c-1))
+    end
+    if r > 1              && DIMS[r-1]  > DIMS[r]   && isodd(c)
+        push!(neighbors, (r-1, c+1))
+    end
+    if r > 1              && DIMS[r-1] == DIMS[r]   && isodd(c)
+        push!(neighbors, (r-1,c))
+    end
+    return neighbors
+end
 
 function read_map(csvfile)::Board
     board = Board(Dict(), Dict())
