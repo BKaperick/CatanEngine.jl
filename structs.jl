@@ -12,11 +12,18 @@ mutable struct Public_Info
     dev_cards_used::Dict{Symbol,Int}
     vp_count::Int
 end
+Public_Info(player::Player) = Public_Info(
+    sum(values(player.resources)), 
+    sum(values(player.dev_cards)),
+    Dict(),
+    player.vp_count)
+
 mutable struct Private_Info
     resources::Dict{Symbol,Int}
     dev_cards::Dict{Symbol,Int}
     private_vp_count::Int
 end
+Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, player.vp_count)
 
 mutable struct Construction
 end
@@ -32,10 +39,3 @@ mutable struct Building
     type::Symbol
 end
 
-mutable struct Board
-    tile_to_dicevalue::Dict{Symbol,Int}
-    tile_to_resource::Dict{Symbol,Symbol}
-    buildings::Array{Building,1}
-    roads::Array{Road,1}
-    robber_coord::Tuple
-end

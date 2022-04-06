@@ -1,20 +1,11 @@
 using StatsBase
 include("structs.jl")
 include("constants.jl")
+include("board.jl")
 include("human.jl")
 include("robo.jl")
 
-Board(tile_to_value::Dict, tile_to_resource::Dict) = Board(tile_to_value, tile_to_resource, [], [], ())
 
-function get_public_info(player::Player)::Public_Info
-    return Public_Info(
-                       sum(values(player.resources)), 
-                       sum(values(player.dev_cards)), 
-                       player.vp_count)
-end
-function get_private_info(player::Player)::Private_Info
-    return Private_Info(player.resources, player.dev_cards, player.vp_count)
-end
 
 
 
@@ -46,8 +37,6 @@ end
 #    21-22-23-24-25-26-27-28-29
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
-DIMS = [7,9,11,11,9,7]
-22,24,26,28,32,34,36,38,310,        
 
 function try_construct_settlement(buildings, roads, team::Symbol, coord)::Bool
     player = TEAM_TO_PLAYER[team]
@@ -98,42 +87,8 @@ function get_adjacent_roads(roads, coord)
     end
     return adjacent
 end
-function get_neighbors(coord)
-    neighbors = []
-    r,c = coord
-    if 1 < c
-        push!(neighbors, (r,c-1))
-    end
-    if c < DIMS[r]
-        push!(neighbors, (r,c+1))
-    end
-    if isodd(c)
-        if r < length(DIMS)-1
-            if DIMS[r]  < DIMS[r+1]
-                push!(neighbors, (r+1,c+1))
-            elseif DIMS[r] == DIMS[r+1]
-                push!(neighbors, (r+1,c))
-            end
-        elseif r > 1
-            if DIMS[r-1]  > DIMS[r]  
-                push!(neighbors, (r-1, c+1))
-            elseif DIMS[r-1] == DIMS[r]  
-                push!(neighbors, (r-1,c))
-            end
-        end
-    elseif r > 1 && DIMS[r-1]  < DIMS[r]
-        push!(neighbors, (r-1, c-1))
-    end
-    return Set(neighbors)
-end
-
-@assert get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
-@assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
 function read_map(csvfile)::Board
-    board = Board(Dict(), Dict())
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = Dict(
                                   "W" => :Wood,
@@ -145,15 +100,22 @@ function read_map(csvfile)::Board
                                 )
     file_str = read(csvfile, String)
     board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
+    tile_to_dicevalue = Dict()
+    tile_to_resource = Dict()
+    desert_tile = :Null
     for line in board_state
         tile_str,dice_str,resource_str = split(line,',')
         tile = Symbol(tile_str)
         resource = resourcestr_to_symbol[uppercase(resource_str)]
         dice = parse(Int, dice_str)
 
-        board.tile_to_dicevalue[tile] = dice
-        board.tile_to_resource[tile] = resource
+        tile_to_dicevalue[tile] = dice
+        tile_to_resource[tile] = resource
+        if resource == :Desert
+            desert_tile = tile
+        end
     end
+    board = Board(tile_to_dicevalue, tile_to_resource, desert_tile)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))
     @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(sum(values(board.tile_to_dicevalue))) instead of 133"
@@ -229,8 +191,8 @@ function harvest_resource(building::Building, resource::Symbol)
     end
 end
 
-function building_gets_resource(building, dice_value, robber_coord)::Symbol
-    if building.coord == robber_coord
+function building_gets_resource(building, dice_value, robber_tile::Symbol)::Symbol
+    if building.coord == robber_tile
         return Nothing
     end
     tile = COORD_TO_TILES[building.coord]
@@ -243,14 +205,14 @@ end
 buildings = Array{Building,1}()
 
 function move_robber(board::Board, coord)
-    board.robber_coord = coord
+    board.robber_tile = coord
 end
 function roll_dice(board::Board, value)
 
     # In all cases except 7, we allocate resources
     if value != 7
         for building in board.buildings
-            resource = building_gets_resource(building, value, board.robber_coord)
+            resource = building_gets_resource(building, value, board.robber_tile)
             harvest_resource(building, resource)
         end
     else
@@ -258,24 +220,16 @@ function roll_dice(board::Board, value)
     end
 end
 
-function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)
-    items = []
-    for (r,c) in resources
-        append!(items, repeate([r], c))
-    end
-    return sample(items, count, replace=false)
-end
-
-function get_new_robber_coord(team)
+function get_new_robber_tile(team)::Symbol
     if TEAM_TO_TYPE == :Human
-        return human_get_new_robber_coord(team)
+        return human_get_new_robber_tile(team)
     else
-        return robo_get_new_robber_coord(team)
+        return robo_get_new_robber_tile(team)
     end
 end
 
 function do_robber_move(board, team)
-    move_robber(board, coord, get_new_robber_coord(team))
+    move_robber(board, get_new_robber_tile(team))
     for (t,p) in TEAM_TO_PLAYER
         r_count = Public_Info(p).resource_count
         if r_count > 7
@@ -315,16 +269,22 @@ function do_first_turn(board)
         if team != :Robo
             human_build_settlement(board.buildings, team)
             human_build_road(board.roads, team)
+        else
+            robo_build_settlement(board.buildings, team)
+            robo_build_road(board.roads, team)
         end
     end
     for team in reverse(TEAMS)
         if team != :Robo
             settlement = human_build_settlement(board.buildings, team)
-            for tile in COORD_TO_TILES[settlement.coord]
-                resource = board.tile_to_resource[tile]
-                give_resource(TEAM_TO_PLAYER[team], resource)
-            end
             human_build_road(board.roads, team)
+        else
+            settlement = robo_build_settlement(board.buildings, team)
+            robo_build_road(board.roads, team)
+        end
+        for tile in COORD_TO_TILES[settlement.coord]
+            resource = board.tile_to_resource[tile]
+            give_resource(TEAM_TO_PLAYER[team], resource)
         end
     end
 end
