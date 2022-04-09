@@ -316,6 +316,3 @@ function do_game(board::Board)
         end
     end
 end
-
-function print_board(board::Board)
-end
