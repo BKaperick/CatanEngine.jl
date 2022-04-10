@@ -108,8 +108,6 @@ function pay_price(player::Player, cost::Dict)
         player.resources[resource] -= cost[resource]
     end
 end
-build_city(board, team, coord) = build_building(board, team, coord, :City)
-build_settlement(board, team, coord) = build_building(board, team, coord, :Settlement)
 function construct_city(board, team::Symbol, coord)
     pay_construction(team, :City)
     build_city(board, team, coord)
@@ -125,9 +123,7 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
-build_building(board, player::Player, coord::Tuple{Int, Int}, type::Symbol) = build_building(board, TEAM_TO_PLAYER[team], coord, type)
-function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
-    player = TEAM_TO_PLAYER[team]
+function build_building(board, player::Player, coord::Tuple{Int, Int}, type::Symbol)
     building = Building(coord, type, player)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
@@ -135,7 +131,7 @@ function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbo
     return building
 end
 
-function build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
+function build_road(board, player::Player, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
     player = TEAM_TO_PLAYER[team]
     road = Road(coord1, coord2, player)
     push!(board.roads, road)
