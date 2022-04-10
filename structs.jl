@@ -32,7 +32,7 @@ end
 mutable struct Road
     coord1::Tuple{Int,Int}
     coord2::Tuple{Int,Int}
-    team
+    player::Player
 end
 
 mutable struct Building

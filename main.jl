@@ -133,11 +133,18 @@ function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbo
     return building
 end
 
-function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
-    road = Road(coord1, coord2, team)
-    push!(roads, road)
+function build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
     player = TEAM_TO_PLAYER[team]
-    award_longest_road(roads)
+    road = Road(coord1, coord2, player)
+    push!(board.roads, road)
+    for coord in [coord1, coord2]
+        if haskey(board.coord_to_roads, coord)
+            push!(board.coord_to_roads[coord], road)
+        else
+            board.coord_to_roads[coord] = Set([road])
+        end
+    end
+    award_longest_road(board.roads)
     return road
 end
 
@@ -230,19 +237,19 @@ function do_first_turn(board)
     for team in TEAMS
         if team != :Robo
             human_build_settlement(board.buildings, team)
-            human_build_road(board.roads, team)
+            human_build_road(board, team)
         else
             robo_build_settlement(board.buildings, team)
-            robo_build_road(board.roads, team)
+            robo_build_road(board, team)
         end
     end
     for team in reverse(TEAMS)
         if team != :Robo
             settlement = human_build_settlement(board.buildings, team)
-            human_build_road(board.roads, team)
+            human_build_road(board, team)
         else
             settlement = robo_build_settlement(board.buildings, team)
-            robo_build_road(board.roads, team)
+            robo_build_road(board, team)
         end
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
@@ -278,3 +285,9 @@ function do_game(board::Board)
         end
     end
 end
+
+board = read_map("sample.csv")
+build_settlement(board, :Blue, (2,3))
+road = build_road(board, :Blue, (2,3), (2,4))
+build_settlement(board, :Green, (6,3))
+print_board(board);

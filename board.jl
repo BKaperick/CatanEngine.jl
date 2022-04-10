@@ -2,13 +2,14 @@ mutable struct Board
     tile_to_dicevalue::Dict{Symbol,Int}
     tile_to_resource::Dict{Symbol,Symbol}
     coord_to_building::Dict{Tuple,Building}
+    coord_to_roads::Dict{Tuple,Set{Road}}
     empty_spaces::Vector
     buildings::Array{Building,1}
     roads::Array{Road,1}
     robber_tile::Symbol
 end
 
-Board(tile_to_value::Dict, tile_to_resource::Dict, robber_tile::Symbol) = Board(tile_to_value, tile_to_resource, Dict(), initialize_empty_board(DIMS), [], [], robber_tile)
+Board(tile_to_value::Dict, tile_to_resource::Dict, robber_tile::Symbol) = Board(tile_to_value, tile_to_resource, Dict(), Dict(), initialize_empty_board(DIMS), [], [], robber_tile)
 
 function initialize_empty_board(dimensions)
     spaces = []
@@ -87,9 +88,7 @@ function hexagon(board, tile, b,x,y)
     end
 
     # Add coordinate info
-    coords = sort(collect(TILE_TO_COORDS[tile]))#, by= x -> x[1]*10 + x[2])
-    println(coords)
-    println(vertices(x,y))
+    coords = cyclic_sort(collect(TILE_TO_COORDS[tile]))
     for (v,c) in zip(vertices(x,y),coords)
         if haskey(board.coord_to_building, c)
             building_str = print_building(board.coord_to_building[c])
@@ -97,11 +96,66 @@ function hexagon(board, tile, b,x,y)
             b[v[2]][v[1]] = building_str
         end
     end
+    
+    # Add edge info
+    vertices_list = vertices(x,y)
+    println(coords)
+    for (i,(e,c)) in enumerate(zip(edges(x,y),coords))
+        if haskey(board.coord_to_roads, c)
+            roads = board.coord_to_roads[c]
+            for road in roads
+                c2 = road.coord1 == c ? road.coord2 : road.coord1
+                if i < length(vertices_list)
+                    println("Tile $tile: found road $(print_road(road)) at $(c[1]),$(c[2]) ($c2 -- $(coords[i+1]))")
+                    if c2 == coords[i+1] # TODO: not the correct condition
+                        road_str = print_road(road)
+                        println("Tile $tile: adding road $road_str at $(e[1]),$(e[2])")
+                        b[e[2]][e[1]] = road_str
+                    end
+                end
+            end
+        end
+    end
 end
-
+#  vertices:
+#    5--4
+#   /    \
+#  6      3
+#   \    /
+#    1--2
+# edges:
+#    o-6o
+#   5    3
+#  o      o
+#   4    2
+#    o1-o
+#
+#
+test = [(1,1),(1,2),(1,3),(2,2),(2,3),(2,4)]
+function cyclic_sort(coords)
+    minx = minimum([c[1] for c in coords])
+    bottom = sort([c for c in coords if c[1] == minx])
+    top = sort([c for c in coords if c[1] != minx], by= x -> -x[2])
+    append!(bottom,top)
+    return bottom
+end
+function vertices_to_edge(x1,y1,x2,y2)
+return (Int((x1 + x2) / 2),Int((y1 + y2) / 2))
+end
 function vertices(x,y)
     # Ordering is important so that it's compatible with the sort of TILE_TO_COORDS[tile]
-    return [(x,y+4),(x+3,y+4),(x+5,y+2),(x-2,y+2),(x,y),(x+3,y)]
+    return [(x,y+4),(x+3,y+4),(x+5,y+2),(x+3,y),(x,y),(x-2,y+2)]
+end
+function edges(x,y)
+    # Ordering is important so that it's compatible with the sort of TILE_TO_COORDS[tile]
+    return [
+    (x+1,y+4),
+    (x+4,y+3),
+    (x+4,y+1),
+    (x+2,y),
+    (x-1,y+1),
+    (x-1,y+3)
+    ]
 end
 
 function horizontal(b,x,y)
@@ -177,8 +231,3 @@ end
 @assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
-
-board = read_map("sample.csv")
-build_settlement(board, :Blue, (2,3))
-build_settlement(board, :Green, (6,3))
-print_board(board)

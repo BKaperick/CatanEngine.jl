@@ -47,3 +47,7 @@ function print_building(building)
         return name
     end
 end
+
+function print_road(road)
+    return lowercase(string(string(road.player.team)[1]))
+end
