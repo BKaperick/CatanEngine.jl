@@ -4,21 +4,23 @@ function input(prompt::String)
 end
 
 function human_move_robber(team)        
+    player = TEAM_TO_PLAYER[team]
     coord_settlement_str = input("$team places a settlement:")
     coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])
-    build_settlement(buildings, team, coord_settlement)
+    build_settlement(buildings, player, coord_settlement)
 end
-function human_build_settlement(board, team)        
-    coord_settlement_str = input("$team places a settlement:")
+function human_build_settlement(board, player)
+    coord_settlement_str = input("$(player.team) places a settlement:")
     coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])
-    build_settlement(board, team, coord_settlement)
+    build_settlement(board, player, coord_settlement)
 end
-function human_build_road(board, team)        
-    coord_road_str = input("$team places a road:")
+
+function human_build_road(board, player)        
+    coord_road_str = input("$(player.team) places a road:")
     coord_road = [parse(Int, x) for x in split(coord_road_str, ' ')]
     coord_road1 = Tuple(coord_road[1:2])
     coord_road2 = Tuple(coord_road[3:4])
-    build_road(board, team, coord_road1, coord_road2)
+    build_road(board, player, coord_road1, coord_road2)
 end
 function human_roll_dice(team)
     value_str = input("$team rolls the dice")
@@ -46,3 +48,6 @@ function human_do_robber_move(board, team)
         end
     end  
 end
+
+human_build_settlement(board, team) = human_build_settlement(board, TEAM_TO_PLAYER[team])
+human_build_road(board, team) = human_build_road(board, TEAM_TO_PLAYER[team])

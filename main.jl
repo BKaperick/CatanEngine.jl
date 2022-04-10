@@ -88,9 +88,10 @@ function get_adjacent_roads(roads, coord)
     end
     return adjacent
 end
-function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
+
+function harvest_resource(player::Player, resource::Symbol, quantity::Int)
     for i in 1:quantity
-        harvest_resource(TEAM_TO_PLAYER[team], resource)
+        harvest_resource(player, resource)
     end
 end
 
@@ -124,6 +125,7 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
+build_building(board, player::Player, coord::Tuple{Int, Int}, type::Symbol) = build_building(board, TEAM_TO_PLAYER[team], coord, type)
 function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
     player = TEAM_TO_PLAYER[team]
     building = Building(coord, type, player)
@@ -210,10 +212,10 @@ function do_robber_move(board, team)
     end  
 end
 
-function do_turn(buildings, team)
-    value = human_roll_dice(team)
+function do_turn(buildings, player)
+    value = human_roll_dice(player)
     roll_dice(buildings, value)
-    if team == :Robo
+    if TEAM_TO_TYPE[player.team] == :Robot
     end
 end
 function someone_has_won()::Bool
@@ -234,26 +236,26 @@ end
 
 
 function do_first_turn(board)
-    for team in TEAMS
-        if team != :Robo
-            human_build_settlement(board.buildings, team)
-            human_build_road(board, team)
+    for player in PLAYERS
+        if TEAM_TO_TYPE[player.team] != :Robot
+            human_build_settlement(board.buildings, player)
+            human_build_road(board, player)
         else
-            robo_build_settlement(board.buildings, team)
-            robo_build_road(board, team)
+            robo_build_settlement(board.buildings, player)
+            robo_build_road(board, player)
         end
     end
-    for team in reverse(TEAMS)
-        if team != :Robo
-            settlement = human_build_settlement(board.buildings, team)
-            human_build_road(board, team)
+    for player in reverse(PLAYERS)
+        if TEAM_TO_TYPE[player.team] != :Robot
+            settlement = human_build_settlement(board.buildings, player)
+            human_build_road(board, player)
         else
-            settlement = robo_build_settlement(board.buildings, team)
-            robo_build_road(board, team)
+            settlement = robo_build_settlement(board.buildings, player)
+            robo_build_road(board, player)
         end
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
-            give_resource(TEAM_TO_PLAYER[team], resource)
+            give_resource(player, resource)
         end
     end
 end
@@ -280,8 +282,8 @@ end
 function do_game(board::Board)
     do_first_turn(board)
     while someone_has_won() == Nothing
-        for team in TEAMS
-            do_turn(board.buildings, team)
+        for player in PLAYERS
+            do_turn(board.buildings, player)
         end
     end
 end
