@@ -87,17 +87,21 @@ function hexagon(board, tile, b,x,y)
     end
 
     # Add coordinate info
-    coords = TILE_TO_COORDS[tile]
-    r2 = maximum([c[1] for c in coords])
-    first_row = [c for c in coords if c[1] == r2-1]
-    second_row = [c for c in coords if c[1] == r2]
-    
-    sort!(second_row, by= c -> c[2])
-    sort!(first_row, by= c -> c[2])
-    if haskey(board.coord_to_building, second_row[2])
-        b[y][x] = print_building(board.coord_to_building[second_row[2]])
+    coords = sort(collect(TILE_TO_COORDS[tile]))#, by= x -> x[1]*10 + x[2])
+    println(coords)
+    println(vertices(x,y))
+    for (v,c) in zip(vertices(x,y),coords)
+        if haskey(board.coord_to_building, c)
+            building_str = print_building(board.coord_to_building[c])
+            println("Tile $tile: adding $building_str at $(c[1]),$(c[2])")
+            b[v[2]][v[1]] = building_str
+        end
     end
-    
+end
+
+function vertices(x,y)
+    # Ordering is important so that it's compatible with the sort of TILE_TO_COORDS[tile]
+    return [(x,y+4),(x+3,y+4),(x+5,y+2),(x-2,y+2),(x,y),(x+3,y)]
 end
 
 function horizontal(b,x,y)
@@ -139,25 +143,25 @@ function print_board(board::Board)
         b[i] = copy(r)
     end 
     
-    hexagon(board,:Q,b,23,1)
+    hexagon(board,:S,b,23,1)
     hexagon(board,:R,b,18,3)
-    hexagon(board,:S,b,13,5)
+    hexagon(board,:Q,b,13,5)
     
-    hexagon(board,:M,b,28,3)
-    hexagon(board,:N,b,23,5)
-    hexagon(board,:O,b,18,7)
-    hexagon(board,:P,b,13,9)
+    hexagon(board,:P,b,28,3)
+    hexagon(board,:O,b,23,5)
+    hexagon(board,:N,b,18,7)
+    hexagon(board,:M,b,13,9)
     
-    hexagon(board,:H,b,33,5)
-    hexagon(board,:I,b,28,7)
+    hexagon(board,:L,b,33,5)
+    hexagon(board,:K,b,28,7)
     hexagon(board,:J,b,23,9)
-    hexagon(board,:K,b,18,11)
-    hexagon(board,:L,b,13,13)
+    hexagon(board,:I,b,18,11)
+    hexagon(board,:H,b,13,13)
     
-    hexagon(board,:D,b,33,9)
-    hexagon(board,:E,b,28,11)
-    hexagon(board,:F,b,23,13)
-    hexagon(board,:G,b,18,15)
+    hexagon(board,:G,b,33,9)
+    hexagon(board,:F,b,28,11)
+    hexagon(board,:E,b,23,13)
+    hexagon(board,:D,b,18,15)
     
     hexagon(board,:C,b,33,13) # (2,4),(2,5),(1,5),(1,4),(1,3),(2,3)
     hexagon(board,:B,b,28,15) # (2,4),(2,5),(1,5),(1,4),(1,3),(2,3)
@@ -176,4 +180,5 @@ end
 
 board = read_map("sample.csv")
 build_settlement(board, :Blue, (2,3))
+build_settlement(board, :Green, (6,3))
 print_board(board)

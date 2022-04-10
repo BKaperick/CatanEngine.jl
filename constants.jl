@@ -35,14 +35,14 @@ RESOURCE_TO_COUNT = Dict([
    ]) 
 TEAMS = [
          :Blue,
-         #:Orange,
-         #:Green,
+         :Orange,
+         :Green,
          :Robo
         ]
 TEAM_TO_TYPE = Dict(
          :Blue => :Human,
-         #:Orange => :Human,
-         #:Green => :Human,
+         :Orange => :Human,
+         :Green => :Human,
          :Robo => :Robot
         )
 TEAM_TO_PLAYER = Dict([t => Player(t) for t in TEAMS])
