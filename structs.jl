@@ -1,10 +1,11 @@
 mutable struct Player
+    team::Symbol
     resources::Dict{Symbol,Int}
     vp_count::Int
     dev_cards::Dict{Symbol,Int}
     dev_cards_used::Dict{Symbol,Int}
 end
-Player() = Player(Dict(), 0, Dict(), Dict())
+Player(team::Symbol) = Player(team, Dict(), 0, Dict(), Dict())
 
 mutable struct Public_Info
     resource_count::Int
@@ -37,5 +38,6 @@ end
 mutable struct Building
     coord::Tuple{Int,Int}
     type::Symbol
+    player::Player
 end
 

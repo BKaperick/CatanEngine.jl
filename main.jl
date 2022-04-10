@@ -1,6 +1,7 @@
 using StatsBase
 include("structs.jl")
 include("constants.jl")
+include("io.jl")
 include("board.jl")
 include("human.jl")
 include("robo.jl")
@@ -87,46 +88,6 @@ function get_adjacent_roads(roads, coord)
     end
     return adjacent
 end
-
-function read_map(csvfile)::Board
-    # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
-    resourcestr_to_symbol = Dict(
-                                  "W" => :Wood,
-                                  "S" => :Stone,
-                                  "G" => :Grain,
-                                  "B" => :Brick,
-                                  "P" => :Pasture,
-                                  "D" => :Desert
-                                )
-    file_str = read(csvfile, String)
-    board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
-    tile_to_dicevalue = Dict()
-    tile_to_resource = Dict()
-    desert_tile = :Null
-    for line in board_state
-        tile_str,dice_str,resource_str = split(line,',')
-        tile = Symbol(tile_str)
-        resource = resourcestr_to_symbol[uppercase(resource_str)]
-        dice = parse(Int, dice_str)
-
-        tile_to_dicevalue[tile] = dice
-        tile_to_resource[tile] = resource
-        if resource == :Desert
-            desert_tile = tile
-        end
-    end
-    board = Board(tile_to_dicevalue, tile_to_resource, desert_tile)
-    @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
-    t = sum(values(board.tile_to_dicevalue))
-    @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(sum(values(board.tile_to_dicevalue))) instead of 133"
-    @assert length([r for r in values(board.tile_to_resource) if r == :Wood]) == RESOURCE_TO_COUNT[:Wood]
-    @assert length([r for r in values(board.tile_to_resource) if r == :Stone]) == RESOURCE_TO_COUNT[:Stone]
-    @assert length([r for r in values(board.tile_to_resource) if r == :Grain]) == RESOURCE_TO_COUNT[:Grain]
-    @assert length([r for r in values(board.tile_to_resource) if r == :Brick]) == RESOURCE_TO_COUNT[:Brick]
-    @assert length([r for r in values(board.tile_to_resource) if r == :Pasture]) == RESOURCE_TO_COUNT[:Pasture]
-    @assert length([r for r in values(board.tile_to_resource) if r == :Desert]) == RESOURCE_TO_COUNT[:Desert]
-    return board
-end
 function harvest_resource(team::Symbol, resource::Symbol, quantity::Int)
     for i in 1:quantity
         harvest_resource(TEAM_TO_PLAYER[team], resource)
@@ -146,15 +107,15 @@ function pay_price(player::Player, cost::Dict)
         player.resources[resource] -= cost[resource]
     end
 end
-build_city(buildings, team, coord) = build_building(buildings, team, coord, :City)
-build_settlement(buildings, team, coord) = build_building(buildings, team, coord, :Settlement)
-function construct_city(buildings, team::Symbol, coord)
+build_city(board, team, coord) = build_building(board, team, coord, :City)
+build_settlement(board, team, coord) = build_building(board, team, coord, :Settlement)
+function construct_city(board, team::Symbol, coord)
     pay_construction(team, :City)
-    build_city(buildings, team, coord)
+    build_city(board, team, coord)
 end
-function construct_settlement(buildings, team::Symbol, coord)
+function construct_settlement(board, team::Symbol, coord)
     pay_construction(team, :Settlement)
-    build_settlement(buildings, team, coord)
+    build_settlement(board, team, coord)
 end
 
 function pay_construction(team::Symbol, construction::Symbol)
@@ -163,12 +124,13 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
-function build_building(buildings, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
-    city = Building(coord, type)
-    push!(buildings, city)
+function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
     player = TEAM_TO_PLAYER[team]
+    building = Building(coord, type, player)
+    push!(board.buildings, building)
+    board.coord_to_building[coord] = building
     player.vp_count += VP_AWARDS[type]
-    return city
+    return building
 end
 
 function build_road(roads, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
