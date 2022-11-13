@@ -7,9 +7,10 @@ mutable struct Board
     buildings::Array{Building,1}
     roads::Array{Road,1}
     robber_tile::Symbol
+    spaces::Vector
 end
 
-Board(tile_to_value::Dict, tile_to_resource::Dict, robber_tile::Symbol) = Board(tile_to_value, tile_to_resource, Dict(), Dict(), initialize_empty_board(DIMS), [], [], robber_tile)
+Board(tile_to_value::Dict, tile_to_resource::Dict, robber_tile::Symbol) = Board(tile_to_value, tile_to_resource, Dict(), Dict(), initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS))
 
 function initialize_empty_board(dimensions)
     spaces = []

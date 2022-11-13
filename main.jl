@@ -210,67 +210,59 @@ function get_winner()#::Union{Player, Nothing}
     end
     return Nothing
 end
-function initialize_game(csvfile::String)
+function initialize_game(csvfile::String, players)
     board = read_map(csvfile)
-    do_game(board)
-end
-
-function do_build_settlement(board, player)
-    if TEAM_TO_TYPE[player.team] != :Robot
-        human_build_settlement(board, player)
-    else
-        robo_build_settlement(board, player)
-    end
+    do_game(board, players)
 end
 
 function is_valid_building_placement(board, team, coord)::Bool
-    return true
+    return coord != Nothing
     #TODO implement
 end
 
 function is_valid_road_placement(board, team, coord1, coord2)::Bool
-    return true
+    return coord1 != Nothing && coord2 != Nothing
     #TODO implement
 end
 
 function choose_validate_building(board, players, player, building_type)
     coord = Nothing
-    while (!is_valid_building_placement(board, player.team, settlement_coord))
-        coord = choose_building_location(board, PLAYERS, player, building_type)
+    while (!is_valid_building_placement(board, player.player.team, coord))
+        coord = choose_building_location(board, players, player, building_type)
     end
     return coord
 end
 function choose_validate_build_settlement(board, players, player)
     coord = choose_validate_building(board, players, player, :Settlement)
-    build_settlement(board, player.team, coord)
+    build_settlement(board, player.player.team, coord)
 end
 function choose_validate_build_city(board, players, player)
     coord = choose_validate_building(board, players, player, :City)
-    build_city(board, player.team, coord)
+    build_city(board, player.player.team, coord)
 end
 function choose_validate_build_road(board, players, player)
     road_coord1 = Nothing
     road_coord2 = Nothing
-    while (!is_valid_road_placement(board, player.team, road_coord1, road_coord2))
+    while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
         road_coord = choose_road_location(board, PLAYERS, player)
-        road_coord1 = road_coord[1:2]
-        road_coord2 = road_coord[3:4]
+        road_coord1 = road_coord[1]
+        road_coord2 = road_coord[2]
     end
-    build_road(board, player.team, road_coord1, road_coord2)
+    build_road(board, player.player.team, road_coord1, road_coord2)
 end
 
-function do_first_turn(board)
-    for player in PLAYERS
+function do_first_turn(board, players)
+    for player in players
         choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player)
     end
-    for player in reverse(PLAYERS)
-        choose_validate_build_settlement(board, players, player)
+    for player in reverse(players)
+        settlement = choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
-            give_resource(player, resource)
+            give_resource(player.player, resource)
         end
     end
 end
@@ -286,25 +278,19 @@ function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
     end
     return true
 end
-function give_resource(player::Player, resource::Symbol)
-    if haskey(player.resources, resource)
-        player.resources[resource] += 1
-    else
-        player.resources[resource] = 1
-    end
-end
 
-function do_game(board::Board)
-    do_first_turn(board)
+function do_game(board::Board, players::Vector{PlayerType})
+    do_first_turn(board, players)
     while someone_has_won() == Nothing
-        for player in PLAYERS
+        for player in players
             do_turn(board.buildings, player)
         end
     end
 end
 
-board = create_board("sample.csv")
-build_settlement(board, :Blue, (2,3))
-build_road(board, :Blue, (2,3), (2,4))
-build_settlement(board, :Green, (6,3))
-print_board(board);
+#board = create_board("sample.csv")
+# build_settlement(board, :Blue, (2,3))
+# build_road(board, :Blue, (2,3), (2,4))
+# build_settlement(board, :Green, (6,3))
+#print_board(board);
+initialize_game("sample.csv", PLAYERS)

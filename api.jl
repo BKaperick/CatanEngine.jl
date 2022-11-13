@@ -38,7 +38,7 @@ function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
 end
 _build_city(team, coord) = build_building(BOARD, team, coord, :City)
 
-function build_settlement(board::Board, team::Symbol, coord::Tuple{Int, Int})
+function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
     log_action("_build_settlement", board, team, coord)
     _build_settlement(board, team, coord)
 end
@@ -46,7 +46,7 @@ function _build_settlement(board, team, coord)
     build_building(board, team, coord, :Settlement)
 end
 
-function build_road(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
+function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
     log_action("_build_road", board, team, coord1, coord2)
     _build_road(board, team, coord1, coord2)
 end

@@ -37,8 +37,8 @@ RESOURCE_TO_COUNT = Dict([
    ]) 
 TEAMS = [
          :Blue,
-         :Orange,
-         :Green,
+         #:Orange,
+         #:Green,
          :Robo
         ]
 TEAM_TO_TYPE = Dict(
@@ -83,7 +83,7 @@ TILE_TO_COORDS = Dict(
 TILES = [t for t in keys(TILE_TO_COORDS)]
 COORD_TO_TILES = Dict()
 for elem in TILE_TO_COORDS
-    print("elem: ", elem, "\n")
+    # print("elem: ", elem, "\n")
     tile = elem[1]
     coords = elem[2]
     for c in coords
