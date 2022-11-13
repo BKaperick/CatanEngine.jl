@@ -1,5 +1,6 @@
-LOGFILE = "log.txt"
-LOGFILEIO = open(LOGFILE, "w+")
+using Dates
+
+LOGFILE = "log_$(Dates.format(now(), "HHMMSS")).txt"
 VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,

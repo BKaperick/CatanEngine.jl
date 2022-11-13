@@ -17,29 +17,26 @@ count_victory_points_from_board(board)
 harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 """
 
-
-function input(prompt::String)
-    println(prompt)
-    return readline()
+macro api_name(x)
+    API_DICTIONARY[string(x)] = x
 end
-
 macro log(x)
     log_action(LOGFILE, x)
 end
 
 function create_board(csvfile::String)
-    log_action("_create_board", csvfile)
+    # log_action("cb", csvfile)
     read_map(csvfile)
 end
 
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
-    log_action("_build_city", team, coord)
+    log_action("bc", team, coord)
     _build_city(board, team, coord)
 end
 _build_city(team, coord) = build_building(BOARD, team, coord, :City)
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
-    log_action("_build_settlement", board, team, coord)
+    log_action("bs", board, team, coord)
     _build_settlement(board, team, coord)
 end
 function _build_settlement(board, team, coord)
@@ -47,7 +44,7 @@ function _build_settlement(board, team, coord)
 end
 
 function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
-    log_action("_build_road", board, team, coord1, coord2)
+    log_action("br", board, team, coord1, coord2)
     _build_road(board, team, coord1, coord2)
 end
 function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
@@ -69,19 +66,30 @@ function _award_longest_road(roads::Array{Road, 1})
 end
 
 function harvest_resource(board, team::Symbol, resource::Symbol, quantity::Int)
-    log_action("_harvest_resource", board, team, resource, quantity)
+    log_action("hr", board, team, resource, quantity)
     _harvest_resource(board, team, resource, quantity)
 end
 _harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int) = harvest_resource(board, TEAM_TO_PLAYER[team], resource, quantity)
 
 
 function count_victory_points_from_board(board, team)
-    #TODO implement
+    count = 0
+    for building in board.buildings
+        if building.team == team
+            if building.type == :Settlement
+                count += 1
+            else
+                count += 2
+            end
+        end
+    end
+    return count
 end
+
 function count_victory_points_from_board(board)
     out = Dict()
     for team in TEAMS
-        out[team] = count_victory_points(board, team)
+        out[team] = count_victory_points_from_board(board, team)
     end
     return out
 end

@@ -62,12 +62,12 @@ function log_action(fname::String, args...)
         elseif typeof(arg) == String
             push!(arg_strs, "\"$arg\"")
         elseif typeof(arg) == Board
-            push!(arg_strs, "board")
+            #push!(arg_strs, "board")
         else
-            push!(arg_strs, string(arg))
+            push!(arg_strs, replace(string(arg), " " => ""))
         end
     end
-    outstring = string("$fname(", join(arg_strs, ", "), ")\n")
+    outstring = string("$fname ", join(arg_strs, " "), "\n")
     write(LOGFILEIO, outstring)
 end
 function log_action(f, expression)
@@ -76,3 +76,39 @@ end
 
 function read_action()
 end
+
+function load_gamestate(board, file)
+    for line in readlines(file)
+        values = split(line, " ")
+        api_call = API_DICTIONARY[values[1]]
+        println(values)
+        other_args = [eval(Meta.parse(a)) for a in values[2:end]]
+        println(other_args)
+        api_call(board, other_args...)
+    end
+    print_board(board)
+    return board
+end
+
+function input(prompt::String)
+    println(prompt)
+    response = readline()
+    if response == "q"
+        close(LOGFILEIO)
+        stop()
+    end
+    return response
+end
+
+stop(text="Stop.") = throw(StopException(text))
+
+struct StopException{T}
+    S::T
+end
+
+function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
+    Base.with_output_color(get(io, :color, false) ? :green : :nothing, io) do io
+        showerror(io, ex.S)
+    end
+end
+

@@ -8,6 +8,12 @@ include("board.jl")
 include("human.jl")
 include("robo.jl")
 
+API_DICTIONARY = Dict(
+                      "bc" => _build_city,
+                      "bs" => _build_settlement,
+                      "br" => _build_road,
+                      "hr" => _harvest_resource,
+                     )
 
 
 
@@ -198,7 +204,7 @@ end
 function someone_has_won(board, players)::Bool
     return get_winner(board, players) != Nothing
 end
-function get_winner()#::Union{Player, Nothing}
+function get_winner(board, players)#::Union{Player, Nothing}
     board_points = count_victory_points_from_board(board) 
     for player in players
         player_points = player.player.vp_count + board_points[player.player.team]
@@ -207,6 +213,11 @@ function get_winner()#::Union{Player, Nothing}
         end
     end
     return Nothing
+end
+function initialize_game(csvfile::String, players, logfile)
+    board = read_map(csvfile)
+    board = load_gamestate(board, logfile)
+    do_game(board, players)
 end
 function initialize_game(csvfile::String, players)
     board = read_map(csvfile)
@@ -302,4 +313,13 @@ end
 # build_road(board, :Blue, (2,3), (2,4))
 # build_settlement(board, :Green, (6,3))
 #print_board(board);
-initialize_game("sample.csv", PLAYERS)
+
+if length(ARGS) > 0
+    LOGFILE = ARGS[1]
+    LOGFILEIO = open(LOGFILE, "a")
+    initialize_game("sample.csv", PLAYERS, LOGFILE)
+else
+    LOGFILEIO = open(LOGFILE, "a")
+    initialize_game("sample.csv", PLAYERS)
+end
+
