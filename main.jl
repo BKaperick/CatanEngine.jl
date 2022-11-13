@@ -125,8 +125,6 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
-# TODO: remove Player from here.  We shouldn't be book-keeping vp points here.  just create a method that takes in board state and players and outputs dict of team -> vp.
-# We want build_building to be called by board api that only modifies board state.
 function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
     building = Building(coord, type, team)
     push!(board.buildings, building)
@@ -279,7 +277,18 @@ function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
     return true
 end
 
+function get_turn_order(players)
+    out_players = []
+    values = []
+    for player in players
+        push!(values, roll_dice(player))
+    end
+    out_players = circshift(players, length(players) - argmax(values) + 1)
+    return out_players
+end
+
 function do_game(board::Board, players::Vector{PlayerType})
+    players = get_turn_order(players)
     do_first_turn(board, players)
     while someone_has_won(board, players) == Nothing
         for player in players

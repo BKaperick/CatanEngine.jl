@@ -37,7 +37,9 @@ end
 # Robot Player API.  Your RobotPlayer type must implement these methods
 
 function roll_dice(player::RobotPlayer)::Int
-    return rand(1:6) + rand(1:6)
+    value = rand(1:6) + rand(1:6)
+    println("Robot rolled a $value")
+    return value
 end
 function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple{Int,Int}}
     #TODO implement
@@ -46,7 +48,6 @@ function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple
     coord1 = rand(my_buildings)
     empty = get_empty_spaces(board)
     empty_neighbors = [n for n in get_neighbors(coord1) if n in empty]
-    #out = [coord1...;rand(empty_neighbors)...]
     out = [coord1;rand(empty_neighbors)]
     println(out)
     return out
