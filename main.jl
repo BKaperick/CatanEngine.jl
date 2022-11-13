@@ -13,7 +13,12 @@ API_DICTIONARY = Dict(
                       "bs" => _build_settlement,
                       "br" => _build_road,
                       "hr" => _harvest_resource,
+                      "mr" => _move_robber,
+
                       "gr" => _give_resource,
+                      "tr" => _take_resource,
+
+                      "dc" => _discard_cards,
                      )
 
 
@@ -140,40 +145,44 @@ function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbo
 end
 
 
-function harvest_resource(building::Building, resource::Symbol)
+function harvest_resource(players, building::Building, resource::Symbol)
+    player = [p for p in players if p.player.team == building.team][1]
     if building.type == :Settlement
-        harvest_resource(building.team, resource, 1)
+        give_resource(player.player, resource)
     elseif building.type == :City
-        harvest_resource(building.team, resource, 2)
+        give_resource(player.player, resource)
+        give_resource(player.player, resource)
     end
 end
 
-function building_gets_resource(building, dice_value, robber_tile::Symbol)::Symbol
-    if building.coord == robber_tile
-        return Nothing
-    end
-    tile = COORD_TO_TILES[building.coord]
-    if TILE_TO_DICEVAL[tile] == dice_value
-        return TILE_TO_RESOURCE[tile]
+function building_gets_resource(board, building, dice_value)
+    tiles = COORD_TO_TILES[building.coord]
+    if any([board.tile_to_dicevalue[tile] == dice_value for tile in tiles])
+        return board.tile_to_resource[tile]
     end
     return Nothing
 end
 
 buildings = Array{Building,1}()
 
-function move_robber(board::Board, coord)
-    board.robber_tile = coord
-end
-function handle_dice_roll(board::Board, value)
+function handle_dice_roll(board::Board, players, player, value)
 
     # In all cases except 7, we allocate resources
     if value != 7
-        for building in board.buildings
-            resource = building_gets_resource(building, value, board.robber_tile)
-            harvest_resource(building, resource)
+        for tile in board.dicevalue_to_tiles[value]
+            resource = board.tile_to_resource[tile]
+            if tile == board.robber_tile
+                continue
+            end
+            for coord in TILE_TO_COORDS[tile]
+                if coord in keys(board.coord_to_building)
+                    building = board.coord_to_building[coord]
+                    harvest_resource(players, building, resource)
+                end
+            end
         end
     else
-        do_robber_move(board)
+        do_robber_move(board, players, player)
     end
 end
 
@@ -185,22 +194,21 @@ function get_new_robber_tile(team)::Symbol
     end
 end
 
-function do_robber_move(board, team)
-    move_robber(board, get_new_robber_tile(team))
-    for (t,p) in TEAM_TO_PLAYER
-        r_count = Public_Info(p).resource_count
+function do_robber_move(board, players, player)
+    move_robber(board, choose_place_robber(board, players, player))
+    for p in players
+        
+        r_count = count_cards(player.player)
         if r_count > 7
-            to_lose = random_sample_resources(p.resources, Int(floor(r_count / 2)))
-            for r in to_lose
-                p.resources[r] -= 1
-            end
+            resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
+            discard_cards(player.player, resources_to_discard)
         end
     end  
 end
 
 function do_turn(board, players, player)
     value = roll_dice(player)
-    handle_dice_roll(board, value)
+    handle_dice_roll(board, players, player, value)
 end
 function someone_has_won(board, players)::Bool
     return get_winner(board, players) != Nothing
@@ -210,6 +218,7 @@ function get_winner(board, players)#::Union{Player, Nothing}
     for player in players
         player_points = player.player.vp_count + board_points[player.player.team]
         if player_points >= 10
+            println("WINNER $player_points ($player)")
             return player
         end
     end
@@ -218,11 +227,11 @@ end
 function initialize_game(csvfile::String, players, logfile)
     board = read_map(csvfile)
     board = load_gamestate(board, players, logfile)
-    do_game(board, players)
+    do_game(board, players, false)
 end
 function initialize_game(csvfile::String, players)
     board = read_map(csvfile)
-    do_game(board, players)
+    do_game(board, players, true)
 end
 
 function is_valid_building_placement(board, team, coord)::Bool
@@ -299,10 +308,13 @@ function get_turn_order(players)
     return out_players
 end
 
-function do_game(board::Board, players::Vector{PlayerType})
-    players = get_turn_order(players)
-    do_first_turn(board, players)
-    while someone_has_won(board, players) == Nothing
+function do_game(board::Board, players::Vector{PlayerType}, play_first_turn)
+    if play_first_turn
+        players = get_turn_order(players) 
+        do_first_turn(board, players)
+    end
+    println("winner? $(someone_has_won(board, players))")
+    while ~someone_has_won(board, players)
         for player in players
             do_turn(board, players, player)
         end

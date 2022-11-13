@@ -28,6 +28,15 @@ COSTS = Dict([
                             ])
              ])
 
+HUMAN_RESOURCE_TO_SYMBOL = Dict([
+"W" => :Wood,
+"S" => :Stone,
+"G" => :Grain,
+"B" => :Brick,
+"P" => :Pasture,
+"D" => :Desert
+])
+
 RESOURCE_TO_COUNT = Dict([
     :Wood => 4
     :Stone => 3

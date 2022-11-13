@@ -27,7 +27,21 @@ function read_map(csvfile)::Board
             desert_tile = tile
         end
     end
-    board = Board(tile_to_dicevalue, tile_to_resource, desert_tile)
+    dicevalue_to_tiles = Dict([v => [] for (k,v) in tile_to_dicevalue])
+    for (t,d) in tile_to_dicevalue
+        push!(dicevalue_to_tiles[d], t)
+    end
+#    dicevalue_to_coords = Dict()
+#    for (t,d) in tile_to_dicevalue
+#        if d in dicevalue_to_coords
+#            push!(dicevalue_to_coords[d], TILE_TO_COORDS[t]...)
+#        else
+#            dicevalue_to_coords[d] = [TILE_TO_COORDS[t]...]
+#        end
+#    end
+
+    println(dicevalue_to_tiles)
+    board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))
     @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(sum(values(board.tile_to_dicevalue))) instead of 133"
@@ -102,7 +116,7 @@ end
 function input(prompt::String)
     println(prompt)
     response = readline()
-    if response == "q"
+    if response == "quit"
         close(LOGFILEIO)
         stop()
     end

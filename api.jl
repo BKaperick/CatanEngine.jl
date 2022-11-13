@@ -93,3 +93,11 @@ function count_victory_points_from_board(board)
     end
     return out
 end
+
+function move_robber(board::Board, tile)
+    log_action("board mr", tile)
+    _move_robber(board, tile)
+end
+function _move_robber(board, tile)
+    board.robber_tile = tile
+end
