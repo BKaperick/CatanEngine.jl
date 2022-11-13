@@ -18,6 +18,9 @@ function give_resource(player::Player, resource::Symbol)
 end
 
 # Human Player API
+function roll_dice(player::HumanPlayer)::Int
+    _parse_ints("Dice roll:")[1]
+end
 
 function choose_building_location(board, players, player::HumanPlayer, building_type)::Tuple{Int, Int}
     _parse_ints("$(player.player.team) places a $(building_type):")
@@ -33,6 +36,9 @@ end
 
 # Robot Player API.  Your RobotPlayer type must implement these methods
 
+function roll_dice(player::RobotPlayer)::Int
+    return rand(1:6) + rand(1:6)
+end
 function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple{Int,Int}}
     #TODO implement
     my_buildings = [b.coord for b in board.buildings if b.team == player.player.team]

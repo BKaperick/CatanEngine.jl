@@ -159,7 +159,7 @@ buildings = Array{Building,1}()
 function move_robber(board::Board, coord)
     board.robber_tile = coord
 end
-function roll_dice(board::Board, value)
+function handle_dice_roll(board::Board, value)
 
     # In all cases except 7, we allocate resources
     if value != 7
@@ -193,19 +193,19 @@ function do_robber_move(board, team)
     end  
 end
 
-function do_turn(buildings, player)
-    value = human_roll_dice(player)
-    roll_dice(buildings, value)
-    if TEAM_TO_TYPE[player.team] == :Robot
-    end
+function do_turn(board, players, player)
+    value = roll_dice(player)
+    handle_dice_roll(board, value)
 end
-function someone_has_won()::Bool
-    return get_winner() != Nothing
+function someone_has_won(board, players)::Bool
+    return get_winner(board, players) != Nothing
 end
 function get_winner()#::Union{Player, Nothing}
-    for kvp in TEAM_TO_PLAYER
-        if kvp[2].vp_count >= 10
-            return kvp[1]
+    board_points = count_victory_points_from_board(board) 
+    for player in players
+        player_points = player.player.vp_count + board_points[player.player.team]
+        if player_points >= 10
+            return player
         end
     end
     return Nothing
@@ -281,9 +281,9 @@ end
 
 function do_game(board::Board, players::Vector{PlayerType})
     do_first_turn(board, players)
-    while someone_has_won() == Nothing
+    while someone_has_won(board, players) == Nothing
         for player in players
-            do_turn(board.buildings, player)
+            do_turn(board, players, player)
         end
     end
 end
