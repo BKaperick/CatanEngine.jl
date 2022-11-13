@@ -8,7 +8,6 @@ end
 
 function get_random_tile(board)::Symbol
     candidates = [keys(board.tile_to_dicevalue)...]
-    println("candidates: $(join(candidates,","))")
     return sample(candidates, 1)[1]
 end
 function get_random_empty_coord(board)

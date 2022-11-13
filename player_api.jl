@@ -5,6 +5,10 @@ include("structs.jl")
 include("robo.jl")
 include("human.jl")
 
+function _parse_teams(descriptor)
+    human_response = input(descriptor)
+    return Symbol(String([i == 1 ? uppercase(c) : lowercase(c) for (i, c) in enumerate(human_response)]))
+end
 function _parse_ints(descriptor)
     human_response = input(descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
@@ -80,6 +84,27 @@ function choose_place_robber(board, players, player::HumanPlayer)
     _parse_ints("$(player.player.team) places the Robber:")
 end
 
+choose_robber_victim(board, player, potential_victim::Symbol) = potential_victim
+
+function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
+    if length(potential_victims) == 1
+        return potential_victims[1]
+    end
+    _parse_teams("$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
+end
+function choose_card_to_steal(player::HumanPlayer)::Symbol
+    _parse_resources("$(player.player.team) lost his:")
+end
+function steal_random_resource(from_player, to_player)
+    stolen_good = choose_card_to_steal(from_player)
+    input("Press Enter when $(to_player.player.team) is ready to see the message")
+    println("$(from_player.player.team) stole $stolen_good from $(to_player.player.team)")
+    input("Press Enter again when you are ready to hide the message")
+    run(`clear`)
+    take_resource(from_player.player, stolen_good)
+    give_resource(to_player.player, stolen_good)
+end
+
 
 # Robot Player API.  Your RobotPlayer type must implement these methods
 
@@ -112,17 +137,28 @@ function choose_place_robber(board, players, player::RobotPlayer)
     validated = false
     sampled_value = Nothing
     while ~validated
-        validated = true
         sampled_value = get_random_tile(board)
-        println("random tile = $sampled_value")
+
+        # Rules say you have to move the robber, can't leave it in place
+        if sampled_value == board.robber_tile
+            continue
+        end
+        validated = true
         neighbors = TILE_TO_COORDS[sampled_value]
         for c in neighbors
             if haskey(board.coord_to_building, c) && board.coord_to_building[c].team == player.player.team
-                println("validation failed: $c is a neighbor of $sampled_value")
                 validated = false
             end
         end
     end
-    println("$(player.player.team) placing robber at $(sampled_value)")
     return sampled_value
+end
+function choose_robber_victim(board, player::RobotPlayer, potential_victims...)::PlayerType
+    public_scores = count_victory_points_from_board(board)
+    max_ind = argmax(v -> public_scores[v.player.team], potential_victims)
+    println("$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player")
+    return max_ind
+end
+function choose_card_to_steal(player::RobotPlayer)::Symbol
+    random_sample_resources(player.player.resources, 1)[1]
 end

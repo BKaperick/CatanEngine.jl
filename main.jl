@@ -194,8 +194,17 @@ function get_new_robber_tile(team)::Symbol
     end
 end
 
-function do_robber_move(board, players, player)
+function do_knight_action(board, players, player)
     move_robber(board, choose_place_robber(board, players, player))
+    potential_victims = get_potential_theft_victims(board, players, player, new_tile)
+    if length(potential_victims) > 0
+        chosen_victim = choose_robber_victim(board, players, player, potential_victims...)
+        steal_random_resource(player, chosen_victim)
+    end
+end
+
+function do_robber_move(board, players, player)
+    new_tile = move_robber(board, choose_place_robber(board, players, player))
     for p in players
         
         r_count = count_cards(player.player)
@@ -204,8 +213,24 @@ function do_robber_move(board, players, player)
             discard_cards(player.player, resources_to_discard)
         end
     end  
+    potential_victims = get_potential_theft_victims(board, players, player, new_tile)
+    if length(potential_victims) > 0
+        chosen_victim = choose_robber_victim(board, player, potential_victims...)
+        steal_random_resource(player, chosen_victim)
+    end
 end
 
+function get_potential_theft_victims(board, players, thief, new_tile)
+    potential_victims = []
+    for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
+        team = board.coord_to_building[c].team
+        victim = [p for p in players if p.player.team == team][1]
+        if (sum(values(victim.player.resources)) > 0) && (team != thief.player.team)
+            push!(potential_victims, victim)
+        end
+    end
+    return potential_victims
+end
 function do_turn(board, players, player)
     value = roll_dice(player)
     handle_dice_roll(board, players, player, value)
