@@ -2,6 +2,7 @@ using StatsBase
 include("structs.jl")
 include("constants.jl")
 include("io.jl")
+include("api.jl")
 include("board.jl")
 include("human.jl")
 include("robo.jl")
@@ -132,7 +133,7 @@ function build_building(board, player::Player, coord::Tuple{Int, Int}, type::Sym
 end
 
 function build_road(board, player::Player, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
-    player = TEAM_TO_PLAYER[team]
+    # player = TEAM_TO_PLAYER[team]
     road = Road(coord1, coord2, player)
     push!(board.roads, road)
     for coord in [coord1, coord2]
@@ -284,8 +285,8 @@ function do_game(board::Board)
     end
 end
 
-board = read_map("sample.csv")
-build_settlement(board, :Blue, (2,3))
-road = build_road(board, :Blue, (2,3), (2,4))
-build_settlement(board, :Green, (6,3))
-print_board(board);
+create_board("sample.csv")
+build_settlement(:Blue, (2,3))
+build_road(:Blue, (2,3), (2,4))
+build_settlement(:Green, (6,3))
+print_board();

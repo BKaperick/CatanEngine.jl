@@ -1,3 +1,5 @@
+using Logging
+
 function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = Dict(
@@ -50,4 +52,25 @@ end
 
 function print_road(road)
     return lowercase(string(string(road.player.team)[1]))
+end
+
+function log_action(fname::String, args...)
+    arg_strs = []
+    for arg in args
+        if typeof(arg) == Symbol
+            push!(arg_strs, ":$arg")
+        elseif typeof(arg) == String
+            push!(arg_strs, "\"$arg\"")
+        else
+            push!(arg_strs, string(arg))
+        end
+    end
+    outstring = string("$fname(", join(arg_strs, ", "), ")\n")
+    write(LOGFILEIO, outstring)
+end
+function log_action(f, expression)
+    write(LOGFILEIO, "$(string(expression))\n")
+end
+
+function read_action()
 end

@@ -1,8 +1,3 @@
-function input(prompt::String)
-    println(prompt)
-    return readline()
-end
-
 function human_move_robber(team)        
     player = TEAM_TO_PLAYER[team]
     coord_settlement_str = input("$team places a settlement:")

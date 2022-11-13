@@ -1,3 +1,5 @@
+LOGFILE = "log.txt"
+LOGFILEIO = open(LOGFILE, "w+")
 VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,
