@@ -13,6 +13,7 @@ API_DICTIONARY = Dict(
                       "bs" => _build_settlement,
                       "br" => _build_road,
                       "hr" => _harvest_resource,
+                      "gr" => _give_resource,
                      )
 
 
@@ -216,7 +217,7 @@ function get_winner(board, players)#::Union{Player, Nothing}
 end
 function initialize_game(csvfile::String, players, logfile)
     board = read_map(csvfile)
-    board = load_gamestate(board, logfile)
+    board = load_gamestate(board, players, logfile)
     do_game(board, players)
 end
 function initialize_game(csvfile::String, players)

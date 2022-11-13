@@ -77,14 +77,23 @@ end
 function read_action()
 end
 
-function load_gamestate(board, file)
+function load_gamestate(board, players, file)
+
+    team_to_player = Dict([p.player.team => p.player for p in players])
     for line in readlines(file)
         values = split(line, " ")
-        api_call = API_DICTIONARY[values[1]]
+        func_key = values[2]
+        api_call = API_DICTIONARY[func_key]
         println(values)
-        other_args = [eval(Meta.parse(a)) for a in values[2:end]]
+
+        other_args = [eval(Meta.parse(a)) for a in values[3:end]]
         println(other_args)
-        api_call(board, other_args...)
+        if values[1] == "board"
+            api_call(board, other_args...)
+        else
+            player = team_to_player[eval(Meta.parse(values[1]))]
+            api_call(player, other_args...)
+        end
     end
     print_board(board)
     return board

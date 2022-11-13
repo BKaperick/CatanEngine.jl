@@ -10,6 +10,10 @@ end
 # Player API
 
 function give_resource(player::Player, resource::Symbol)
+    log_action(":$(player.team) gr", resource)
+    _give_resource(player, resource)
+end
+function _give_resource(player::Player, resource::Symbol)
     if haskey(player.resources, resource)
         player.resources[resource] += 1
     else

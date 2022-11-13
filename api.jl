@@ -25,18 +25,18 @@ macro log(x)
 end
 
 function create_board(csvfile::String)
-    # log_action("cb", csvfile)
+    # log_action("board.cb", csvfile)
     read_map(csvfile)
 end
 
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
-    log_action("bc", team, coord)
+    log_action("board bc", team, coord)
     _build_city(board, team, coord)
 end
 _build_city(team, coord) = build_building(BOARD, team, coord, :City)
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
-    log_action("bs", board, team, coord)
+    log_action("board bs", board, team, coord)
     _build_settlement(board, team, coord)
 end
 function _build_settlement(board, team, coord)
@@ -44,7 +44,7 @@ function _build_settlement(board, team, coord)
 end
 
 function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
-    log_action("br", board, team, coord1, coord2)
+    log_action("board br", board, team, coord1, coord2)
     _build_road(board, team, coord1, coord2)
 end
 function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
@@ -66,7 +66,7 @@ function _award_longest_road(roads::Array{Road, 1})
 end
 
 function harvest_resource(board, team::Symbol, resource::Symbol, quantity::Int)
-    log_action("hr", board, team, resource, quantity)
+    log_action("board hr", board, team, resource, quantity)
     _harvest_resource(board, team, resource, quantity)
 end
 _harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int) = harvest_resource(board, TEAM_TO_PLAYER[team], resource, quantity)
