@@ -47,7 +47,13 @@ TEAM_TO_TYPE = Dict(
          :Green => :Human,
          :Robo => :Robot
         )
-TEAM_TO_PLAYER = Dict([t => Player(t) for t in TEAMS])
+TEAM_TO_PLAYERTYPE = Dict(
+         :Blue => HumanPlayer,
+         :Orange => HumanPlayer,
+         :Green => HumanPlayer,
+         :Robo => RobotPlayer
+        )
+TEAM_TO_PLAYER = Dict([t => TEAM_TO_PLAYERTYPE[t](t) for t in TEAMS])
 PLAYERS = collect(values(TEAM_TO_PLAYER))
 TILE_TO_COORDS = Dict(
                       :A => Set([(1,1),(1,2),(1,3),(2,2),(2,3),(2,4)]),

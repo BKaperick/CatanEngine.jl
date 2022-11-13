@@ -4,11 +4,6 @@ function human_move_robber(team)
     coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])
     build_settlement(buildings, player, coord_settlement)
 end
-function human_build_settlement(board, player)
-    coord_settlement_str = input("$(player.team) places a settlement:")
-    coord_settlement = Tuple([parse(Int, x) for x in split(coord_settlement_str, ' ')])
-    build_settlement(board, player, coord_settlement)
-end
 
 function human_build_road(board, player)        
     coord_road_str = input("$(player.team) places a road:")

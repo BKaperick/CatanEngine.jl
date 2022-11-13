@@ -42,7 +42,7 @@ end
 
 
 function print_building(building)
-    name = string(string(building.player.team)[1])
+    name = string(string(building.team)[1])
     if building.type == :Settlement
         return lowercase(name)
     else
@@ -51,7 +51,7 @@ function print_building(building)
 end
 
 function print_road(road)
-    return lowercase(string(string(road.player.team)[1]))
+    return lowercase(string(string(road.team)[1]))
 end
 
 function log_action(fname::String, args...)
@@ -61,6 +61,8 @@ function log_action(fname::String, args...)
             push!(arg_strs, ":$arg")
         elseif typeof(arg) == String
             push!(arg_strs, "\"$arg\"")
+        elseif typeof(arg) == Board
+            push!(arg_strs, "board")
         else
             push!(arg_strs, string(arg))
         end

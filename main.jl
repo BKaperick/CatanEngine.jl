@@ -3,6 +3,7 @@ include("structs.jl")
 include("constants.jl")
 include("io.jl")
 include("api.jl")
+include("player_api.jl")
 include("board.jl")
 include("human.jl")
 include("robo.jl")
@@ -124,32 +125,15 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
-function build_building(board, player::Player, coord::Tuple{Int, Int}, type::Symbol)
-    building = Building(coord, type, player)
+# TODO: remove Player from here.  We shouldn't be book-keeping vp points here.  just create a method that takes in board state and players and outputs dict of team -> vp.
+# We want build_building to be called by board api that only modifies board state.
+function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
+    building = Building(coord, type, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
-    player.vp_count += VP_AWARDS[type]
     return building
 end
 
-function build_road(board, player::Player, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
-    # player = TEAM_TO_PLAYER[team]
-    road = Road(coord1, coord2, player)
-    push!(board.roads, road)
-    for coord in [coord1, coord2]
-        if haskey(board.coord_to_roads, coord)
-            push!(board.coord_to_roads[coord], road)
-        else
-            board.coord_to_roads[coord] = Set([road])
-        end
-    end
-    award_longest_road(board.roads)
-    return road
-end
-
-function award_longest_road(roads::Array{Road, 1})
-    # TODO
-end
 
 function harvest_resource(building::Building, resource::Symbol)
     if building.type == :Settlement
@@ -231,25 +215,59 @@ function initialize_game(csvfile::String)
     do_game(board)
 end
 
+function do_build_settlement(board, player)
+    if TEAM_TO_TYPE[player.team] != :Robot
+        human_build_settlement(board, player)
+    else
+        robo_build_settlement(board, player)
+    end
+end
+
+function is_valid_building_placement(board, team, coord)::Bool
+    return true
+    #TODO implement
+end
+
+function is_valid_road_placement(board, team, coord1, coord2)::Bool
+    return true
+    #TODO implement
+end
+
+function choose_validate_building(board, players, player, building_type)
+    coord = Nothing
+    while (!is_valid_building_placement(board, player.team, settlement_coord))
+        coord = choose_building_location(board, PLAYERS, player, building_type)
+    end
+    return coord
+end
+function choose_validate_build_settlement(board, players, player)
+    coord = choose_validate_building(board, players, player, :Settlement)
+    build_settlement(board, player.team, coord)
+end
+function choose_validate_build_city(board, players, player)
+    coord = choose_validate_building(board, players, player, :City)
+    build_city(board, player.team, coord)
+end
+function choose_validate_build_road(board, players, player)
+    road_coord1 = Nothing
+    road_coord2 = Nothing
+    while (!is_valid_road_placement(board, player.team, road_coord1, road_coord2))
+        road_coord = choose_road_location(board, PLAYERS, player)
+        road_coord1 = road_coord[1:2]
+        road_coord2 = road_coord[3:4]
+    end
+    build_road(board, player.team, road_coord1, road_coord2)
+end
 
 function do_first_turn(board)
     for player in PLAYERS
-        if TEAM_TO_TYPE[player.team] != :Robot
-            human_build_settlement(board.buildings, player)
-            human_build_road(board, player)
-        else
-            robo_build_settlement(board.buildings, player)
-            robo_build_road(board, player)
-        end
+        choose_validate_build_settlement(board, players, player)
+        choose_validate_build_road(board, players, player)
     end
     for player in reverse(PLAYERS)
-        if TEAM_TO_TYPE[player.team] != :Robot
-            settlement = human_build_settlement(board.buildings, player)
-            human_build_road(board, player)
-        else
-            settlement = robo_build_settlement(board.buildings, player)
-            robo_build_road(board, player)
-        end
+        choose_validate_build_settlement(board, players, player)
+        choose_validate_build_road(board, players, player)
+        
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
             give_resource(player, resource)
@@ -285,8 +303,8 @@ function do_game(board::Board)
     end
 end
 
-create_board("sample.csv")
-build_settlement(:Blue, (2,3))
-build_road(:Blue, (2,3), (2,4))
-build_settlement(:Green, (6,3))
-print_board();
+board = create_board("sample.csv")
+build_settlement(board, :Blue, (2,3))
+build_road(board, :Blue, (2,3), (2,4))
+build_settlement(board, :Green, (6,3))
+print_board(board);

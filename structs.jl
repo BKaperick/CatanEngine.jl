@@ -1,3 +1,4 @@
+abstract type PlayerType end
 mutable struct Player
     team::Symbol
     resources::Dict{Symbol,Int}
@@ -5,7 +6,19 @@ mutable struct Player
     dev_cards::Dict{Symbol,Int}
     dev_cards_used::Dict{Symbol,Int}
 end
-Player(team::Symbol) = Player(team, Dict(), 0, Dict(), Dict())
+mutable struct HumanPlayer <: PlayerType
+    player::Player
+end
+
+mutable struct RobotPlayer <: PlayerType
+    player::Player
+end
+
+Player(team::Symbol) = Player(team, Dict(), 0, Dict(), Dict()) 
+HumanPlayer(team::Symbol) = HumanPlayer(Player(team))
+RobotPlayer(team::Symbol) = RobotPlayer(Player(team))
+
+
 
 mutable struct Public_Info
     resource_count::Int
@@ -32,12 +45,12 @@ end
 mutable struct Road
     coord1::Tuple{Int,Int}
     coord2::Tuple{Int,Int}
-    player::Player
+    team::Symbol
 end
 
 mutable struct Building
     coord::Tuple{Int,Int}
     type::Symbol
-    player::Player
+    team::Symbol
 end
 
