@@ -18,6 +18,18 @@ end
 
 # Player API
 
+function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
+    for (r,amt) in resources
+        if !haskey(player.resources, r)
+            return false
+        end
+        if player.resources[r] < amt
+            return false
+        end
+    end
+    return true
+end
+
 function discard_cards(player, resources)
     log_action(":$(player.team) dc", resources...)
     _discard_cards(player, resources...)
@@ -67,8 +79,11 @@ function choose_building_location(board, players, player::HumanPlayer, building_
 end
 function choose_road_location(board, players, player::HumanPlayer)::Vector{Tuple{Int,Int}}
     coords = _parse_ints("$(player.player.team) places a Road:")
-    out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
-    println(typeof(out))
+    if length(coords) == 4
+        out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
+    else
+        out = coords
+    end
     println(out)
     return out
 end

@@ -5,21 +5,31 @@ function get_coords_from_human_tile_description(desc...)
     for d in desc
         push!(coords, get_coord_from_human_tile_description(desc)...)
     end
-    return 
+    return coords
 end
+
+function _intersect_tiles_string_coords(desc)
+    desc = uppercase(desc)
+    coords = [TILE_TO_COORDS[Symbol(d)] for d in desc]
+    return intersect(coords...)
+end
+
 function get_coord_from_human_tile_description(desc)
     if length(desc) == 1
         return get_tile_from_human_tile_description(desc)
     elseif length(desc) > 3
         return get_coords_from_human_tile_description(split(desc, " "))
     end
-    desc = uppercase(desc)
-    inter = intersect(
-              TILE_TO_COORDS[Symbol(desc[1])],
-              TILE_TO_COORDS[Symbol(desc[2])],
-              TILE_TO_COORDS[Symbol(desc[3])]
-             )
-    return pop!(inter)
+    
+    # Single coordinate
+    if length(desc) == 3
+        return pop!(_intersect_tiles_string_coords(desc))
+    end
+
+    if length(desc) == 2
+        inter = _intersect_tiles_string_coords(desc)
+        return [pop!(inter), pop!(inter)]
+    end
 end
 
 function human_move_robber(team)        
@@ -66,4 +76,5 @@ end
 human_build_settlement(board, team) = human_build_settlement(board, TEAM_TO_PLAYER[team])
 human_build_road(board, team) = human_build_road(board, TEAM_TO_PLAYER[team])
 
+@assert get_coord_from_human_tile_description("nqr") == (5,4)
 @assert get_coord_from_human_tile_description("nqr") == (5,4)

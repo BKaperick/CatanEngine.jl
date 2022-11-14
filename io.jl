@@ -31,14 +31,6 @@ function read_map(csvfile)::Board
     for (t,d) in tile_to_dicevalue
         push!(dicevalue_to_tiles[d], t)
     end
-#    dicevalue_to_coords = Dict()
-#    for (t,d) in tile_to_dicevalue
-#        if d in dicevalue_to_coords
-#            push!(dicevalue_to_coords[d], TILE_TO_COORDS[t]...)
-#        else
-#            dicevalue_to_coords[d] = [TILE_TO_COORDS[t]...]
-#        end
-#    end
 
     println(dicevalue_to_tiles)
     board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile)

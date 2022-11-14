@@ -61,8 +61,7 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
-function try_construct_settlement(buildings, roads, team::Symbol, coord)::Bool
-    player = TEAM_TO_PLAYER[team]
+function try_construct_settlement(buildings, roads, player, coord)::Bool
     team_with_roads_through_coord = team_with_two_adjacent_roads(roads, coord) 
     if team_with_roads_through_coord != Nothing && team_with_roads_through_coord != team
         return false
@@ -75,7 +74,7 @@ function try_construct_settlement(buildings, roads, team::Symbol, coord)::Bool
             return false
         end
     end
-    construct_settlement(buildings, team, coord)
+    construct_settlement(buildings, player, coord)
     return true
 end
 
@@ -120,22 +119,20 @@ function can_pay_price(player::Player, cost::Dict)::Bool
     return true
 end
 function pay_price(player::Player, cost::Dict)
-    for resource in keys(cost)
-        player.resources[resource] -= cost[resource]
-    end
+    resources = keys(cost)
+    discard_cards(player, resources...)
 end
-function construct_city(board, team::Symbol, coord)
-    pay_construction(team, :City)
+function construct_city(board, player::Player, coord)
+    pay_construction(player, :City)
     build_city(board, team, coord)
 end
-function construct_settlement(board, team::Symbol, coord)
-    pay_construction(team, :Settlement)
-    build_settlement(board, team, coord)
+function construct_settlement(board, player::Player, coord)
+    pay_construction(player, :Settlement)
+    build_settlement(board, player.team, coord)
 end
 
-function pay_construction(team::Symbol, construction::Symbol)
+function pay_construction(player::Player, construction::Symbol)
     cost = COSTS[construction]
-    player = TEAM_TO_PLAYER[team]
     pay_price(player, cost)
 end
 
@@ -242,7 +239,12 @@ end
 
 function choose_validate_building(board, players, player, building_type)
     coord = Nothing
-    while (!is_valid_building_placement(board, player.player.team, coord))
+    if building_type == :Settlement
+        validation_check = is_valid_settlement_placement
+    else
+        validation_check = is_valid_city_placement
+    end
+    while (!validation_check(board, player.player.team, coord))
         coord = choose_building_location(board, players, player, building_type)
     end
     return coord
@@ -283,18 +285,6 @@ function do_first_turn(board, players)
             give_resource(player.player, resource)
         end
     end
-end
-
-function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
-    for (r,amt) in resources
-        if !haskey(player.resources, r)
-            return false
-        end
-        if player.resources[r] < amt
-            return false
-        end
-    end
-    return true
 end
 
 function get_turn_order(players)
