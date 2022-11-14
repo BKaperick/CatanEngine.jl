@@ -5,27 +5,19 @@ include("structs.jl")
 include("robo.jl")
 include("human.jl")
 
-function _parse_teams(descriptor)
-    human_response = input(descriptor)
-    return Symbol(String([i == 1 ? uppercase(c) : lowercase(c) for (i, c) in enumerate(human_response)]))
-end
-function _parse_ints(descriptor)
-    human_response = input(descriptor)
-    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    println("$asints, $(all([x == nothing || x == Nothing for x in asints]))")
-    if all([x == nothing || x == Nothing for x in asints])
-        return get_coord_from_human_tile_description(human_response)
-    end
-    return asints
-end
+# Players API
 
-function _parse_resources(descriptor)
-    reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
-    println("($reminder)")
-    return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(input(descriptor), ' ')])
+function set_starting_player(players, index)
+    log_action("players ss", index)
+    _set_starting_player(players, index)
+end
+function _set_starting_player(players, index)
+    players = circshift(players, length(players) - index + 1) #TODO need to propagate the change to the outside
+    # Best option is probably to make a game object and a game state api
 end
 
 # Player API
+
 function discard_cards(player, resources)
     log_action(":$(player.team) dc", resources...)
     _discard_cards(player, resources...)
@@ -109,8 +101,8 @@ end
 # Robot Player API.  Your RobotPlayer type must implement these methods
 
 function roll_dice(player::RobotPlayer)::Int
-    value = 7 #rand(1:6) + rand(1:6)
-    println("Robot rolled a $value")
+    value = rand(1:6) + rand(1:6)
+    println("$(player.player.team) rolled a $value")
     return value
 end
 function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple{Int,Int}}

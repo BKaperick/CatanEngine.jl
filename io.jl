@@ -104,6 +104,9 @@ function load_gamestate(board, players, file)
         println(other_args)
         if values[1] == "board"
             api_call(board, other_args...)
+        elseif values[1] == "players"
+            println("executing $api_call (players, $(other_args[1])")
+            api_call(players, other_args...)
         else
             player = team_to_player[eval(Meta.parse(values[1]))]
             api_call(player, other_args...)
@@ -133,5 +136,25 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     Base.with_output_color(get(io, :color, false) ? :green : :nothing, io) do io
         showerror(io, ex.S)
     end
+end
+
+function _parse_teams(descriptor)
+    human_response = input(descriptor)
+    return Symbol(String([i == 1 ? uppercase(c) : lowercase(c) for (i, c) in enumerate(human_response)]))
+end
+function _parse_ints(descriptor)
+    human_response = input(descriptor)
+    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
+    println("$asints, $(all([x == nothing || x == Nothing for x in asints]))")
+    if all([x == nothing || x == Nothing for x in asints])
+        return get_coord_from_human_tile_description(human_response)
+    end
+    return asints
+end
+
+function _parse_resources(descriptor)
+    reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
+    println("($reminder)")
+    return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(input(descriptor), ' ')])
 end
 

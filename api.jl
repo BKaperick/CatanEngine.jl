@@ -1,7 +1,7 @@
 include("board.jl")
 
 """
-This is the API for the board manipulation.  These are the supported functions to manipulate the board state (and for harvest, it also manipulates the players' states, though this may be refactored later).
+This is the API for the board manipulation.  These are the supported functions to manipulate the board state, while leaving the player states untouched.
 
 The human and robot choices about what to place and where are made elsewhere prior to calls to these methods.
 
@@ -27,6 +27,13 @@ end
 function create_board(csvfile::String)
     # log_action("board.cb", csvfile)
     read_map(csvfile)
+end
+
+function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
+    building = Building(coord, type, team)
+    push!(board.buildings, building)
+    board.coord_to_building[coord] = building
+    return building
 end
 
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
@@ -101,3 +108,14 @@ end
 function _move_robber(board, tile)
     board.robber_tile = tile
 end
+
+function is_valid_building_placement(board, team, coord)::Bool
+    return coord != Nothing
+    #TODO implement
+end
+
+function is_valid_road_placement(board, team, coord1, coord2)::Bool
+    return coord1 != Nothing && coord2 != Nothing
+    #TODO implement
+end
+

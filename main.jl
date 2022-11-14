@@ -9,16 +9,24 @@ include("human.jl")
 include("robo.jl")
 
 API_DICTIONARY = Dict(
+                      # Board commands
                       "bc" => _build_city,
                       "bs" => _build_settlement,
                       "br" => _build_road,
                       "hr" => _harvest_resource,
                       "mr" => _move_robber,
 
+                      # Players commands
+                      "ss" => _set_starting_player,
+
+                      # PlayerType commands
                       "gr" => _give_resource,
                       "tr" => _take_resource,
 
+                      # Player commands
                       "dc" => _discard_cards,
+
+
                      )
 
 
@@ -103,12 +111,6 @@ function get_adjacent_roads(roads, coord)
     return adjacent
 end
 
-function harvest_resource(player::Player, resource::Symbol, quantity::Int)
-    for i in 1:quantity
-        harvest_resource(player, resource)
-    end
-end
-
 function can_pay_price(player::Player, cost::Dict)::Bool
     for resource in keys(cost)
         if player.resources[resource] < cost[resource]
@@ -137,13 +139,6 @@ function pay_construction(team::Symbol, construction::Symbol)
     pay_price(player, cost)
 end
 
-function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
-    building = Building(coord, type, team)
-    push!(board.buildings, building)
-    board.coord_to_building[coord] = building
-    return building
-end
-
 
 function harvest_resource(players, building::Building, resource::Symbol)
     player = [p for p in players if p.player.team == building.team][1]
@@ -153,14 +148,6 @@ function harvest_resource(players, building::Building, resource::Symbol)
         give_resource(player.player, resource)
         give_resource(player.player, resource)
     end
-end
-
-function building_gets_resource(board, building, dice_value)
-    tiles = COORD_TO_TILES[building.coord]
-    if any([board.tile_to_dicevalue[tile] == dice_value for tile in tiles])
-        return board.tile_to_resource[tile]
-    end
-    return Nothing
 end
 
 buildings = Array{Building,1}()
@@ -183,14 +170,6 @@ function handle_dice_roll(board::Board, players, player, value)
         end
     else
         do_robber_move(board, players, player)
-    end
-end
-
-function get_new_robber_tile(team)::Symbol
-    if TEAM_TO_TYPE == :Human
-        return human_get_new_robber_tile(team)
-    else
-        return robo_get_new_robber_tile(team)
     end
 end
 
@@ -231,10 +210,12 @@ function get_potential_theft_victims(board, players, thief, new_tile)
     end
     return potential_victims
 end
+
 function do_turn(board, players, player)
     value = roll_dice(player)
     handle_dice_roll(board, players, player, value)
 end
+
 function someone_has_won(board, players)::Bool
     return get_winner(board, players) != Nothing
 end
@@ -259,16 +240,6 @@ function initialize_game(csvfile::String, players)
     do_game(board, players, true)
 end
 
-function is_valid_building_placement(board, team, coord)::Bool
-    return coord != Nothing
-    #TODO implement
-end
-
-function is_valid_road_placement(board, team, coord1, coord2)::Bool
-    return coord1 != Nothing && coord2 != Nothing
-    #TODO implement
-end
-
 function choose_validate_building(board, players, player, building_type)
     coord = Nothing
     while (!is_valid_building_placement(board, player.player.team, coord))
@@ -276,14 +247,17 @@ function choose_validate_building(board, players, player, building_type)
     end
     return coord
 end
+
 function choose_validate_build_settlement(board, players, player)
     coord = choose_validate_building(board, players, player, :Settlement)
     build_settlement(board, player.player.team, coord)
 end
+
 function choose_validate_build_city(board, players, player)
     coord = choose_validate_building(board, players, player, :City)
     build_city(board, player.player.team, coord)
 end
+
 function choose_validate_build_road(board, players, player)
     road_coord1 = Nothing
     road_coord2 = Nothing
@@ -327,10 +301,11 @@ function get_turn_order(players)
     out_players = []
     values = []
     for player in players
+        println("$(player.player.team)")
         push!(values, roll_dice(player))
     end
-    out_players = circshift(players, length(players) - argmax(values) + 1)
-    return out_players
+
+    set_starting_player(players, argmax(values))
 end
 
 function do_game(board::Board, players::Vector{PlayerType}, play_first_turn)
@@ -338,7 +313,6 @@ function do_game(board::Board, players::Vector{PlayerType}, play_first_turn)
         players = get_turn_order(players) 
         do_first_turn(board, players)
     end
-    println("winner? $(someone_has_won(board, players))")
     while ~someone_has_won(board, players)
         for player in players
             do_turn(board, players, player)
@@ -346,11 +320,7 @@ function do_game(board::Board, players::Vector{PlayerType}, play_first_turn)
     end
 end
 
-#board = create_board("sample.csv")
-# build_settlement(board, :Blue, (2,3))
-# build_road(board, :Blue, (2,3), (2,4))
-# build_settlement(board, :Green, (6,3))
-#print_board(board);
+PLAYERS = PLAYERS[sortperm([p.player.team for p in PLAYERS])]
 
 if length(ARGS) > 0
     LOGFILE = ARGS[1]
