@@ -7,16 +7,19 @@ include("human.jl")
 
 # Players API
 
-function set_starting_player(players, index)
-    log_action("players ss", index)
-    _set_starting_player(players, index)
-end
-function _set_starting_player(players, index)
-    players = circshift(players, length(players) - index + 1) #TODO need to propagate the change to the outside
-    # Best option is probably to make a game object and a game state api
-end
-
 # Player API
+
+function play_devcard(player::Player, devcard::Symbol)
+    log_action(":$(player.team) pd", devcard)
+    _play_devcard(player, devcard)
+end
+function _play_devcard(player::Player, devcard::Symbol)
+    player.dev_cards[devcard] -= 1
+    if ~haskey(player.dev_cards_used)
+        player.dev_cards_used[devcard] = 0
+    end
+    player.dev_cards_used[devcard] += 1
+end
 
 function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
     for (r,amt) in resources
@@ -102,6 +105,34 @@ end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
     _parse_resources("$(player.player.team) lost his:")
 end
+
+function choose_play_devcard(board, players, player::HumanPlayer)
+    _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
+end
+
+function execute_api_call(game, board, player::HumanPlayer, api_call_str)
+    execute_api_call(game, board, api_call_str)
+end
+
+function execute_api_call(game, board, player::RobotPlayer, api_call_str)
+    api_call_str() # robot just returns the function rather than encoding as a string
+end
+
+function choose_rest_of_turn(game, board, players, player::HumanPlayer)
+    full_options = """
+    What does $(player.player.team) do next?
+    [tg] Trade
+    [bc] Build city
+    [bs] Build settlement
+    [E]nd turn
+    """
+    action = _parse_action(player.player.team, full_options)
+
+end
+function choose_rest_of_turn(game, board, players, player::RobotPlayer)
+    return () -> build_settlement(board, player.player.team,(1,2))
+end
+
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
     input("Press Enter when $(to_player.player.team) is ready to see the message")

@@ -1,5 +1,7 @@
 using Dates
 
+BOARD_API = Set(["bs","br","bc"])
+
 LOGFILE = "log_$(Dates.format(now(), "HHMMSS")).txt"
 VP_AWARDS = Dict([
                   :Settlement => 1,
@@ -27,6 +29,27 @@ COSTS = Dict([
                              :Wood => 1
                             ])
              ])
+
+HUMAN_DEVCARD_TO_SYMBOL = Dict([
+"K" => :Knight,
+"M" => :Monopoly,
+"Y" => :YearOfPlenty,
+"R" => :RoadBuilding,
+"V" => :VictoryPoint
+])
+
+DEVCARD_COUNTS = Dict([
+                               :Knight => 14,
+                               :RoadBuilding => 2,
+                               :YearOfPlenty => 2,
+                               :Monopoly => 2,
+                               :VictoryPoint => 5
+                              ])
+
+INITIAL_DEVCARD_DECK = []
+for (k,v) in DEVCARD_COUNTS
+    append!(INITIAL_DEVCARD_DECK, repeat([k], v))
+end
 
 HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "W" => :Wood,

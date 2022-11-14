@@ -15,6 +15,7 @@ function _intersect_tiles_string_coords(desc)
 end
 
 function get_coord_from_human_tile_description(desc)
+    println("parsing $desc")
     if length(desc) == 1
         return get_tile_from_human_tile_description(desc)
     elseif length(desc) > 3

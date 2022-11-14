@@ -38,20 +38,25 @@ end
 
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
     log_action("board bc", team, coord)
+    println("$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))")
     _build_city(board, team, coord)
 end
-_build_city(team, coord) = build_building(BOARD, team, coord, :City)
+_build_city(board, team, coord) = build_building(BOARD, team, coord, :City)
+_build_city(board, team, human_coord) = _build_city(board, team, get_coord_from_human_tile_description(human_coord))
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
     log_action("board bs", board, team, coord)
+    println("$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))")
     _build_settlement(board, team, coord)
 end
-function _build_settlement(board, team, coord)
+function _build_settlement(board, team, coord::Tuple{Int,Int})
     build_building(board, team, coord, :Settlement)
 end
+_build_settlement(board, team, human_coord::String) = _build_settlement(board, team, get_coord_from_human_tile_description(human_coord))
 
 function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
     log_action("board br", board, team, coord1, coord2)
+    println("$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))")
     _build_road(board, team, coord1, coord2)
 end
 function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
@@ -67,6 +72,7 @@ function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple
     _award_longest_road(board.roads)
     return road
 end
+_build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
 
 function _award_longest_road(roads::Array{Road, 1})
     # TODO implement
@@ -119,20 +125,25 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     if coord == Nothing
         return false
     end
+    # 1. There cannot be another road at the same location
+    if haskey(board.coord_to_building, coord)
+        println("[Invalid settlement] 1. There cannot be another settlement at the same location")
+        return false
+    end
     
-    # 1. New building cannot be neighbors of an existing building
+    # 2. New building cannot be neighbors of an existing building
     for neigh in get_neighbors(coord)
         if haskey(board.coord_to_building, neigh)
-            println("[Invalid settlement] 1. New building cannot be neighbors of an existing building")
+            println("[Invalid settlement] 2. New building cannot be neighbors of an existing building")
             return false
         end
     end
 
-    # 2. New building must be next to a road of the same team
+    # 3. New building must be next to a road of the same team
     if haskey(board.coord_to_roads, coord)
         roads = board.coord_to_roads[coord]
         if ~any([r.team == team for r in roads])
-            println("[Invalid settlement] 2. New building must be next to a road of the same team")
+            println("[Invalid settlement] 3. New building must be next to a road of the same team")
             return false
         end
     end
@@ -159,7 +170,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
 
     # 1. There cannot be another road at the same location
     if haskey(board.coord_to_roads, coord1)
-        if any([(coord2 == road.coord1 || coord2 == road.coord2) for road in values(board.coord_to_roads)])
+        if any([(coord2 == road.coord1 || coord2 == road.coord2) for road in board.coord_to_roads[coord1]])
             println("[Invalid road] 1. There cannot be another road at the same location")
             return false
         end
@@ -170,7 +181,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     for coord in [coord1, coord2]
         println("$coord, $(haskey(board.coord_to_building, coord)), $team")
         if haskey(board.coord_to_roads, coord)
-            for road in values(board.coord_to_roads[coord])
+            for road in board.coord_to_roads[coord]
                 if road.team == team
                     if ~haskey(board.coord_to_building, coord) || (board.coord_to_building[coord].team == team)
                         return true

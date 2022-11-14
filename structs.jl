@@ -39,6 +39,12 @@ mutable struct Private_Info
 end
 Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, player.vp_count)
 
+mutable struct Game
+    devcards::Vector{Symbol}
+    players::Vector{PlayerType}
+end
+Game(players) = Game(INITIAL_DEVCARD_DECK, players)
+
 mutable struct Construction
 end
 

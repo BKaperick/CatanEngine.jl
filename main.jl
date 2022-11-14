@@ -4,20 +4,23 @@ include("constants.jl")
 include("io.jl")
 include("api.jl")
 include("player_api.jl")
+include("game_api.jl")
 include("board.jl")
 include("human.jl")
 include("robo.jl")
 
 API_DICTIONARY = Dict(
+                      # Game commands
+                      "dd" => _draw_devcard,
+                      "ss" => _set_starting_player,
+
                       # Board commands
                       "bc" => _build_city,
                       "bs" => _build_settlement,
                       "br" => _build_road,
-                      "hr" => _harvest_resource,
                       "mr" => _move_robber,
 
                       # Players commands
-                      "ss" => _set_starting_player,
 
                       # PlayerType commands
                       "gr" => _give_resource,
@@ -25,6 +28,7 @@ API_DICTIONARY = Dict(
 
                       # Player commands
                       "dc" => _discard_cards,
+                      "pd" => _play_devcard,
 
 
                      )
@@ -208,9 +212,25 @@ function get_potential_theft_victims(board, players, thief, new_tile)
     return potential_victims
 end
 
-function do_turn(board, players, player)
+function do_turn(game, board, player)
+    if sum(values(player.player.dev_cards)) > 0
+        card = choose_play_devcard(board, game.players, player)
+        if card == :Knight
+            do_knight_action(board, game.players, player)
+        end
+        play_devcard(player.player, card)
+    end
     value = roll_dice(player)
-    handle_dice_roll(board, players, player, value)
+    handle_dice_roll(board, game.players, player, value)
+    
+    next_action = "tmp"
+    while next_action != Nothing
+        next_action = choose_rest_of_turn(game, board, game.players, player)
+        if next_action != Nothing
+            println("next action: $next_action")
+            execute_api_call(game, board, player, next_action)
+        end
+    end
 end
 
 function someone_has_won(board, players)::Bool
@@ -227,14 +247,14 @@ function get_winner(board, players)#::Union{Player, Nothing}
     end
     return Nothing
 end
-function initialize_game(csvfile::String, players, logfile)
+function initialize_game(game::Game, csvfile::String, logfile)
     board = read_map(csvfile)
-    board = load_gamestate(board, players, logfile)
-    do_game(board, players, false)
+    game, board = load_gamestate(game, board, logfile)
+    do_game(game, board, false)
 end
-function initialize_game(csvfile::String, players)
+function initialize_game(game::Game, csvfile::String)
     board = read_map(csvfile)
-    do_game(board, players, true)
+    do_game(game, board, false) #true)
 end
 
 function choose_validate_building(board, players, player, building_type)
@@ -287,37 +307,38 @@ function do_first_turn(board, players)
     end
 end
 
-function get_turn_order(players)
+function do_set_turn_order(game)
     out_players = []
     values = []
-    for player in players
-        println("$(player.player.team)")
+    for player in game.players
         push!(values, roll_dice(player))
     end
 
-    set_starting_player(players, argmax(values))
+    set_starting_player(game, argmax(values))
 end
 
-function do_game(board::Board, players::Vector{PlayerType}, play_first_turn)
+function do_game(game::Game, board::Board, play_first_turn)
     if play_first_turn
-        players = get_turn_order(players) 
-        do_first_turn(board, players)
+        # Here we need to pass the whole game so we can modify the players list order in-place
+        do_set_turn_order(game) 
+        do_first_turn(board, game.players)
     end
-    while ~someone_has_won(board, players)
-        for player in players
-            do_turn(board, players, player)
+    while ~someone_has_won(board, game.players)
+        for player in game.players
+            do_turn(game, board, player)
         end
     end
 end
 
+# Make sure the initial sorting of players is deterministic
 PLAYERS = PLAYERS[sortperm([p.player.team for p in PLAYERS])]
-
+game = Game(PLAYERS)
 if length(ARGS) > 0
     LOGFILE = ARGS[1]
     LOGFILEIO = open(LOGFILE, "a")
-    initialize_game("sample.csv", PLAYERS, LOGFILE)
+    initialize_game(game, "sample.csv", LOGFILE)
 else
     LOGFILEIO = open(LOGFILE, "a")
-    initialize_game("sample.csv", PLAYERS)
+    initialize_game(game, "sample.csv")
 end
 

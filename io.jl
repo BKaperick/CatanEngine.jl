@@ -1,4 +1,5 @@
 using Logging
+include("board.jl")
 
 function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
@@ -60,12 +61,14 @@ function print_road(road)
     return lowercase(string(string(road.team)[1]))
 end
 
-function log_action(fname::String, args...)
+
+
+function serialize_action(fname::String, args...)
     arg_strs = []
     for arg in args
         if typeof(arg) == Symbol
             push!(arg_strs, ":$arg")
-        elseif typeof(arg) == String
+        elseif typeof(arg) <: AbstractString
             push!(arg_strs, "\"$arg\"")
         elseif typeof(arg) == Board
             #push!(arg_strs, "board")
@@ -73,8 +76,14 @@ function log_action(fname::String, args...)
             push!(arg_strs, replace(string(arg), " " => ""))
         end
     end
-    outstring = string("$fname ", join(arg_strs, " "), "\n")
+    string("$fname ", join(arg_strs, " "))
+end
+function log_action(fname::String, args...)
+    serialized = serialize_action(fname, args...)
+    outstring = string(serialized, "\n")
+    println(outstring)
     write(LOGFILEIO, outstring)
+    return serialized
 end
 function log_action(f, expression)
     write(LOGFILEIO, "$(string(expression))\n")
@@ -83,29 +92,29 @@ end
 function read_action()
 end
 
-function load_gamestate(board, players, file)
+function execute_api_call(game::Game, board::Board, line::String)
+    values = split(line, " ")
+    func_key = values[2]
+    println(line)
+    api_call = API_DICTIONARY[func_key]
 
-    team_to_player = Dict([p.player.team => p.player for p in players])
+    other_args = [eval(Meta.parse(a)) for a in values[3:end]]
+    if values[1] == "board"
+        api_call(board, other_args...)
+    elseif values[1] == "game"
+        api_call(game, other_args...)
+    else
+        player = team_to_player[eval(Meta.parse(values[1]))]
+        api_call(player, other_args...)
+    end
+end
+function load_gamestate(game, board, file)
+    team_to_player = Dict([p.player.team => p.player for p in game.players])
     for line in readlines(file)
-        values = split(line, " ")
-        func_key = values[2]
-        api_call = API_DICTIONARY[func_key]
-        println(values)
-
-        other_args = [eval(Meta.parse(a)) for a in values[3:end]]
-        println(other_args)
-        if values[1] == "board"
-            api_call(board, other_args...)
-        elseif values[1] == "players"
-            println("executing $api_call (players, $(other_args[1])")
-            api_call(players, other_args...)
-        else
-            player = team_to_player[eval(Meta.parse(values[1]))]
-            api_call(player, other_args...)
-        end
+        execute_api_call(game, board, line)
     end
     print_board(board)
-    return board
+    return game, board
 end
 
 function input(prompt::String)
@@ -130,6 +139,23 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     end
 end
 
+
+function _parse_action(team, descriptor)
+    human_response = lowercase(input(descriptor))
+    if (human_response == "e")
+        return Nothing
+    end
+    out_str = split(human_response, " ")
+    fname = out_str[1]
+    if fname in BOARD_API
+        return log_action("board $fname", team, out_str[2:end]...)
+        # board br :Robo (4,4) (4,5)
+        # return "board $(out_str[1]) :$team $(join(out_str[2:end], " "))"
+    end
+
+    return human_response
+end
+
 function _parse_teams(descriptor)
     human_response = input(descriptor)
     return Symbol(String([i == 1 ? uppercase(c) : lowercase(c) for (i, c) in enumerate(human_response)]))
@@ -137,13 +163,21 @@ end
 function _parse_ints(descriptor)
     human_response = input(descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    println("$asints, $(all([x == nothing || x == Nothing for x in asints]))")
     if all([x == nothing || x == Nothing for x in asints])
         return get_coord_from_human_tile_description(human_response)
     end
     return asints
 end
 
+function _parse_devcard(descriptor)
+    reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
+    println("($reminder)")
+    dc_response = input(descriptor)
+    if dc_response == ""
+        return Nothing
+    end
+    return HUMAN_RESOURCE_TO_SYMBOL[uppercase(dc_response)]
+end
 function _parse_resources(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
     println("($reminder)")
