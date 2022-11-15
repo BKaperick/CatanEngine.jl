@@ -382,6 +382,16 @@ function do_game(game::Game, board::Board, play_first_turn)
     end
 end
 
+# Configure players and table configuration
+TEAM_AND_PLAYERTYPE = [
+                      (:Blue, HumanPlayer),
+                      (:Brown, HumanPlayer),
+                      #(:Orange, HumanPlayer),
+                      #(:Green, HumanPlayer),
+                      (:Robo, RobotPlayer)
+        ]
+PLAYERS = [player(team) for (team,player) in TEAM_AND_PLAYERTYPE]
+
 # Make sure the initial sorting of players is deterministic
 PLAYERS = PLAYERS[sortperm([p.player.team for p in PLAYERS])]
 game = Game(PLAYERS)

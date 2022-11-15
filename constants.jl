@@ -68,29 +68,7 @@ RESOURCE_TO_COUNT = Dict([
     :Pasture => 4
     :Desert => 1
    ]) 
-TEAMS = [
-         :Brown,
-         :Blue,
-         #:Orange,
-         #:Green,
-         :Robo
-        ]
-TEAM_TO_TYPE = Dict(
-         :Blue => :Human,
-         :Brown => :Human,
-         :Orange => :Human,
-         :Green => :Human,
-         :Robo => :Robot
-        )
-TEAM_TO_PLAYERTYPE = Dict(
-         :Blue => HumanPlayer,
-         :Brown => HumanPlayer,
-         :Orange => HumanPlayer,
-         :Green => HumanPlayer,
-         :Robo => RobotPlayer
-        )
-TEAM_TO_PLAYER = Dict([t => TEAM_TO_PLAYERTYPE[t](t) for t in TEAMS])
-PLAYERS = collect(values(TEAM_TO_PLAYER))
+
 TILE_TO_ISOLATED_EDGE_COORDS = Dict([
                       :A => Set([(1,1),(1,2)]),
                       :B => Set([(1,4)]),

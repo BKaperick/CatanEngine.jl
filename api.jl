@@ -78,13 +78,6 @@ function _award_longest_road(roads::Array{Road, 1})
     # TODO implement
 end
 
-function harvest_resource(board, team::Symbol, resource::Symbol, quantity::Int)
-    log_action("board hr", board, team, resource, quantity)
-    _harvest_resource(board, team, resource, quantity)
-end
-_harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int) = harvest_resource(board, TEAM_TO_PLAYER[team], resource, quantity)
-
-
 function count_victory_points_from_board(board, team)
     count = 0
     for building in board.buildings

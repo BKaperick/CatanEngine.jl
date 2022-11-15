@@ -195,7 +195,7 @@ function _parse_road_coord(descriptor)
     human_response = input(descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
     if all([x == nothing || x == Nothing for x in asints])
-        return get_road_coord_from_human_tile_description(human_response)
+        return get_road_coords_from_human_tile_description(human_response)
     end
 end
 function _parse_ints(descriptor)

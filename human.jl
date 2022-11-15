@@ -36,9 +36,15 @@ function get_road_coords_from_human_tile_description(desc)
     if length(desc) == 2
         return [_intersect_tiles_string_coords(desc)...]
     elseif length(desc) == 3
-        coord1,repeat_tile,other_tile = _get_ambiguous_edge_tile(desc)
-        edge_intersect = intersect(TILE_TO_EDGE_COORDS[repeat_tile], TILE_TO_EDGE_COORDS[other_tile])
-        return [coord1,pop!(edge_intersect)]
+        reduc = length(Set(desc))
+        if reduc == 2
+            coord1,repeat_tile,other_tile = _get_ambiguous_edge_tile(desc)
+            edge_intersect = intersect(TILE_TO_EDGE_COORDS[repeat_tile], TILE_TO_EDGE_COORDS[other_tile])
+            return [coord1,pop!(edge_intersect)]
+        elseif reduc == 1
+            tile = get_tile_from_human_tile_description(desc[1]) 
+            return [TILE_TO_ISOLATED_EDGE_COORDS[tile]...]
+        end
     end
 end
 function get_coord_from_human_tile_description(desc)
@@ -48,15 +54,13 @@ function get_coord_from_human_tile_description(desc)
     
     # Single coordinate
     if length(desc) == 3
-        
+        reduc = length(Set(desc))
         # repeated letter
-        if length(Set(desc)) < 3
+        if reduc == 2
             return _get_ambiguous_edge_tile(desc)[1]
+        elseif reduc == 1
+            return [TILE_TO_ISOLATED_EDGE_COORDS[get_tile_from_human_tile_description(desc[1])]...][1]
         end
         return pop!(_intersect_tiles_string_coords(desc))
-
-    elseif length(desc) == 2
-        inter = _intersect_tiles_string_coords(desc)
-        return [pop!(inter), pop!(inter)]
     end
 end
