@@ -138,7 +138,7 @@ function choose_rest_of_turn(board, players, player::RobotPlayer)
         end
     end
     if has_enough_resources(player.player, COSTS[:Settlement])
-        candidates = get_admissible_settlement_locations(board, player::Player)
+        candidates = get_admissible_settlement_locations(board, player.player)
         if length(candidates > 0)
             coord = sample(candidates, 1)[1]
             return (game, board) -> construct_settlement(board, player, coord)

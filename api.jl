@@ -93,8 +93,9 @@ function count_victory_points_from_board(board, team)
 end
 
 function count_victory_points_from_board(board)
+    teams = [Set([b.team for b in board.buildings])...]
     out = Dict()
-    for team in TEAMS
+    for team in teams
         out[team] = count_victory_points_from_board(board, team)
     end
     return out

@@ -278,7 +278,7 @@ end
 function buy_devcard(game::Game, player::Player)
     card = draw_devcard(game)
     pay_construction(player, :DevelopmentCard)
-    add_devcard(player)
+    add_devcard(player, card)
 end
 
 function someone_has_won(board, players)::Bool
@@ -382,25 +382,5 @@ function do_game(game::Game, board::Board, play_first_turn)
     end
 end
 
-# Configure players and table configuration
-TEAM_AND_PLAYERTYPE = [
-                      (:Blue, HumanPlayer),
-                      (:Brown, HumanPlayer),
-                      #(:Orange, HumanPlayer),
-                      #(:Green, HumanPlayer),
-                      (:Robo, RobotPlayer)
-        ]
-PLAYERS = [player(team) for (team,player) in TEAM_AND_PLAYERTYPE]
 
-# Make sure the initial sorting of players is deterministic
-PLAYERS = PLAYERS[sortperm([p.player.team for p in PLAYERS])]
-game = Game(PLAYERS)
-if length(ARGS) > 0
-    LOGFILE = ARGS[1]
-    LOGFILEIO = open(LOGFILE, "a")
-    initialize_game(game, "sample.csv", LOGFILE)
-else
-    LOGFILEIO = open(LOGFILE, "a")
-    initialize_game(game, "sample.csv")
-end
 
