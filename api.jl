@@ -41,8 +41,8 @@ function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
     println("$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))")
     _build_city(board, team, coord)
 end
-_build_city(board, team, coord) = build_building(BOARD, team, coord, :City)
-_build_city(board, team, human_coord) = _build_city(board, team, get_coord_from_human_tile_description(human_coord))
+_build_city(board, team, coord::Tuple{Int, Int}) = build_building(board, team, coord, :City)
+_build_city(board, team, human_coord::String) = _build_city(board, team, get_coord_from_human_tile_description(human_coord))
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
     log_action("board bs", board, team, coord)

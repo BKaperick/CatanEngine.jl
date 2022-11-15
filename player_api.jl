@@ -8,7 +8,14 @@ include("human.jl")
 # Players API
 
 # Player API
-
+function add_devcard(player::Player, devcard::Symbol)
+    log_action(":$(player.team) ad", devcard)
+    _add_devcard(player, devcard)
+end
+function _add_devcard(player::Player, devcard::Symbol)
+    push!(player.devcards, devcard)
+end
+    
 function play_devcard(player::Player, devcard::Symbol)
     log_action(":$(player.team) pd", devcard)
     _play_devcard(player, devcard)
@@ -33,7 +40,7 @@ function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
     return true
 end
 
-function discard_cards(player, resources)
+function discard_cards(player, resources...)
     log_action(":$(player.team) dc", resources...)
     _discard_cards(player, resources...)
 end
@@ -81,7 +88,7 @@ function choose_building_location(board, players, player::HumanPlayer, building_
     _parse_ints("$(player.player.team) places a $(building_type):")
 end
 function choose_road_location(board, players, player::HumanPlayer)::Vector{Tuple{Int,Int}}
-    coords = _parse_ints("$(player.player.team) places a Road:")
+    coords = _parse_road_coord("$(player.player.team) places a Road:")
     if length(coords) == 4
         out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
     else
@@ -110,27 +117,51 @@ function choose_play_devcard(board, players, player::HumanPlayer)
     _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
-function execute_api_call(game, board, player::HumanPlayer, api_call_str)
-    execute_api_call(game, board, api_call_str)
-end
-
-function execute_api_call(game, board, player::RobotPlayer, api_call_str)
-    api_call_str() # robot just returns the function rather than encoding as a string
-end
-
-function choose_rest_of_turn(game, board, players, player::HumanPlayer)
+function choose_rest_of_turn(board, players, player::HumanPlayer)
     full_options = """
     What does $(player.player.team) do next?
-    [tg] Trade
+    [pt] Propose trade
+    [tg] Declare trade
     [bc] Build city
     [bs] Build settlement
+    [bd] Buy development card
     [E]nd turn
     """
-    action = _parse_action(player.player.team, full_options)
-
+    return _parse_action(player, full_options)
 end
-function choose_rest_of_turn(game, board, players, player::RobotPlayer)
-    return () -> build_settlement(board, player.player.team,(1,2))
+function choose_rest_of_turn(board, players, player::RobotPlayer)
+    if has_enough_resources(player.player, COSTS[:City])
+        candidates = get_admissible_city_locations(board, player::Player)
+        if length(candidates > 0)
+            coord = sample(candidates, 1)[1]
+            return (game, board) -> construct_city(board, player, coord)
+        end
+    end
+    if has_enough_resources(player.player, COSTS[:Settlement])
+        candidates = get_admissible_settlement_locations(board, player::Player)
+        if length(candidates > 0)
+            coord = sample(candidates, 1)[1]
+            return (game, board) -> construct_settlement(board, player, coord)
+        end
+    end
+#    if has_enough_resources(player.player, COSTS[:Road])
+#        coord1 = 
+#        coord2 =
+#        return (game, board) -> construct_road(board, player, coord1, coord2)
+#    end
+    if has_enough_resources(player.player, COSTS[:DevelopmentCard])
+        return (game, board) -> buy_devcard(game, player.player)
+    else
+        if rand() > .8 && length(values(player.player.resources)) > 0
+            rand_resource_from = [random_sample_resources(player.player.resources, 1)...]
+            rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
+            while rand_resource_to[1] == rand_resource_from[1]
+                rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
+            end
+            return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
+        end
+    end
+    return Nothing
 end
 
 function steal_random_resource(from_player, to_player)
@@ -141,6 +172,23 @@ function steal_random_resource(from_player, to_player)
     run(`clear`)
     take_resource(from_player.player, stolen_good)
     give_resource(to_player.player, stolen_good)
+end
+function choose_who_to_trade_with(board, player::HumanPlayer, players)
+    _parse_team("$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
+end
+
+function choose_who_to_trade_with(board, player::RobotPlayer, players)
+    public_scores = count_victory_points_from_board(board)
+    max_ind = argmax(v -> public_scores[v.player.team], players)
+    println("$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player")
+    return max_ind.player.team
+end
+
+function choose_accept_trade(player::HumanPlayer, from_player::Player, from_goods, to_goods)
+    _parse_yesno("Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
+end
+function choose_accept_trade(player::RobotPlayer, from_player::Player, from_goods, to_goods)
+    return rand() > .5 + (from_player.vp_count / 20)
 end
 
 

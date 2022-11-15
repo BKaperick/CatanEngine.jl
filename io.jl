@@ -93,6 +93,7 @@ function read_action()
 end
 
 function execute_api_call(game::Game, board::Board, line::String)
+    team_to_player = Dict([p.player.team => p.player for p in game.players])
     values = split(line, " ")
     func_key = values[2]
     println(line)
@@ -109,7 +110,6 @@ function execute_api_call(game::Game, board::Board, line::String)
     end
 end
 function load_gamestate(game, board, file)
-    team_to_player = Dict([p.player.team => p.player for p in game.players])
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
@@ -138,20 +138,50 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
         showerror(io, ex.S)
     end
 end
-
-
-function _parse_action(team, descriptor)
+function _parse_team(desc)
+    return Symbol(input(desc))
+end
+function _parse_yesno(desc)
+    human_response = lowercase(input(desc))
+    return human_response[1] == 'y'
+end
+function _parse_action(player::HumanPlayer, descriptor)
     human_response = lowercase(input(descriptor))
-    if (human_response == "e")
+    if (human_response[1] == 'e')
         return Nothing
     end
     out_str = split(human_response, " ")
     fname = out_str[1]
-    if fname in BOARD_API
-        return log_action("board $fname", team, out_str[2:end]...)
-        # board br :Robo (4,4) (4,5)
-        # return "board $(out_str[1]) :$team $(join(out_str[2:end], " "))"
+
+    if fname == "bs"
+        human_coords = out_str[2]
+        println(human_coords)
+    
+        #return (game, board) -> choose_validate_building(board, game.players, player, :Settlement, get_coord_from_human_tile_description(human_coords))
+        return (game, board) -> construct_settlement(board, player.player, get_coord_from_human_tile_description(human_coords))
+    elseif fname == "bc"
+        human_coords = out_str[2]
+        return (game, board) -> construct_city(board, player.player, get_coord_from_human_tile_description(human_coords))
+    elseif fname == "br"
+        human_coords = join(out_str[2:3], " ")
+        return (game, board) -> construct_road(board, player.player, get_coords_from_human_tile_description(human_coords)...)
+    elseif fname == "tg" # tg Blue 2 w w g g
+        to_player_team = Symbol(out_str[2])
+        amount_are_mine = parse(Int, out_str[3])
+        goods = join(out_str[4:end], " ")
+        return (game, board) -> trade_goods(game.players, player.player, to_player_team, amount_are_mine, _parse_resources_str(goods)...)
+    elseif fname == "pt" # pt 2 w w g g
+        amount_are_mine = parse(Int, out_str[2])
+        goods = join(out_str[3:end], " ")
+        return (game, board) -> propose_trade_goods(board, game.players, player, amount_are_mine, _parse_resources_str(goods)...)
+    elseif fname == "bd"
+        return (game, board) -> buy_devcard(game, player.player)
     end
+    # if fname in BOARD_API
+    #    return log_action("board $fname", team, out_str[2:end]...)
+    #    # board br :Robo (4,4) (4,5)
+    #    # return "board $(out_str[1]) :$team $(join(out_str[2:end], " "))"
+    #end
 
     return human_response
 end
@@ -159,6 +189,14 @@ end
 function _parse_teams(descriptor)
     human_response = input(descriptor)
     return Symbol(String([i == 1 ? uppercase(c) : lowercase(c) for (i, c) in enumerate(human_response)]))
+end
+
+function _parse_road_coord(descriptor)
+    human_response = input(descriptor)
+    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
+    if all([x == nothing || x == Nothing for x in asints])
+        return get_road_coord_from_human_tile_description(human_response)
+    end
 end
 function _parse_ints(descriptor)
     human_response = input(descriptor)
@@ -176,11 +214,14 @@ function _parse_devcard(descriptor)
     if dc_response == ""
         return Nothing
     end
-    return HUMAN_RESOURCE_TO_SYMBOL[uppercase(dc_response)]
+    return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]
 end
 function _parse_resources(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
     println("($reminder)")
-    return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(input(descriptor), ' ')])
+    _parse_resources_str(input(descriptor))
+end
+function _parse_resources_str(string_of_resources)
+    return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(string_of_resources, ' ')])
 end
 

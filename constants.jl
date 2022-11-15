@@ -69,6 +69,7 @@ RESOURCE_TO_COUNT = Dict([
     :Desert => 1
    ]) 
 TEAMS = [
+         :Brown,
          :Blue,
          #:Orange,
          #:Green,
@@ -76,18 +77,70 @@ TEAMS = [
         ]
 TEAM_TO_TYPE = Dict(
          :Blue => :Human,
+         :Brown => :Human,
          :Orange => :Human,
          :Green => :Human,
          :Robo => :Robot
         )
 TEAM_TO_PLAYERTYPE = Dict(
          :Blue => HumanPlayer,
+         :Brown => HumanPlayer,
          :Orange => HumanPlayer,
          :Green => HumanPlayer,
          :Robo => RobotPlayer
         )
 TEAM_TO_PLAYER = Dict([t => TEAM_TO_PLAYERTYPE[t](t) for t in TEAMS])
 PLAYERS = collect(values(TEAM_TO_PLAYER))
+TILE_TO_ISOLATED_EDGE_COORDS = Dict([
+                      :A => Set([(1,1),(1,2)]),
+                      :B => Set([(1,4)]),
+                      :C => Set([(1,6),(1,7)]),
+                      
+                      :D => Set([(2,1)]),
+                      :E => Set(),
+                      :F => Set(),
+                      :G => Set([(2,9)]),
+                      
+                      :H => Set([(3,1),(4,1)]),
+                      :I => Set(),
+                      :J => Set(),
+                      :K => Set(),
+                      :L => Set([(3,11),(4,11)]),
+                      
+                      :M => Set([(5,1)]),
+                      :N => Set(),
+                      :O => Set(),
+                      :P => Set([(5,9)]),
+                      
+                      :Q => Set([(6,1),(6,2)]),
+                      :R => Set([(6,4)]),
+                      :S => Set([(6,6),(6,7)]),
+                           ])
+TILE_TO_EDGE_COORDS = Dict(
+                      :A => Set([(1,1),(1,2),(1,3),(2,2)]),
+                      :B => Set([(1,3),(1,4),(1,5)]),
+                      :C => Set([(1,5),(1,6),(1,7),(2,8)]),
+                      
+                      :D => Set([(2,1),(2,2),(3,2)]),
+                      :E => Set(),
+                      :F => Set(),
+                      :G => Set([(2,8),(2,9),(3,10)]),
+                      
+                      :H => Set([(3,1),(3,2),(4,1),(4,2)]),
+                      :I => Set(),
+                      :J => Set(),
+                      :K => Set(),
+                      :L => Set([(3,10),(3,11),(4,10),(4,11)]),
+                      
+                      :M => Set([(5,1),(5,2),(4,2)]),
+                      :N => Set(),
+                      :O => Set(),
+                      :P => Set([(5,8),(5,9),(4,10)]),
+                      
+                      :Q => Set([(6,1),(6,2),(6,3),(5,2)]),
+                      :R => Set([(6,3),(6,4),(6,5)]),
+                      :S => Set([(6,5),(6,6),(6,7),(5,8)]),
+                     )
 TILE_TO_COORDS = Dict(
                       :A => Set([(1,1),(1,2),(1,3),(2,2),(2,3),(2,4)]),
                       :B => Set([(1,3),(1,4),(1,5),(2,4),(2,5),(2,6)]),

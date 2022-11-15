@@ -29,6 +29,7 @@ API_DICTIONARY = Dict(
                       # Player commands
                       "dc" => _discard_cards,
                       "pd" => _play_devcard,
+                      "ad" => _add_devcard,
 
 
                      )
@@ -65,31 +66,6 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
-function try_construct_settlement(buildings, roads, player, coord)::Bool
-    team_with_roads_through_coord = team_with_two_adjacent_roads(roads, coord) 
-    if team_with_roads_through_coord != Nothing && team_with_roads_through_coord != team
-        return false
-    end
-    if !has_enough_resources(player, COSTS[:Settlement])
-        return false
-    end
-    for neigh in get_neighbors(coord)
-        if any([b.coord == neigh for b in buildings])
-            return false
-        end
-    end
-    construct_settlement(buildings, player, coord)
-    return true
-end
-
-function try_construct_city(buildings, team::Symbol, coord)::Bool
-    player = TEAM_TO_PLAYER[team]
-    if !has_enough_resources(player, COSTS[:City])
-        return false
-    end
-    construct_city(buildings, team, coord)
-    return true
-end
 
 function team_with_two_adjacent_roads(roads, coord)
     roads = get_adjacent_roads(roads, coord)
@@ -124,11 +100,16 @@ function can_pay_price(player::Player, cost::Dict)::Bool
 end
 function pay_price(player::Player, cost::Dict)
     resources = keys(cost)
-    discard_cards(player, resources...)
+    for (r,amount) in cost
+        discard_cards(player, repeat([r], amount)...)
+    end
 end
+
+# TODO think about combining with choose_validate_build_X methods.
+# For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
     pay_construction(player, :City)
-    build_city(board, team, coord)
+    build_city(board, player.team, coord)
 end
 function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
@@ -139,7 +120,48 @@ function pay_construction(player::Player, construction::Symbol)
     cost = COSTS[construction]
     pay_price(player, cost)
 end
+function propose_trade_goods(board, players, from_player, amount::Int, resource_symbols...)
+    from_goods = resource_symbols[1:amount]
+    to_goods = resource_symbols[amount+1:end]
+    return propose_trade_goods(board, players, from_player, from_goods, to_goods)
+end
+function propose_trade_goods(board, players, from_player, from_goods, to_goods)
+    accepted = []
+    for player in players
+        # Don't propose trade to yourself
+        if player.player.team == from_player.player.team
+            continue
+        end
+        if choose_accept_trade(player, from_player.player, from_goods, to_goods)
+            push!(accepted, player)
+        end
+    end
+    if length(accepted) == 0
+        return
+    end
+    to_player_team = choose_who_to_trade_with(board, from_player, accepted)
+    to_player = [p for p in accepted if p.player.team == to_player_team][1]
+    trade_goods(from_player.player, to_player.player, [from_goods...], [to_goods...])
+end
 
+
+function trade_goods(players, from_player::Player, to_player_team::Symbol, amount::Int, resource_symbols...)
+    to_player = [p for p in players if p.player.team == to_player_team]
+    from_goods = resource_symbols[1:amount]
+    to_goods = resource_symbols[amount+1:end]
+    return trade_goods(from_player, to_player, from_goods, to_goods)
+end
+
+function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+    for resource in from_goods
+        take_resource(from_player, resource)
+        give_resource(to_player, resource)
+    end
+    for resource in to_goods
+        take_resource(to_player, resource)
+        give_resource(from_player, resource)
+    end
+end
 
 function harvest_resource(players, building::Building, resource::Symbol)
     player = [p for p in players if p.player.team == building.team][1]
@@ -190,7 +212,7 @@ function do_robber_move(board, players, player)
         r_count = count_cards(player.player)
         if r_count > 7
             resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
-            discard_cards(player.player, resources_to_discard)
+            discard_cards(player.player, resources_to_discard...)
         end
     end  
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
@@ -198,6 +220,27 @@ function do_robber_move(board, players, player)
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
         steal_random_resource(player, chosen_victim)
     end
+end
+
+function get_settlement_locations(board, player::Player)::Vector{Tuple}
+    [c for (c,b) in board.coord_to_building if b.team == player.team && b.type == :Settlement]
+end
+
+function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
+    get_settlement_locations(board, player)
+end
+
+function get_admissible_settlement_locations(board, player::Player)::Vector{Tuple}
+    coords_near_player_road = [c for (c,roads) in board.coord_to_roads if any([r.team == player.team for r in roads])]
+    empty = board.empty_spaces
+    admissible = intersect(empty, coords_near_player_road)
+    valid = []
+    for coord in admissible
+        if is_valid_settlement_placement(board, team, coord)
+            push!(valid, coord)
+        end
+    end
+    return valid
 end
 
 function get_potential_theft_victims(board, players, thief, new_tile)
@@ -225,12 +268,17 @@ function do_turn(game, board, player)
     
     next_action = "tmp"
     while next_action != Nothing
-        next_action = choose_rest_of_turn(game, board, game.players, player)
+        next_action = choose_rest_of_turn(board, game.players, player)
         if next_action != Nothing
-            println("next action: $next_action")
-            execute_api_call(game, board, player, next_action)
+            next_action(game, board)
         end
     end
+end
+
+function buy_devcard(game::Game, player::Player)
+    card = draw_devcard(game)
+    pay_construction(player, :DevelopmentCard)
+    add_devcard(player)
 end
 
 function someone_has_won(board, players)::Bool
@@ -254,11 +302,15 @@ function initialize_game(game::Game, csvfile::String, logfile)
 end
 function initialize_game(game::Game, csvfile::String)
     board = read_map(csvfile)
-    do_game(game, board, false) #true)
+    print_board(board)
+    for (t,r) in board.tile_to_resource
+        println("$t => $r")
+    end
+
+    do_game(game, board, true)
 end
 
-function choose_validate_building(board, players, player, building_type)
-    coord = Nothing
+function choose_validate_building(board, players, player, building_type, coord = Nothing)
     if building_type == :Settlement
         validation_check = is_valid_settlement_placement
     else
