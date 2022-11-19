@@ -3,6 +3,8 @@ include("constants.jl")
 include("human.jl")
 include("main.jl")
 
+LOGFILEIO = open(LOGFILE, "a")
+
 function setup_robot_game()
     # Configure players and table configuration
     team_and_playertype = [
@@ -41,3 +43,45 @@ end
 @test get_road_coords_from_human_tile_description("lll") == [(3,11),(4,11)]
 @test get_road_coords_from_human_tile_description("ccc") == [(1,7),(1,6)]
 @test get_road_coords_from_human_tile_description("aaa") == [(1,2),(1,1)]
+
+@assert get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
+@assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
+@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
+@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
+
+# API Tests
+
+function call_api()
+    board = read_map("sample.csv")
+    player1 = RobotPlayer(:Test1)
+    player2 = RobotPlayer(:Test2)
+    players = [player1, player2]
+
+    @test roll_dice(player1) <= 12
+    @test roll_dice(player2) >= 2
+    
+    loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
+    @test loc_settlement != Nothing
+    build_settlement(board, player1.player.team, loc_settlement)
+    settlement_locs = get_settlement_locations(board, player1.player)
+    @test length(settlement_locs) == 1
+
+    loc_city = choose_building_location(board, players, player1, :City)
+    build_city(board, player1.player.team, loc_city)
+
+    @test loc_settlement == loc_city
+
+    road_coords = choose_road_location(board, players, player1)
+    @test length(road_coords) == length(get_neighbors(loc_settlement))
+    @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
+
+# roll_dice(player::RobotPlayer)::Int
+# choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple{Int,Int}}
+# choose_building_location(board, players, player::RobotPlayer, building_type)::Tuple{Int, Int}
+# choose_cards_to_discard(player::RobotPlayer, amount)
+# choose_place_robber(board, players, player::RobotPlayer)
+# choose_robber_victim(board, player::RobotPlayer, potential_victims...)::PlayerType
+# choose_card_to_steal(player::RobotPlayer)::Symbol
+    
+end
+

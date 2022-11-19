@@ -230,8 +230,3 @@ function print_board(board::Board)
     end
     return b
 end
-
-@assert get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
-@assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])

@@ -230,17 +230,42 @@ function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
     get_settlement_locations(board, player)
 end
 
-function get_admissible_settlement_locations(board, player::Player)::Vector{Tuple}
+function get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple}
     coords_near_player_road = [c for (c,roads) in board.coord_to_roads if any([r.team == player.team for r in roads])]
-    empty = board.empty_spaces
-    admissible = intersect(empty, coords_near_player_road)
+    empty = get_empty_spaces(board)
+    if first_turn
+        admissible = empty
+    else
+        admissible = intersect(empty, coords_near_player_road)
+    end
+
     valid = []
+    println("dbug: $admissible, $first_turn")
     for coord in admissible
-        if is_valid_settlement_placement(board, team, coord)
+        if is_valid_settlement_placement(board, player.team, coord)
             push!(valid, coord)
         end
     end
     return valid
+end
+function get_admissible_road_locations(board, player::Player)::Vector{Tuple}
+    start_coords = []
+    coords_near_player_road = [c for (c,roads) in board.coord_to_roads if any([r.team == player.team for r in roads])]
+    coords_near_player_buildings = [c for (c,b) in board.coord_to_building if b.team == player.team]
+    push!(start_coords, coords_near_player_road)
+    push!(start_coords, coords_near_player_buildings)
+    start_coords = Set(unique(start_coords))
+    road_coords = []
+    for c in start_coords
+        ns = get_neighbors(c)
+        for n in ns
+            println("road testing: ($c, $n)")
+            if is_valid_road_placement(board, player.team, c, n)
+                push!(road_coords, Tuple([c,n]))
+            end
+        end
+    end
+    return road_coords
 end
 
 function get_potential_theft_victims(board, players, thief, new_tile)
@@ -261,7 +286,9 @@ function do_turn(game, board, player)
         if card == :Knight
             do_knight_action(board, game.players, player)
         end
-        play_devcard(player.player, card)
+        if card != Nothing
+            play_devcard(player.player, card)
+        end
     end
     value = roll_dice(player)
     handle_dice_roll(board, game.players, player, value)

@@ -13,7 +13,11 @@ function add_devcard(player::Player, devcard::Symbol)
     _add_devcard(player, devcard)
 end
 function _add_devcard(player::Player, devcard::Symbol)
-    push!(player.devcards, devcard)
+    if haskey(player.dev_cards, devcard)
+        player.dev_cards[devcard] += 1
+    else
+        player.dev_cards[devcard] = 1
+    end
 end
     
 function play_devcard(player::Player, devcard::Symbol)
@@ -117,6 +121,11 @@ function choose_play_devcard(board, players, player::HumanPlayer)
     _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
+function choose_play_devcard(board, players, player::RobotPlayer)
+    return Nothing
+end
+
+
 function choose_rest_of_turn(board, players, player::HumanPlayer)
     full_options = """
     What does $(player.player.team) do next?
@@ -131,29 +140,35 @@ function choose_rest_of_turn(board, players, player::HumanPlayer)
 end
 function choose_rest_of_turn(board, players, player::RobotPlayer)
     if has_enough_resources(player.player, COSTS[:City])
-        candidates = get_admissible_city_locations(board, player::Player)
-        if length(candidates > 0)
-            coord = sample(candidates, 1)[1]
-            return (game, board) -> construct_city(board, player, coord)
+        coord = choose_building_location(board, players, player, :City)
+        if coord != Nothing
+            return (game, board) -> construct_city(board, player.player, coord)
         end
     end
     if has_enough_resources(player.player, COSTS[:Settlement])
-        candidates = get_admissible_settlement_locations(board, player.player)
-        if length(candidates > 0)
-            coord = sample(candidates, 1)[1]
-            return (game, board) -> construct_settlement(board, player, coord)
+        coord = choose_building_location(board, players, player, :Settlement)
+        if coord != Nothing
+            return (game, board) -> construct_settlement(board, player.player, coord)
         end
     end
-#    if has_enough_resources(player.player, COSTS[:Road])
-#        coord1 = 
-#        coord2 =
-#        return (game, board) -> construct_road(board, player, coord1, coord2)
-#    end
+    if has_enough_resources(player.player, COSTS[:Road])
+        coord = choose_road_location(board, players, player)
+        if coord != Nothing
+            coord1 = coord[1]
+            coord2 = coord[2]
+            return (game, board) -> construct_road(board, player.player, coord1, coord2)
+        end
+    end
     if has_enough_resources(player.player, COSTS[:DevelopmentCard])
         return (game, board) -> buy_devcard(game, player.player)
     else
         if rand() > .8 && length(values(player.player.resources)) > 0
-            rand_resource_from = [random_sample_resources(player.player.resources, 1)...]
+            sampled = random_sample_resources(player.player.resources, 1)
+            if sampled == Nothing
+                return Nothing
+            end
+            rand_resource_from = [sampled...]
+            
             rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
@@ -166,10 +181,15 @@ end
 
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
-    input("Press Enter when $(to_player.player.team) is ready to see the message")
-    println("$(from_player.player.team) stole $stolen_good from $(to_player.player.team)")
+    input("Press Enter when $(to_player.team) is ready to see the message")
+    println("$(from_player.player.team) stole $stolen_good from $(to_player.team)")
     input("Press Enter again when you are ready to hide the message")
     run(`clear`)
+    take_resource(from_player.player, stolen_good)
+    give_resource(to_player.player, stolen_good)
+end
+function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
+    stolen_good = choose_card_to_steal(from_player)
     take_resource(from_player.player, stolen_good)
     give_resource(to_player.player, stolen_good)
 end
@@ -210,9 +230,19 @@ function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple
     println(out)
     return out
 end
-function choose_building_location(board, players, player::RobotPlayer, building_type)::Tuple{Int, Int}
-    #TODO implement
-    rand(get_empty_spaces(board))
+function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)
+    if building_type == :Settlement
+        candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
+        if length(candidates) > 0
+            return sample(candidates, 1)[1]
+        end
+    elseif building_type == :City
+        settlement_locs = get_settlement_locations(board, player.player)
+        if length(settlement_locs) > 0
+            return rand(settlement_locs)
+        end
+    end
+    return Nothing
 end
 
 function choose_cards_to_discard(player::RobotPlayer, amount)

@@ -3,6 +3,10 @@ function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)
     for (r,c) in resources
         append!(items, repeat([r], c))
     end
+    println(resources)
+    if length(items) == 0
+        return Nothing
+    end
     return sample(items, count, replace=false)
 end
 
