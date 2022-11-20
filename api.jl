@@ -29,6 +29,18 @@ function create_board(csvfile::String)
     read_map(csvfile)
 end
 
+function get_building_locations(board, team::Symbol)::Vector{Tuple}
+    [c for (c,b) in board.coord_to_building if b.team == team]
+end
+
+function get_settlement_locations(board, team::Symbol)::Vector{Tuple}
+    [c for (c,b) in board.coord_to_building if b.team == team && b.type == :Settlement]
+end
+
+function get_road_locations(board, team::Symbol)
+    [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
+end
+
 function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
     building = Building(coord, type, team)
     push!(board.buildings, building)

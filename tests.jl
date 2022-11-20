@@ -9,7 +9,7 @@ function setup_robot_game()
     # Configure players and table configuration
     team_and_playertype = [
                           (:Robo1, RobotPlayer),
-                          (:Robo2, RobotPlayer)
+                          (:Sobo2, RobotPlayer)
             ]
     players = [player(team) for (team,player) in team_and_playertype]
     game = Game(players)

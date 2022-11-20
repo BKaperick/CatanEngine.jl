@@ -6,6 +6,7 @@ include("api.jl")
 include("player_api.jl")
 include("game_api.jl")
 include("board.jl")
+include("draw_board.jl")
 include("human.jl")
 include("robo.jl")
 
@@ -226,24 +227,12 @@ function do_robber_move(board, players, player)
     end
 end
 
-function get_building_locations(board, player::Player)::Vector{Tuple}
-    [c for (c,b) in board.coord_to_building if b.team == player.team]
-end
-
-function get_settlement_locations(board, player::Player)::Vector{Tuple}
-    [c for (c,b) in board.coord_to_building if b.team == player.team && b.type == :Settlement]
-end
-
-function get_road_locations(board, player::Player)
-    [c for (c,r) in board.coord_to_roads if any([road.team == player.team for road in r])]
-end
-
 function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
-    get_settlement_locations(board, player)
+    get_settlement_locations(board, player.team)
 end
 
 function get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple}
-    coords_near_player_road = [c for (c,roads) in board.coord_to_roads if any([r.team == player.team for r in roads])]
+    coords_near_player_road = get_road_locations(board, player.team)
     empty = get_empty_spaces(board)
     if first_turn
         admissible = empty
@@ -261,8 +250,8 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
 end
 function get_admissible_road_locations(board, player::Player, is_first_turn = false)
     start_coords = []
-    coords_near_player_road = get_road_locations(board, player)
-    coords_near_player_buildings = get_building_locations(board, player)
+    coords_near_player_road = get_road_locations(board, player.team)
+    coords_near_player_buildings = get_building_locations(board, player.team)
 
     # This is because on the first turn (placement of first 2 settlements), the second road must be attached to the second
     # settlement
@@ -334,6 +323,7 @@ function get_winner(board, players)#::Union{Player, Nothing}
         player_points = get_vp_count_from_dev_cards(player.player) + board_points[player.player.team]
         if player_points >= 10
             println("WINNER $player_points ($player)")
+            print_board(board)
             return player
         end
     end
