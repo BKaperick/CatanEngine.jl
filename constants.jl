@@ -1,6 +1,7 @@
 using Dates
 
 BOARD_API = Set(["bs","br","bc"])
+VERBOSITY = 0
 
 LOGFILE = "log_$(Dates.format(now(), "HHMMSS")).txt"
 VP_AWARDS = Dict([
@@ -69,6 +70,26 @@ RESOURCE_TO_COUNT = Dict([
     :Desert => 1
    ]) 
 
+COORD_TO_PORTNUM = Dict([
+                         (1,1) => 1,
+                         (1,2) => 1,
+                         (1,4) => 2,
+                         (1,5) => 2,
+                         (2,8) => 3,
+                         (2,9) => 3,
+                         (3,11) => 4,
+                         (3,12) => 4,
+                         (5,8) => 5,
+                         (5,9) => 5,
+                         (6,4) => 6,
+                         (6,5) => 6,
+                         (6,1) => 7,
+                         (6,2) => 7,
+                         (4,1) => 8,
+                         (4,2) => 8,
+                         (3,2) => 9,
+                         (2,1) => 9
+                        ])
 TILE_TO_ISOLATED_EDGE_COORDS = Dict([
                       :A => Set([(1,1),(1,2)]),
                       :B => Set([(1,4)]),

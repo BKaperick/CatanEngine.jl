@@ -77,6 +77,24 @@ function count_cards(player::Player)
     sum(values(player.resources))
 end
 
+function add_port(player::Player, resource::Symbol)
+    log_action(":$(player.team) ap", resource)
+    _add_port(player, resource)
+end
+function _add_port(player::Player, resource::Symbol)
+    if haskey(player.ports, resource)
+        player.ports[resource] = 2
+
+    # Alternative is that this port is a 3:1 universal, so we change any exchange rates of 4 to 3
+    else
+        for (k,v) in player.ports
+            if v == 4
+                player.ports[k] = 3
+            end
+        end
+    end
+end
+
 function give_resource(player::Player, resource::Symbol)
     log_action(":$(player.team) gr", resource)
     _give_resource(player, resource)
@@ -253,7 +271,7 @@ function choose_building_location(board, players, player::RobotPlayer, building_
             return sample(candidates, 1)[1]
         end
     elseif building_type == :City
-        settlement_locs = get_settlement_locations(board, player.player)
+        settlement_locs = get_settlement_locations(board, player.player.team)
         if length(settlement_locs) > 0
             return rand(settlement_locs)
         end

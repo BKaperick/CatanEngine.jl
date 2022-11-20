@@ -5,6 +5,7 @@ mutable struct Board
     tile_to_resource::Dict{Symbol,Symbol}
     coord_to_building::Dict{Tuple,Building}
     coord_to_roads::Dict{Tuple,Set{Road}}
+    coord_to_port::Dict{Tuple,Symbol}
     empty_spaces::Vector
     buildings::Array{Building,1}
     roads::Array{Road,1}
@@ -12,7 +13,7 @@ mutable struct Board
     spaces::Vector
 end
 
-Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS))
+Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS))
 
 function initialize_empty_board(dimensions)
     spaces = []

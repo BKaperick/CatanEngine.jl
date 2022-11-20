@@ -31,8 +31,7 @@ API_DICTIONARY = Dict(
                       "dc" => _discard_cards,
                       "pd" => _play_devcard,
                       "ad" => _add_devcard,
-
-
+                      "ap" => _add_port
                      )
 
 
@@ -114,6 +113,9 @@ function construct_city(board, player::Player, coord)
 end
 function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
+    if haskey(board.coord_to_port, coord)
+        add_port(player, board.coord_to_port[coord])
+    end
     build_settlement(board, player.team, coord)
 end
 function construct_road(board, player::Player, coord1, coord2)

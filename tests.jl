@@ -53,6 +53,30 @@ end
 
 # API Tests
 
+function test_ports()
+    board = read_map("sample.csv")
+    player1 = RobotPlayer(:Test1)
+    player2 = RobotPlayer(:Test2)
+    @test all([v == 4 for v in values(player1.player.ports)])
+    @test length(keys(player1.player.ports)) == 5
+
+    add_port(player1.player, :Grain)
+
+    @test player1.player.ports[:Grain] == 2
+    @test player1.player.ports[:Wood] == 4
+    
+    add_port(player1.player, :All)
+    add_port(player2.player, :All)
+    
+    @test all([v == 3 for v in values(player2.player.ports)])
+    @test player1.player.ports[:Grain] == 2
+    @test player1.player.ports[:Wood] == 3
+
+    construct_settlement(board, player1.player, (3,2))
+    
+    @test player1.player.ports[:Brick] == 2
+end
+
 function call_api()
     board = read_map("sample.csv")
     player1 = RobotPlayer(:Test1)

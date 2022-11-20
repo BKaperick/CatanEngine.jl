@@ -16,25 +16,42 @@ function read_map(csvfile)::Board
     tile_to_dicevalue = Dict()
     tile_to_resource = Dict()
     desert_tile = :Null
+    ports = Dict()
     for line in board_state
-        tile_str,dice_str,resource_str = split(line,',')
-        tile = Symbol(tile_str)
-        resource = resourcestr_to_symbol[uppercase(resource_str)]
-        dice = parse(Int, dice_str)
+        if count(",", line) == 2
+            tile_str,dice_str,resource_str = split(line,',')
+            tile = Symbol(tile_str)
+            resource = resourcestr_to_symbol[uppercase(resource_str)]
+            dice = parse(Int, dice_str)
 
-        tile_to_dicevalue[tile] = dice
-        tile_to_resource[tile] = resource
-        if resource == :Desert
-            desert_tile = tile
+            tile_to_dicevalue[tile] = dice
+            tile_to_resource[tile] = resource
+            if resource == :Desert
+                desert_tile = tile
+            end
+        elseif count(",", line) == 1
+            println(line)
+            port,resource_str = split(line,',')
+            portnum = parse(Int,port)
+            ports[portnum] = resourcestr_to_symbol[uppercase(resource_str)]
         end
     end
     dicevalue_to_tiles = Dict([v => [] for (k,v) in tile_to_dicevalue])
     for (t,d) in tile_to_dicevalue
         push!(dicevalue_to_tiles[d], t)
     end
+    
+    coord_to_port = Dict()
+    for (c,pnum) in COORD_TO_PORTNUM
+        if haskey(ports, pnum)
+            coord_to_port[c] = ports[pnum]
+        else
+            coord_to_port[c] = :All
+        end
+    end
 
     println(dicevalue_to_tiles)
-    board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile)
+    board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile, coord_to_port)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))
     @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(sum(values(board.tile_to_dicevalue))) instead of 133"

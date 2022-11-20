@@ -133,14 +133,16 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     end
     # 1. There cannot be another road at the same location
     if haskey(board.coord_to_building, coord)
-        println("[Invalid settlement] 1. There cannot be another settlement at the same location")
+        if VERBOSITY > 0 println("[Invalid settlement] 1. There cannot be another settlement at the same location")
+        end
         return false
     end
     
     # 2. New building cannot be neighbors of an existing building
     for neigh in get_neighbors(coord)
         if haskey(board.coord_to_building, neigh)
-            println("[Invalid settlement] 2. New building cannot be neighbors of an existing building")
+            if VERBOSITY > 0 println("[Invalid settlement] 2. New building cannot be neighbors of an existing building")
+            end
             return false
         end
     end
@@ -149,7 +151,8 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     if haskey(board.coord_to_roads, coord)
         roads = board.coord_to_roads[coord]
         if ~any([r.team == team for r in roads])
-            println("[Invalid settlement] 3. New building must be next to a road of the same team")
+            if VERBOSITY > 0 println("[Invalid settlement] 3. New building must be next to a road of the same team")
+            end
             return false
         end
     end
@@ -177,7 +180,8 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     # 1. There cannot be another road at the same location
     if haskey(board.coord_to_roads, coord1)
         if any([(coord2 == road.coord1 || coord2 == road.coord2) for road in board.coord_to_roads[coord1]])
-            println("[Invalid road] 1. There cannot be another road at the same location")
+            if VERBOSITY > 0 println("[Invalid road] 1. There cannot be another road at the same location")
+            end
             return false
         end
     end
@@ -201,7 +205,8 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
         end
     end
     if ~found_neighbor
-        println("[Invalid road] never found a valid neighbor")
+        if VERBOSITY > 0 println("[Invalid road] never found a valid neighbor")
+        end
     end
     return found_neighbor
 end
