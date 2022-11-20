@@ -8,6 +8,13 @@ include("human.jl")
 # Players API
 
 # Player API
+function trade_resource_with_bank(player::Player, from_resource, to_resource)
+    rate = player.ports[from_resource]
+    for r in 1:rate
+        take_resource(player, from_resource)
+    end
+    give_resource(player, to_resource)
+end
 function get_vp_count_from_dev_cards(player::Player)
     return length([x for x in player.dev_cards if x == :VictoryPoint])
 end

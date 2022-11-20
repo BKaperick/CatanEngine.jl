@@ -5,6 +5,7 @@ mutable struct Player
     vp_count::Int
     dev_cards::Dict{Symbol,Int}
     dev_cards_used::Dict{Symbol,Int}
+    ports::Dict{Symbol, Int}
 end
 mutable struct HumanPlayer <: PlayerType
     player::Player
@@ -14,7 +15,16 @@ mutable struct RobotPlayer <: PlayerType
     player::Player
 end
 
-Player(team::Symbol) = Player(team, Dict(), 0, Dict(), Dict()) 
+function Player(team::Symbol)
+    default_ports = Dict([
+    :Wood => 4
+    :Stone => 4
+    :Grain => 4
+    :Brick => 4
+    :Pasture => 4
+    ])
+    return Player(team, Dict(), 0, Dict(), Dict(), default_ports)
+end
 HumanPlayer(team::Symbol) = HumanPlayer(Player(team))
 RobotPlayer(team::Symbol) = RobotPlayer(Player(team))
 
