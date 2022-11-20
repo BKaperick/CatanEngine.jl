@@ -173,7 +173,6 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     # 2. Must have a neighboring road of same team, without separation by different color building
     found_neighbor = false
     for coord in [coord1, coord2]
-        println("$coord, $(haskey(board.coord_to_building, coord)), $team")
         if haskey(board.coord_to_roads, coord)
             for road in board.coord_to_roads[coord]
                 if road.team == team

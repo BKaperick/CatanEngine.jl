@@ -57,22 +57,48 @@ function call_api()
     player2 = RobotPlayer(:Test2)
     players = [player1, player2]
 
+    @test has_any_resources(player1.player) == false
+    @test has_any_resources(player2.player) == false
+
+    give_resource(player1.player, :Grain)
+
+    @test has_any_resources(player1.player) == true
+
     @test roll_dice(player1) <= 12
     @test roll_dice(player2) >= 2
     
+    # Build first settlement
     loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
     @test loc_settlement != Nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player)
     @test length(settlement_locs) == 1
-
+    
+    # Upgrade it to a city
     loc_city = choose_building_location(board, players, player1, :City)
     build_city(board, player1.player.team, loc_city)
-
     @test loc_settlement == loc_city
-
+    
+    # Build a road attached to first settlement
+    admissible_roads = get_admissible_road_locations(board, player1.player)
     road_coords = choose_road_location(board, players, player1)
-    @test length(road_coords) == length(get_neighbors(loc_settlement))
+    build_road(board, player1.player.team, road_coords[1], road_coords[2])
+    @test length(admissible_roads) == length(get_neighbors(loc_settlement))
+    @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
+    @test length(get_road_locations(board, player1.player)) == 2
+
+    # Build second settlement
+    loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
+    @test loc_settlement != Nothing
+    build_settlement(board, player1.player.team, loc_settlement)
+    settlement_locs = get_settlement_locations(board, player1.player)
+    @test length(settlement_locs) == 1 # City is no longer counted
+    
+    # Build a road attached to second settlement
+    admissible_roads = get_admissible_road_locations(board, player1.player, true)
+    road_coords = choose_road_location(board, players, player1, true)
+    build_road(board, player1.player.team, road_coords[1], road_coords[2])
+    @test length(admissible_roads) == length(get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
 
 # roll_dice(player::RobotPlayer)::Int

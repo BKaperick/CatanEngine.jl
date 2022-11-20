@@ -8,6 +8,9 @@ include("human.jl")
 # Players API
 
 # Player API
+function get_vp_count_from_dev_cards(player::Player)
+    return length([x for x in player.dev_cards if x == :VictoryPoint])
+end
 function add_devcard(player::Player, devcard::Symbol)
     log_action(":$(player.team) ad", devcard)
     _add_devcard(player, devcard)
@@ -30,6 +33,15 @@ function _play_devcard(player::Player, devcard::Symbol)
         player.dev_cards_used[devcard] = 0
     end
     player.dev_cards_used[devcard] += 1
+end
+
+function has_any_resources(player::Player)::Bool
+    for (r,amt) in player.resources
+        if amt > 0
+            return true
+        end
+    end
+    return false
 end
 
 function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
@@ -88,10 +100,10 @@ function choose_cards_to_discard(player::HumanPlayer, amount)
     return _parse_resources("$(player.player.team) discards: ")
 end
 
-function choose_building_location(board, players, player::HumanPlayer, building_type)::Tuple{Int, Int}
+function choose_building_location(board, players, player::HumanPlayer, building_type, is_first_turn = false)::Tuple{Int, Int}
     _parse_ints("$(player.player.team) places a $(building_type):")
 end
-function choose_road_location(board, players, player::HumanPlayer)::Vector{Tuple{Int,Int}}
+function choose_road_location(board, players, player::HumanPlayer, is_first_turn = false)::Vector{Tuple{Int,Int}}
     coords = _parse_road_coord("$(player.player.team) places a Road:")
     if length(coords) == 4
         out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
@@ -152,7 +164,7 @@ function choose_rest_of_turn(board, players, player::RobotPlayer)
         end
     end
     if has_enough_resources(player.player, COSTS[:Road])
-        coord = choose_road_location(board, players, player)
+        coord = choose_road_location(board, players, player, false)
         if coord != Nothing
             coord1 = coord[1]
             coord2 = coord[2]
@@ -219,16 +231,13 @@ function roll_dice(player::RobotPlayer)::Int
     println("$(player.player.team) rolled a $value")
     return value
 end
-function choose_road_location(board, players, player::RobotPlayer)::Vector{Tuple{Int,Int}}
-    #TODO implement
-    my_buildings = [b.coord for b in board.buildings if b.team == player.player.team]
-
-    coord1 = rand(my_buildings)
-    empty = get_empty_spaces(board)
-    empty_neighbors = [n for n in get_neighbors(coord1) if n in empty]
-    out = [coord1;rand(empty_neighbors)]
-    println(out)
-    return out
+function choose_road_location(board, players, player::RobotPlayer, is_first_turn = false)
+    candidates = get_admissible_road_locations(board, player.player, is_first_turn)
+    if length(candidates) > 0
+        return sample(candidates)
+        #return sample(candidates, 1)[1]
+    end
+    return Nothing
 end
 function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)
     if building_type == :Settlement
@@ -272,6 +281,8 @@ end
 function choose_robber_victim(board, player::RobotPlayer, potential_victims...)::PlayerType
     public_scores = count_victory_points_from_board(board)
     max_ind = argmax(v -> public_scores[v.player.team], potential_victims)
+    
+    
     println("$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player")
     return max_ind
 end

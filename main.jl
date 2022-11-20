@@ -115,6 +115,10 @@ function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
     build_settlement(board, player.team, coord)
 end
+function construct_road(board, player::Player, coord1, coord2)
+    pay_construction(player, :Road)
+    build_road(board, player.team, coord1, coord2)
+end
 
 function pay_construction(player::Player, construction::Symbol)
     cost = COSTS[construction]
@@ -222,8 +226,16 @@ function do_robber_move(board, players, player)
     end
 end
 
+function get_building_locations(board, player::Player)::Vector{Tuple}
+    [c for (c,b) in board.coord_to_building if b.team == player.team]
+end
+
 function get_settlement_locations(board, player::Player)::Vector{Tuple}
     [c for (c,b) in board.coord_to_building if b.team == player.team && b.type == :Settlement]
+end
+
+function get_road_locations(board, player::Player)
+    [c for (c,r) in board.coord_to_roads if any([road.team == player.team for road in r])]
 end
 
 function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
@@ -240,7 +252,6 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     end
 
     valid = []
-    println("dbug: $admissible, $first_turn")
     for coord in admissible
         if is_valid_settlement_placement(board, player.team, coord)
             push!(valid, coord)
@@ -248,20 +259,26 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     end
     return valid
 end
-function get_admissible_road_locations(board, player::Player)::Vector{Tuple}
+function get_admissible_road_locations(board, player::Player, is_first_turn = false)
     start_coords = []
-    coords_near_player_road = [c for (c,roads) in board.coord_to_roads if any([r.team == player.team for r in roads])]
-    coords_near_player_buildings = [c for (c,b) in board.coord_to_building if b.team == player.team]
-    push!(start_coords, coords_near_player_road)
-    push!(start_coords, coords_near_player_buildings)
+    coords_near_player_road = get_road_locations(board, player)
+    coords_near_player_buildings = get_building_locations(board, player)
+
+    # This is because on the first turn (placement of first 2 settlements), the second road must be attached to the second
+    # settlement
+    if is_first_turn
+        filter!(c -> !(c in coords_near_player_road), coords_near_player_buildings)
+    else 
+        append!(start_coords, coords_near_player_road)
+    end
+    append!(start_coords, coords_near_player_buildings)
     start_coords = Set(unique(start_coords))
     road_coords = []
     for c in start_coords
         ns = get_neighbors(c)
         for n in ns
-            println("road testing: ($c, $n)")
             if is_valid_road_placement(board, player.team, c, n)
-                push!(road_coords, Tuple([c,n]))
+                push!(road_coords, [c,n])
             end
         end
     end
@@ -273,7 +290,7 @@ function get_potential_theft_victims(board, players, thief, new_tile)
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
         victim = [p for p in players if p.player.team == team][1]
-        if (sum(values(victim.player.resources)) > 0) && (team != thief.player.team)
+        if has_any_resources(victim.player) && (team != thief.player.team)
             push!(potential_victims, victim)
         end
     end
@@ -314,7 +331,7 @@ end
 function get_winner(board, players)#::Union{Player, Nothing}
     board_points = count_victory_points_from_board(board) 
     for player in players
-        player_points = player.player.vp_count + board_points[player.player.team]
+        player_points = get_vp_count_from_dev_cards(player.player) + board_points[player.player.team]
         if player_points >= 10
             println("WINNER $player_points ($player)")
             return player
@@ -344,7 +361,7 @@ function choose_validate_building(board, players, player, building_type, coord =
         validation_check = is_valid_city_placement
     end
     while (!validation_check(board, player.player.team, coord))
-        coord = choose_building_location(board, players, player, building_type)
+        coord = choose_building_location(board, players, player, building_type, true)
     end
     return coord
 end
@@ -359,11 +376,11 @@ function choose_validate_build_city(board, players, player)
     build_city(board, player.player.team, coord)
 end
 
-function choose_validate_build_road(board, players, player)
+function choose_validate_build_road(board, players, player, is_first_turn = false)
     road_coord1 = Nothing
     road_coord2 = Nothing
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
-        road_coord = choose_road_location(board, PLAYERS, player)
+        road_coord = choose_road_location(board, players, player, is_first_turn)
         road_coord1 = road_coord[1]
         road_coord2 = road_coord[2]
     end
@@ -373,11 +390,11 @@ end
 function do_first_turn(board, players)
     for player in players
         choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player)
+        choose_validate_build_road(board, players, player, true)
     end
     for player in reverse(players)
         settlement = choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player)
+        choose_validate_build_road(board, players, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
