@@ -29,12 +29,27 @@ function create_board(csvfile::String)
     read_map(csvfile)
 end
 
+function count_settlements(board, team)
+    return length(get_settlement_locations(board, team))
+end
+function count_roads(board, team)
+    return length([r for r in board.roads if r.team == team])
+end
+function count_cities(board, team)
+    return length(get_city_locations(board, team))
+end
+
+
 function get_building_locations(board, team::Symbol)::Vector{Tuple}
     [c for (c,b) in board.coord_to_building if b.team == team]
 end
 
 function get_settlement_locations(board, team::Symbol)::Vector{Tuple}
     [c for (c,b) in board.coord_to_building if b.team == team && b.type == :Settlement]
+end
+
+function get_city_locations(board, team::Symbol)::Vector{Tuple}
+    [c for (c,b) in board.coord_to_building if b.team == team && b.type == :City]
 end
 
 function get_road_locations(board, team::Symbol)

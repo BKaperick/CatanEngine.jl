@@ -230,10 +230,16 @@ function do_robber_move(board, players, player)
 end
 
 function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
+    if count_cities(board, player.team) >= MAX_CITY
+        return []
+    end
     get_settlement_locations(board, player.team)
 end
 
 function get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple}
+    if count_settlements(board, player.team) >= MAX_SETTLEMENT
+        return []
+    end
     coords_near_player_road = get_road_locations(board, player.team)
     empty = get_empty_spaces(board)
     if first_turn
@@ -251,6 +257,9 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     return valid
 end
 function get_admissible_road_locations(board, player::Player, is_first_turn = false)
+    if count_roads(board, player.team) >= MAX_ROAD
+        return []
+    end
     start_coords = []
     coords_near_player_road = get_road_locations(board, player.team)
     coords_near_player_buildings = get_building_locations(board, player.team)

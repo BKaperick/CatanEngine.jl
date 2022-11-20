@@ -3,6 +3,10 @@ using Dates
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
 
+MAX_CITY = 4
+MAX_SETTLEMENT = 5
+MAX_ROAD = 14
+
 LOGFILE = "log_$(Dates.format(now(), "HHMMSS")).txt"
 VP_AWARDS = Dict([
                   :Settlement => 1,
