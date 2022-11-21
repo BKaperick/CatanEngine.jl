@@ -42,6 +42,20 @@ function _play_devcard(player::Player, devcard::Symbol)
     player.dev_cards_used[devcard] += 1
 end
 
+function count_resources(player::Player)
+    total = 0
+    for r in keys(RESOURCE_TO_COUNT)
+        total += count_resource(player, r)
+    end
+    return total
+end
+function count_resource(player::Player, resource::Symbol)::Int
+    if haskey(player.resources, resource)
+        return player.resources[resource]
+    end
+    return 0
+end
+
 function has_any_resources(player::Player)::Bool
     for (r,amt) in player.resources
         if amt > 0
@@ -144,6 +158,14 @@ end
 
 choose_robber_victim(board, player, potential_victim::Symbol) = potential_victim
 
+function choose_year_of_plenty_resources(board, players, player::HumanPlayer)
+    _parse_resources("$(player.player.team) choose two resources for free:")
+    return
+end
+
+function choose_monopoly_resource(board, players, player::HumanPlayer)
+    _parse_resources("$(player.player.team) will steal all:")
+end
 function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
     if length(potential_victims) == 1
         return potential_victims[1]
@@ -302,6 +324,14 @@ function choose_place_robber(board, players, player::RobotPlayer)
         end
     end
     return sampled_value
+end
+
+function choose_monopoly_resource(board, players, player::RobotPlayer)
+    return get_random_resource()
+end
+
+function choose_year_of_plenty_resources(board, players, player::RobotPlayer)
+    return get_random_resource(),get_random_resource()
 end
 function choose_robber_victim(board, player::RobotPlayer, potential_victims...)::PlayerType
     public_scores = count_victory_points_from_board(board)

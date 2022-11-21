@@ -203,6 +203,26 @@ function handle_dice_roll(board::Board, players, player, value)
     end
 end
 
+function do_road_building_action(board, players, player)
+    choose_validate_build_road(board, players, player, false)
+    choose_validate_build_road(board, players, player, false)
+end
+function do_year_of_plenty_action(board, players, player)
+    r1, r2 = choose_year_of_plenty_resources(board, players, player)
+    give_resource(player.player, r1)
+    give_resource(player.player, r2)
+end
+
+function do_monopoly_action(board, players, player)
+    res = choose_monopoly_resource(board, players, player)
+    for victim in players
+        for i in 1:count_resource(victim.player, res)
+            take_resource(victim.player, res)
+            give_resource(player.player, res)
+        end
+    end
+end
+
 function do_knight_action(board, players, player)
     move_robber(board, choose_place_robber(board, players, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
@@ -302,6 +322,12 @@ function do_turn(game, board, player)
         card = choose_play_devcard(board, game.players, player)
         if card == :Knight
             do_knight_action(board, game.players, player)
+        elseif card == :Monopoly
+            do_monopoly_action(board, game.players, player)
+        elseif card == :YearOfPlenty
+            do_year_of_plenty_action(board, game.players, player)
+        elseif card == :RoadBuilding
+            do_road_building_action(board, game.players, player)
         end
         if card != Nothing
             play_devcard(player.player, card)

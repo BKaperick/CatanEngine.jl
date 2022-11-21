@@ -52,6 +52,31 @@ end
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
 # API Tests
+function test_devcards()
+    board = read_map("sample.csv")
+    player1 = RobotPlayer(:Test1)
+    player2 = RobotPlayer(:Test2)
+    players = [player1, player2]
+
+    give_resource(player1.player, :Grain)
+    give_resource(player1.player, :Stone)
+    give_resource(player1.player, :Pasture)
+    give_resource(player1.player, :Brick)
+    give_resource(player1.player, :Wood)
+    
+    do_monopoly_action(board, players, player2)
+    @test count_resources(player1.player) == 4
+    
+    do_year_of_plenty_action(board, players, player1)
+    @test count_resources(player1.player) == 6
+
+    build_settlement(board, player1.player.team, (2,5))
+    do_road_building_action(board, players, player1)
+    @test count_roads(board, player1.player.team) == 2
+    do_road_building_action(board, players, player1)
+    @test count_roads(board, player1.player.team) == 4
+    
+end
 
 function test_ports()
     board = read_map("sample.csv")
