@@ -7,7 +7,9 @@ mutable struct Player
     dev_cards_used::Dict{Symbol,Int}
     ports::Dict{Symbol, Int}
     played_dev_card_this_turn::Bool
-    bought_dev_card_this_turn#::Union{Symbol,Nothing}
+    bought_dev_card_this_turn
+    has_largest_army::Bool
+    has_longest_road::Bool
 end
 mutable struct HumanPlayer <: PlayerType
     player::Player
@@ -25,7 +27,7 @@ function Player(team::Symbol)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(team, Dict(), 0, Dict(), Dict(), default_ports, false, Nothing)
+    return Player(team, Dict(), 0, Dict(), Dict(), default_ports, false, Nothing, false, false)
 end
 HumanPlayer(team::Symbol) = HumanPlayer(Player(team))
 RobotPlayer(team::Symbol) = RobotPlayer(Player(team))
@@ -52,11 +54,11 @@ end
 Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, player.vp_count)
 
 mutable struct Game
-    devcards::Vector{Symbol}
+    devcards::Dict{Symbol,Int}
     players::Vector{PlayerType}
     turn_num::Int
 end
-Game(players) = Game(INITIAL_DEVCARD_DECK, players, 0)
+Game(players) = Game(DEVCARD_COUNTS, players, 0)
 
 mutable struct Construction
 end

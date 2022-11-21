@@ -56,20 +56,25 @@ function get_road_locations(board, team::Symbol)
     [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
 end
 
-function build_building(board, team::Symbol, coord::Tuple{Int, Int}, type::Symbol)
-    building = Building(coord, type, team)
-    push!(board.buildings, building)
-    board.coord_to_building[coord] = building
-    return building
-end
-
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
     log_action("board bc", team, coord)
     println("$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))")
     _build_city(board, team, coord)
 end
-_build_city(board, team, coord::Tuple{Int, Int}) = build_building(board, team, coord, :City)
-_build_city(board, team, human_coord::String) = _build_city(board, team, get_coord_from_human_tile_description(human_coord))
+function _build_city(board, team, coord::Tuple{Int, Int})
+    
+    # Remove current settlement
+    current_settlement = board.coord_to_building[coord]
+    println(board.buildings)
+    filter!(b -> b.coord != current_settlement.coord, board.buildings)
+    println(board.buildings)
+
+    # Add a city in its place
+    city = Building(coord, :City, team)
+    push!(board.buildings, city)
+    board.coord_to_building[coord] = city
+    return city
+end
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
     log_action("board bs", board, team, coord)
@@ -77,9 +82,11 @@ function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tupl
     _build_settlement(board, team, coord)
 end
 function _build_settlement(board, team, coord::Tuple{Int,Int})
-    build_building(board, team, coord, :Settlement)
+    building = Building(coord, :Settlement, team)
+    push!(board.buildings, building)
+    board.coord_to_building[coord] = building
+    return building
 end
-_build_settlement(board, team, human_coord::String) = _build_settlement(board, team, get_coord_from_human_tile_description(human_coord))
 
 function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
     log_action("board br", board, team, coord1, coord2)

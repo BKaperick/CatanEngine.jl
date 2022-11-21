@@ -14,12 +14,17 @@ function _start_turn(game::Game)
         p.player.bought_dev_card_this_turn = Nothing
     end
 end
+function can_draw_devcard(game::Game)
+    return has_any_elements(game.devcards)
+end
 function draw_devcard(game::Game)
     log_action("game dd")
     _draw_devcard(game)
 end
 function _draw_devcard(game::Game)
-    sample(game.devcards,1)[1]
+    card = random_sample_resources(game.devcards, 1)[1]
+    game.devcards[card] -= 1
+    return card
 end
 
 function set_starting_player(game, index)

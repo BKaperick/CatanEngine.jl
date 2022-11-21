@@ -24,15 +24,15 @@ API_DICTIONARY = Dict(
 
                       # Players commands
 
-                      # PlayerType commands
+                      # Player commands
                       "gr" => _give_resource,
                       "tr" => _take_resource,
-
-                      # Player commands
                       "dc" => _discard_cards,
                       "pd" => _play_devcard,
                       "ad" => _add_devcard,
-                      "ap" => _add_port
+                      "ap" => _add_port,
+                      "la" => _assign_largest_army,
+                      "rl" => _remove_largest_army,
                      )
 
 
@@ -140,7 +140,7 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods)
         if player.player.team == from_player.player.team
             continue
         end
-        if choose_accept_trade(player, from_player.player, from_goods, to_goods)
+        if choose_accept_trade(board, player, from_player.player, from_goods, to_goods)
             push!(accepted, player)
         end
     end
@@ -225,10 +225,10 @@ function do_monopoly_action(board, players, player)
 end
 
 function do_knight_action(board, players, player)
-    move_robber(board, choose_place_robber(board, players, player))
+    new_tile = move_robber(board, choose_place_robber(board, players, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
-        chosen_victim = choose_robber_victim(board, players, player, potential_victims...)
+        chosen_victim = choose_robber_victim(board, player, potential_victims...)
         steal_random_resource(player, chosen_victim)
     end
 end
@@ -312,6 +312,7 @@ function get_potential_theft_victims(board, players, thief, new_tile)
         team = board.coord_to_building[c].team
         victim = [p for p in players if p.player.team == team][1]
         if has_any_resources(victim.player) && (team != thief.player.team)
+            println("vr: $(victim.player.resources)")
             push!(potential_victims, victim)
         end
     end
@@ -331,8 +332,9 @@ function do_turn(game, board, player)
         elseif card == :RoadBuilding
             do_road_building_action(board, game.players, player)
         end
-        if card != Nothing
+        if card != nothing
             play_devcard(player.player, card)
+            assign_largest_army(game.players)
         end
     end
     value = roll_dice(player)
@@ -340,7 +342,7 @@ function do_turn(game, board, player)
     
     next_action = "tmp"
     while next_action != Nothing
-        next_action = choose_rest_of_turn(board, game.players, player)
+        next_action = choose_rest_of_turn(game, board, game.players, player)
         if next_action != Nothing
             next_action(game, board)
         end
@@ -353,16 +355,17 @@ function buy_devcard(game::Game, player::Player)
     add_devcard(player, card)
 end
 
-function someone_has_won(board, players)::Bool
-    return get_winner(board, players) != Nothing
+function someone_has_won(game, board, players)::Bool
+    return get_winner(game, board, players) != Nothing
 end
-function get_winner(board, players)#::Union{Player, Nothing}
+function get_winner(game, board, players)
     board_points = count_victory_points_from_board(board) 
     for player in players
-        player_points = get_vp_count_from_dev_cards(player.player) + board_points[player.player.team]
+        player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
             println("WINNER $player_points ($player)")
             print_board(board)
+            print_player_stats(game, board, player.player)
             return player
         end
     end
@@ -448,13 +451,32 @@ function do_game(game::Game, board::Board, play_first_turn)
         do_set_turn_order(game) 
         do_first_turn(board, game.players)
     end
-    while ~someone_has_won(board, game.players)
+    while ~someone_has_won(game, board, game.players)
 
         start_turn(game)
         for player in game.players
             do_turn(game, board, player)
         end
     end
+end
+
+function print_player_stats(game, board, player::Player)
+    public_points = get_public_vp_count(board, player)
+    total_points = get_total_vp_count(board, player)
+    println("$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)")
+    println("$(count_roads(board, player.team)) roads")
+    println("$(count_settlements(board, player.team)) settlements")
+    println("$(count_cities(board, player.team)) cities")
+    if player.has_largest_army
+        println("Largest Army ($(player.dev_cards_used[:Knight]) knights)")
+    end
+    if player.has_longest_road
+        println("Longest road")
+    end
+    if get_vp_count_from_dev_cards(player) > 0
+        println("$(get_vp_count_from_dev_cards(player)) points from dev cards")
+    end
+    println(player)
 end
 
 

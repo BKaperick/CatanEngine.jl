@@ -51,11 +51,6 @@ DEVCARD_COUNTS = Dict([
                                :VictoryPoint => 5
                               ])
 
-INITIAL_DEVCARD_DECK = []
-for (k,v) in DEVCARD_COUNTS
-    append!(INITIAL_DEVCARD_DECK, repeat([k], v))
-end
-
 HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "W" => :Wood,
 "S" => :Stone,
@@ -64,6 +59,14 @@ HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "P" => :Pasture,
 "D" => :Desert
 ])
+
+RESOURCES = Set([
+                 :Wood,
+                 :Stone,
+                 :Grain,
+                 :Brick,
+                 :Pasture
+                ])
 
 RESOURCE_TO_COUNT = Dict([
     :Wood => 4

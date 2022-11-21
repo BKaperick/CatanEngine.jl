@@ -30,8 +30,25 @@ function can_play_dev_card(player::Player)::Bool
     return sum(values(player.dev_cards)) > 0 && ~player.played_dev_card_this_turn
 end
 
+function get_total_vp_count(board, player::Player)
+    return get_public_vp_count(board, player) + get_vp_count_from_dev_cards(player)
+end
+function get_public_vp_count(board, player::Player)
+    points = count_victory_points_from_board(board, player.team)
+    if player.has_largest_army
+        points += 2
+    end
+    if player.has_longest_road
+        points += 2
+    end
+    return points
+end
+
 function get_vp_count_from_dev_cards(player::Player)
-    return length([x for x in player.dev_cards if x == :VictoryPoint])
+    if haskey(player.dev_cards, :VictoryPoint)
+        return player.dev_cards[:VictoryPoint]
+    end
+    return 0
 end
 function add_devcard(player::Player, devcard::Symbol)
     log_action(":$(player.team) ad", devcard)
@@ -51,8 +68,8 @@ function play_devcard(player::Player, devcard::Symbol)
 end
 function _play_devcard(player::Player, devcard::Symbol)
     player.dev_cards[devcard] -= 1
-    if ~haskey(player.dev_cards_used)
-        player.dev_cards_used[devcard] = 1
+    if ~haskey(player.dev_cards_used, devcard)
+        player.dev_cards_used[devcard] = 0
     end
     player.dev_cards_used[devcard] += 1
     player.played_dev_card_this_turn = true
@@ -195,15 +212,59 @@ function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict
     _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
-function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)
+function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)::Union{Symbol, Nothing}
     if length(values(devcards)) > 0
-        random_sample_resources(devcards, 1)
+        card = random_sample_resources(devcards, 1)[1]
+        if card != :VictoryPoint
+            return card
+        end
     end
-    return Nothing
+    return nothing
 end
 
+function assign_largest_army(players)
+    max_ct = 3
+    max_p = []
+    for p in players
+        if haskey(p.player.dev_cards_used, :Knight)
+            ct = p.player.dev_cards_used[:Knight]
+            if ct > max_ct
+                max_ct = ct
+                max_p = [p]
+            elseif ct == max_ct
+                push!(max_p, p)
+            end
+        end
+    end
+    if length(max_p) == 0
+        return Nothing
+    end
+    
+    if length(max_p) > 1
+        winners = [p for p in max_p if p.player.has_largest_army]
+        @assert length(winners) == 1
+        winner = winners[1]
+    else
+        winner = max_p[1]
+    end
 
-function choose_rest_of_turn(board, players, player::HumanPlayer)
+    old_winner = [p for p in players if p.player.has_largest_army]
+    if length(old_winner) > 0
+        log_action(":$(old_winner[1].player.team) rl")
+        _remove_largest_army(old_winner[1].player)
+    end
+
+    log_action(":$(winner.player.team) la")
+    return _assign_largest_army(winner.player)
+end
+function _assign_largest_army(player::Player)
+    player.has_largest_army = true
+end
+function _remove_largest_army(player::Player)
+    player.has_largest_army = false
+end
+
+function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     full_options = """
     What does $(player.player.team) do next?
     [pt] Propose trade
@@ -215,7 +276,7 @@ function choose_rest_of_turn(board, players, player::HumanPlayer)
     """
     return _parse_action(player, full_options)
 end
-function choose_rest_of_turn(board, players, player::RobotPlayer)
+function choose_rest_of_turn(game, board, players, player::RobotPlayer)
     if has_enough_resources(player.player, COSTS[:City])
         coord = choose_building_location(board, players, player, :City)
         if coord != Nothing
@@ -236,7 +297,7 @@ function choose_rest_of_turn(board, players, player::RobotPlayer)
             return (game, board) -> construct_road(board, player.player, coord1, coord2)
         end
     end
-    if has_enough_resources(player.player, COSTS[:DevelopmentCard])
+    if has_enough_resources(player.player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
         return (game, board) -> buy_devcard(game, player.player)
     else
         if rand() > .8 && length(values(player.player.resources)) > 0
@@ -246,9 +307,9 @@ function choose_rest_of_turn(board, players, player::RobotPlayer)
             end
             rand_resource_from = [sampled...]
             
-            rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
+            rand_resource_to = [get_random_resource()]
             while rand_resource_to[1] == rand_resource_from[1]
-                rand_resource_to = [sample([keys(RESOURCE_TO_COUNT)...], 1)...]
+                rand_resource_to = [get_random_resource()]
             end
             return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
         end
@@ -281,11 +342,11 @@ function choose_who_to_trade_with(board, player::RobotPlayer, players)
     return max_ind.player.team
 end
 
-function choose_accept_trade(player::HumanPlayer, from_player::Player, from_goods, to_goods)
+function choose_accept_trade(board, player::HumanPlayer, from_player::Player, from_goods, to_goods)
     _parse_yesno("Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
 end
-function choose_accept_trade(player::RobotPlayer, from_player::Player, from_goods, to_goods)
-    return rand() > .5 + (from_player.vp_count / 20)
+function choose_accept_trade(board, player::RobotPlayer, from_player::Player, from_goods, to_goods)
+    return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
 end
 
 
