@@ -14,6 +14,7 @@ API_DICTIONARY = Dict(
                       # Game commands
                       "dd" => _draw_devcard,
                       "ss" => _set_starting_player,
+                      "st" => _start_turn,
 
                       # Board commands
                       "bc" => _build_city,
@@ -318,8 +319,9 @@ function get_potential_theft_victims(board, players, thief, new_tile)
 end
 
 function do_turn(game, board, player)
-    if sum(values(player.player.dev_cards)) > 0
-        card = choose_play_devcard(board, game.players, player)
+    if can_play_dev_card(player.player)
+        devcards = get_admissible_devcards(player.player)
+        card = choose_play_devcard(board, game.players, player, devcards)
         if card == :Knight
             do_knight_action(board, game.players, player)
         elseif card == :Monopoly
@@ -447,6 +449,8 @@ function do_game(game::Game, board::Board, play_first_turn)
         do_first_turn(board, game.players)
     end
     while ~someone_has_won(board, game.players)
+
+        start_turn(game)
         for player in game.players
             do_turn(game, board, player)
         end

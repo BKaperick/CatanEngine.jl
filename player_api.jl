@@ -8,6 +8,16 @@ include("human.jl")
 # Players API
 
 # Player API
+function get_admissible_devcards(player::Player)
+    if ~can_play_dev_card(player)
+        return 
+    end
+    out = copy(player.dev_cards)
+    if player.bought_dev_card_this_turn != Nothing
+        out[player.bought_dev_card_this_turn] -= 1
+    end
+    return out
+end
 function trade_resource_with_bank(player::Player, from_resource, to_resource)
     rate = player.ports[from_resource]
     for r in 1:rate
@@ -15,6 +25,11 @@ function trade_resource_with_bank(player::Player, from_resource, to_resource)
     end
     give_resource(player, to_resource)
 end
+
+function can_play_dev_card(player::Player)::Bool
+    return sum(values(player.dev_cards)) > 0 && ~player.played_dev_card_this_turn
+end
+
 function get_vp_count_from_dev_cards(player::Player)
     return length([x for x in player.dev_cards if x == :VictoryPoint])
 end
@@ -37,9 +52,10 @@ end
 function _play_devcard(player::Player, devcard::Symbol)
     player.dev_cards[devcard] -= 1
     if ~haskey(player.dev_cards_used)
-        player.dev_cards_used[devcard] = 0
+        player.dev_cards_used[devcard] = 1
     end
     player.dev_cards_used[devcard] += 1
+    player.played_dev_card_this_turn = true
 end
 
 function count_resources(player::Player)
@@ -175,12 +191,14 @@ end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
     _parse_resources("$(player.player.team) lost his:")
 end
-
-function choose_play_devcard(board, players, player::HumanPlayer)
+function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
     _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
-function choose_play_devcard(board, players, player::RobotPlayer)
+function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)
+    if length(values(devcards)) > 0
+        random_sample_resources(devcards, 1)
+    end
     return Nothing
 end
 

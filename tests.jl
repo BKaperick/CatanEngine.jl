@@ -51,6 +51,17 @@ end
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
+function test_do_turn()
+    board = read_map("sample.csv")
+    player1 = RobotPlayer(:Test1)
+    player2 = RobotPlayer(:Test2)
+    players = [player1, player2]
+    game = Game(players)
+    start_turn(game)
+    @test game.turn_num == 1
+    do_turn(game, board, player1)
+end
+
 # API Tests
 function test_devcards()
     board = read_map("sample.csv")
@@ -164,6 +175,8 @@ end
 
 function run_tests()
     test_ports()
+    test_devcards()
+    test_do_turn()
     test_call_api()
     setup_robot_game()
 end
