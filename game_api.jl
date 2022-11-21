@@ -11,7 +11,7 @@ function _start_turn(game::Game)
     game.turn_num += 1
     for p in game.players
         p.player.played_dev_card_this_turn = false
-        p.player.bought_dev_card_this_turn = Nothing
+        p.player.bought_dev_card_this_turn = nothing
     end
 end
 function can_draw_devcard(game::Game)

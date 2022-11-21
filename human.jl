@@ -14,7 +14,7 @@ function _get_ambiguous_edge_tile(desc)
     other = get_tile_from_human_tile_description(desc[argmin(freqs)])
     candidates = TILE_TO_ISOLATED_EDGE_COORDS[repeat]
     others = TILE_TO_ISOLATED_EDGE_COORDS[other]
-    best = Nothing
+    best = nothing
     min_dist = Inf
     for c in candidates
         d = minimum([ (o[1] - c[1])^2 + (o[2] - c[2])^2 for o in others])

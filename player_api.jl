@@ -13,7 +13,7 @@ function get_admissible_devcards(player::Player)
         return 
     end
     out = copy(player.dev_cards)
-    if player.bought_dev_card_this_turn != Nothing
+    if player.bought_dev_card_this_turn != nothing
         out[player.bought_dev_card_this_turn] -= 1
     end
     return out
@@ -212,7 +212,7 @@ function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict
     _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
-function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)::Union{Symbol, Nothing}
+function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
     if length(values(devcards)) > 0
         card = random_sample_resources(devcards, 1)[1]
         if card != :VictoryPoint
@@ -237,7 +237,7 @@ function assign_largest_army(players)
         end
     end
     if length(max_p) == 0
-        return Nothing
+        return nothing
     end
     
     if length(max_p) > 1
@@ -279,19 +279,19 @@ end
 function choose_rest_of_turn(game, board, players, player::RobotPlayer)
     if has_enough_resources(player.player, COSTS[:City])
         coord = choose_building_location(board, players, player, :City)
-        if coord != Nothing
+        if coord != nothing
             return (game, board) -> construct_city(board, player.player, coord)
         end
     end
     if has_enough_resources(player.player, COSTS[:Settlement])
         coord = choose_building_location(board, players, player, :Settlement)
-        if coord != Nothing
+        if coord != nothing
             return (game, board) -> construct_settlement(board, player.player, coord)
         end
     end
     if has_enough_resources(player.player, COSTS[:Road])
         coord = choose_road_location(board, players, player, false)
-        if coord != Nothing
+        if coord != nothing
             coord1 = coord[1]
             coord2 = coord[2]
             return (game, board) -> construct_road(board, player.player, coord1, coord2)
@@ -302,8 +302,8 @@ function choose_rest_of_turn(game, board, players, player::RobotPlayer)
     else
         if rand() > .8 && length(values(player.player.resources)) > 0
             sampled = random_sample_resources(player.player.resources, 1)
-            if sampled == Nothing
-                return Nothing
+            if sampled == nothing
+                return nothing
             end
             rand_resource_from = [sampled...]
             
@@ -314,7 +314,7 @@ function choose_rest_of_turn(game, board, players, player::RobotPlayer)
             return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
         end
     end
-    return Nothing
+    return nothing
 end
 
 function steal_random_resource(from_player, to_player)
@@ -360,10 +360,10 @@ end
 function choose_road_location(board, players, player::RobotPlayer, is_first_turn = false)
     candidates = get_admissible_road_locations(board, player.player, is_first_turn)
     if length(candidates) > 0
-        return sample(candidates)
-        #return sample(candidates, 1)[1]
+        #return sample(candidates)
+        return sample(candidates, 1)[1]
     end
-    return Nothing
+    return nothing
 end
 function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)
     if building_type == :Settlement
@@ -377,7 +377,7 @@ function choose_building_location(board, players, player::RobotPlayer, building_
             return rand(settlement_locs)
         end
     end
-    return Nothing
+    return nothing
 end
 
 function choose_cards_to_discard(player::RobotPlayer, amount)
@@ -386,7 +386,7 @@ end
 
 function choose_place_robber(board, players, player::RobotPlayer)
     validated = false
-    sampled_value = Nothing
+    sampled_value = nothing
     while ~validated
         sampled_value = get_random_tile(board)
 

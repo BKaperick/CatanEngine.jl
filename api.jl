@@ -150,7 +150,7 @@ end
 # Construction validation
 
 function is_valid_settlement_placement(board, team, coord)::Bool
-    if coord == Nothing
+    if coord == nothing
         return false
     end
     # 1. There cannot be another road at the same location
@@ -183,7 +183,7 @@ function is_valid_settlement_placement(board, team, coord)::Bool
 end
 
 function is_valid_city_placement(board, team, coord)::Bool
-    if coord == Nothing
+    if coord == nothing
         return false
     end
     
@@ -195,7 +195,7 @@ function is_valid_city_placement(board, team, coord)::Bool
 end
 
 function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
-    if coord1 == Nothing || coord2 == Nothing
+    if coord1 == nothing || coord2 == nothing
         return false
     end
 

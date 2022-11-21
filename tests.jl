@@ -53,7 +53,7 @@ end
 @assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
 function test_misc()
-    random_sample_resources(Dict([:Brick => 0]), 1) == Nothing
+    random_sample_resources(Dict([:Brick => 0]), 1) == nothing
 end
 function test_do_turn()
     board = read_map("sample.csv")
@@ -254,7 +254,7 @@ function test_call_api()
     
     # Build first settlement
     loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
-    @test loc_settlement != Nothing
+    @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
@@ -274,7 +274,7 @@ function test_call_api()
 
     # Build second settlement
     loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
-    @test loc_settlement != Nothing
+    @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1 # City is no longer counted
@@ -309,5 +309,7 @@ function run_tests()
     test_devcards()
     test_do_turn()
     test_call_api()
-    setup_robot_game()
+    while true
+        setup_robot_game()
+    end
 end

@@ -68,17 +68,17 @@ API_DICTIONARY = Dict(
 #       11-12-13-14-15-16-17
 
 
-function team_with_two_adjacent_roads(roads, coord)
+function team_with_two_adjacent_roads(roads, coord)::Union{Symbol,Nothing}
     roads = get_adjacent_roads(roads, coord)
     if length(roads) < 2
-        return Nothing
+        return nothing
     end
     for team in TEAMS
         if count([r for r in roads if r.team == team]) >= 2
             return team
         end
     end
-    return Nothing
+    return nothing
 end
 
 function get_adjacent_roads(roads, coord)
@@ -246,7 +246,7 @@ function do_robber_move(board, players, player)
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
-        steal_random_resource(player, chosen_victim)
+        steal_random_resource(chosen_victim, player)
     end
 end
 
@@ -341,9 +341,9 @@ function do_turn(game, board, player)
     handle_dice_roll(board, game.players, player, value)
     
     next_action = "tmp"
-    while next_action != Nothing
+    while next_action != nothing
         next_action = choose_rest_of_turn(game, board, game.players, player)
-        if next_action != Nothing
+        if next_action != nothing
             next_action(game, board)
         end
     end
@@ -356,9 +356,9 @@ function buy_devcard(game::Game, player::Player)
 end
 
 function someone_has_won(game, board, players)::Bool
-    return get_winner(game, board, players) != Nothing
+    return get_winner(game, board, players) != nothing
 end
-function get_winner(game, board, players)
+function get_winner(game, board, players)::Union{Nothing,PlayerType}
     board_points = count_victory_points_from_board(board) 
     for player in players
         player_points = get_total_vp_count(board, player.player)
@@ -369,7 +369,7 @@ function get_winner(game, board, players)
             return player
         end
     end
-    return Nothing
+    return nothing
 end
 function initialize_game(game::Game, csvfile::String, logfile)
     board = read_map(csvfile)
@@ -386,7 +386,7 @@ function initialize_game(game::Game, csvfile::String)
     do_game(game, board, true)
 end
 
-function choose_validate_building(board, players, player, building_type, coord = Nothing)
+function choose_validate_building(board, players, player, building_type, coord = nothing)
     if building_type == :Settlement
         validation_check = is_valid_settlement_placement
     else
@@ -409,10 +409,11 @@ function choose_validate_build_city(board, players, player)
 end
 
 function choose_validate_build_road(board, players, player, is_first_turn = false)
-    road_coord1 = Nothing
-    road_coord2 = Nothing
+    road_coord1 = nothing
+    road_coord2 = nothing
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
         road_coord = choose_road_location(board, players, player, is_first_turn)
+        println("road_coord: $road_coord")
         road_coord1 = road_coord[1]
         road_coord2 = road_coord[2]
     end

@@ -18,7 +18,7 @@ Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, rob
 function initialize_empty_board(dimensions)
     spaces = []
     for d in dimensions
-        push!(spaces, repeat([Nothing], d))
+        push!(spaces, repeat([nothing], d))
     end
     return spaces
 end
@@ -28,7 +28,7 @@ function get_empty_spaces(board)
     building_coords = keys(board.coord_to_building)
     for (r,row) in enumerate(board.spaces)
         for (c,value) in enumerate(row)
-            if value == Nothing && ~(value in building_coords)
+            if value == nothing && ~(value in building_coords)
                 push!(empty, (r,c))
             end
         end

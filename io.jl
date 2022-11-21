@@ -165,7 +165,7 @@ end
 function _parse_action(player::HumanPlayer, descriptor)
     human_response = lowercase(input(descriptor))
     if (human_response[1] == 'e')
-        return Nothing
+        return nothing
     end
     out_str = split(human_response, " ")
     fname = out_str[1]
@@ -211,14 +211,14 @@ end
 function _parse_road_coord(descriptor)
     human_response = input(descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    if all([x == nothing || x == Nothing for x in asints])
+    if all([x == nothing || x == nothing for x in asints])
         return get_road_coords_from_human_tile_description(human_response)
     end
 end
 function _parse_ints(descriptor)
     human_response = input(descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    if all([x == nothing || x == Nothing for x in asints])
+    if all([x == nothing || x == nothing for x in asints])
         return get_coord_from_human_tile_description(human_response)
     end
     return asints
@@ -229,7 +229,7 @@ function _parse_devcard(descriptor)
     println("($reminder)")
     dc_response = input(descriptor)
     if dc_response == ""
-        return Nothing
+        return nothing
     end
     return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]
 end
