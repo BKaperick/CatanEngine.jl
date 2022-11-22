@@ -26,11 +26,13 @@ function _get_ambiguous_edge_tile(desc)
     return best,repeat,other
 end
 
-function _intersect_tiles_string_coords(desc)
+function _intersect_tiles_mapping(desc, tile_to_dict)
     desc = strip(uppercase(desc))
-    coords = [TILE_TO_COORDS[Symbol(d)] for d in desc]
+    coords = [tile_to_dict[Symbol(d)] for d in desc]
     return intersect(coords...)
 end
+_intersect_tiles_string_edge_coords(desc) = _intersect_tiles_mapping(desc, TILE_TO_EDGE_COORDS);
+_intersect_tiles_string_coords(desc) = _intersect_tiles_mapping(desc, TILE_TO_COORDS);
 
 function get_road_coords_from_human_tile_description(desc)
     if length(desc) == 2
@@ -63,4 +65,9 @@ function get_coord_from_human_tile_description(desc)
         end
         return pop!(_intersect_tiles_string_coords(desc))
     end
+
+    if length(desc) == 2
+        return pop!(_intersect_tiles_string_edge_coords(desc))
+    end
+
 end

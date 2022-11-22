@@ -106,6 +106,14 @@ function pay_price(player::Player, cost::Dict)
     end
 end
 
+function do_play_devcard(board, players, player, card::Union{Nothing,Symbol})
+    if card != nothing
+        do_devcard_action(board, players, player, card)
+        play_devcard(player, card)
+        assign_largest_army(game.players)
+    end
+end
+
 # TODO think about combining with choose_validate_build_X methods.
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
@@ -201,6 +209,18 @@ function handle_dice_roll(board::Board, players, player, value)
         end
     else
         do_robber_move(board, players, player)
+    end
+end
+
+function do_devcard_action(board, players, player, card::Symbol)
+    if card == :Knight
+        do_knight_action(board, players, player)
+    elseif card == :Monopoly
+        do_monopoly_action(board, players, player)
+    elseif card == :YearOfPlenty
+        do_year_of_plenty_action(board, players, player)
+    elseif card == :RoadBuilding
+        do_road_building_action(board, players, player)
     end
 end
 
@@ -323,19 +343,7 @@ function do_turn(game, board, player)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
-        if card == :Knight
-            do_knight_action(board, game.players, player)
-        elseif card == :Monopoly
-            do_monopoly_action(board, game.players, player)
-        elseif card == :YearOfPlenty
-            do_year_of_plenty_action(board, game.players, player)
-        elseif card == :RoadBuilding
-            do_road_building_action(board, game.players, player)
-        end
-        if card != nothing
-            play_devcard(player.player, card)
-            assign_largest_army(game.players)
-        end
+        do_play_devcard(board, players, player, card)
     end
     value = roll_dice(player)
     handle_dice_roll(board, game.players, player, value)
@@ -383,7 +391,7 @@ function initialize_game(game::Game, csvfile::String)
         println("$t => $r")
     end
 
-    do_game(game, board, true)
+    do_game(game, board, false)
 end
 
 function choose_validate_building(board, players, player, building_type, coord = nothing)
@@ -455,8 +463,9 @@ function do_game(game::Game, board::Board, play_first_turn)
         do_set_turn_order(game) 
         do_first_turn(board, game.players)
     end
-    while ~someone_has_won(game, board, game.players)
 
+    while ~someone_has_won(game, board, game.players)
+        
         start_turn(game)
         for player in game.players
             do_turn(game, board, player)

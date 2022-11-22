@@ -1,0 +1,47 @@
+# Tile should be enumerate A - S
+# Dice is a value 2 - 12
+#
+#
+#        (7)      (6) 
+#       61-62-63-64-65-66-67
+#       |  Q  |  R  |  S  | (5)
+#    51-52-53-54-55-56-57-58-59
+#(8) |  M  |  N  |  O  |  P  |
+# 41-42-43-44-45-46-47-48-49-4!-4@
+# |  H  |  I  |  J  |  K  |  L  |(4)
+# 31-32-33-34-35-36-37-38-39-3!-3@
+# (9)|  D  |  E  |  F  |  G  |
+#    21-22-23-24-25-26-27-28-29
+#       |  A  |  B  |  C  |(3)
+#       11-12-13-14-15-16-17
+#        (1)      (2) 
+# 
+#
+# Note: the numbers (x) are the ports
+#
+# Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
+# Tile,Dice,Resource
+A,5,w
+B,8,p
+C,4,p
+D,2,s
+E,10,g
+F,3,w
+G,11,g
+H,6,s
+I,9,p
+J,11,g
+K,6,b
+L,12,b
+M,3,g
+N,4,s
+O,5,p
+P,7,d
+Q,8,w
+R,10,b
+S,9,w
+2,p
+4,s
+5,g
+7,w
+8,b

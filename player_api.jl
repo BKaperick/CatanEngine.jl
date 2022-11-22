@@ -272,6 +272,7 @@ function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     [bc] Build city
     [bs] Build settlement
     [bd] Buy development card
+    [pd] Play development card
     [E]nd turn
     """
     return _parse_action(player, full_options)
@@ -299,6 +300,13 @@ function choose_rest_of_turn(game, board, players, player::RobotPlayer)
     end
     if has_enough_resources(player.player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
         return (game, board) -> buy_devcard(game, player.player)
+    end
+    if can_play_dev_card(player.player)
+        devcards = get_admissible_devcards(player.player)
+        card = choose_play_devcard(board, game.players, player, devcards)
+        if card != nothing
+            return (game, board) -> do_play_devcard(board, game.players, player, card)
+        end
     else
         if rand() > .8 && length(values(player.player.resources)) > 0
             sampled = random_sample_resources(player.player.resources, 1)

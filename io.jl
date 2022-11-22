@@ -117,10 +117,15 @@ function execute_api_call(game::Game, board::Board, line::String)
     api_call = API_DICTIONARY[func_key]
 
     other_args = [eval(Meta.parse(a)) for a in values[3:end]]
+    filter!(x -> x != nothing, other_args)
     if values[1] == "board"
         api_call(board, other_args...)
     elseif values[1] == "game"
-        api_call(game, other_args...)
+        if length(other_args) > 0
+            api_call(game, other_args...)
+        else
+            api_call(game)
+        end
     else
         player = team_to_player[eval(Meta.parse(values[1]))]
         api_call(player, other_args...)
@@ -163,44 +168,48 @@ function _parse_yesno(desc)
     return human_response[1] == 'y'
 end
 function _parse_action(player::HumanPlayer, descriptor)
-    human_response = lowercase(input(descriptor))
-    if (human_response[1] == 'e')
-        return nothing
-    end
-    out_str = split(human_response, " ")
-    fname = out_str[1]
+    while true
+        try
+            human_response = lowercase(input(descriptor))
+            if (human_response[1] == 'e')
+                return nothing
+            end
+            out_str = split(human_response, " ")
+            fname = out_str[1]
 
-    if fname == "bs"
-        human_coords = out_str[2]
-        println(human_coords)
-    
-        #return (game, board) -> choose_validate_building(board, game.players, player, :Settlement, get_coord_from_human_tile_description(human_coords))
-        return (game, board) -> construct_settlement(board, player.player, get_coord_from_human_tile_description(human_coords))
-    elseif fname == "bc"
-        human_coords = out_str[2]
-        return (game, board) -> construct_city(board, player.player, get_coord_from_human_tile_description(human_coords))
-    elseif fname == "br"
-        human_coords = join(out_str[2:3], " ")
-        return (game, board) -> construct_road(board, player.player, get_coords_from_human_tile_description(human_coords)...)
-    elseif fname == "tg" # tg Blue 2 w w g g
-        to_player_team = Symbol(out_str[2])
-        amount_are_mine = parse(Int, out_str[3])
-        goods = join(out_str[4:end], " ")
-        return (game, board) -> trade_goods(game.players, player.player, to_player_team, amount_are_mine, _parse_resources_str(goods)...)
-    elseif fname == "pt" # pt 2 w w g g
-        amount_are_mine = parse(Int, out_str[2])
-        goods = join(out_str[3:end], " ")
-        return (game, board) -> propose_trade_goods(board, game.players, player, amount_are_mine, _parse_resources_str(goods)...)
-    elseif fname == "bd"
-        return (game, board) -> buy_devcard(game, player.player)
-    end
-    # if fname in BOARD_API
-    #    return log_action("board $fname", team, out_str[2:end]...)
-    #    # board br :Robo (4,4) (4,5)
-    #    # return "board $(out_str[1]) :$team $(join(out_str[2:end], " "))"
-    #end
+            if fname == "bs"
+                human_coords = out_str[2]
+                println(human_coords)
+            
+                #return (game, board) -> choose_validate_building(board, game.players, player, :Settlement, get_coord_from_human_tile_description(human_coords))
+                return (game, board) -> construct_settlement(board, player.player, get_coord_from_human_tile_description(human_coords))
+            elseif fname == "bc"
+                human_coords = out_str[2]
+                return (game, board) -> construct_city(board, player.player, get_coord_from_human_tile_description(human_coords))
+            elseif fname == "br"
+                human_coords = join(out_str[2:3], " ")
+                return (game, board) -> construct_road(board, player.player, get_coords_from_human_tile_description(human_coords)...)
+            elseif fname == "tg" # tg Blue 2 w w g g
+                to_player_team = Symbol(out_str[2])
+                amount_are_mine = parse(Int, out_str[3])
+                goods = join(out_str[4:end], " ")
+                return (game, board) -> trade_goods(game.players, player.player, to_player_team, amount_are_mine, _parse_resources_str(goods)...)
+            elseif fname == "pt" # pt 2 w w g g
+                amount_are_mine = parse(Int, out_str[2])
+                goods = join(out_str[3:end], " ")
+                return (game, board) -> propose_trade_goods(board, game.players, player, amount_are_mine, _parse_resources_str(goods)...)
+            elseif fname == "bd"
+                return (game, board) -> buy_devcard(game, player.player)
+            elseif fname == "pd"
+                return (game, board) -> do_play_devcard(board, game.players, player)
+            end
 
-    return human_response
+            ArgumentError("\"$human_response\" was not a valid command.")
+
+        catch e
+            println("parsing error: $e")
+        end
+    end
 end
 
 function _parse_teams(descriptor)
@@ -228,7 +237,7 @@ function _parse_devcard(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
     println("($reminder)")
     dc_response = input(descriptor)
-    if dc_response == ""
+    if dc_response in ["", "n", "no"]
         return nothing
     end
     return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]

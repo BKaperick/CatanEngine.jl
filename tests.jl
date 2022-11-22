@@ -20,6 +20,8 @@ function setup_robot_game()
 end
 
 
+@test get_coord_from_human_tile_description("ab") == (1,3)
+@test get_coord_from_human_tile_description("bc") == (1,5)
 @test get_coord_from_human_tile_description("nqr") == (5,4)
 @test get_coord_from_human_tile_description("nqr") == (5,4)
 @test get_coord_from_human_tile_description("qqm") == (6,1)
