@@ -360,8 +360,8 @@ end
 function choose_road_location(board, players, player::RobotPlayer, is_first_turn = false)
     candidates = get_admissible_road_locations(board, player.player, is_first_turn)
     if length(candidates) > 0
-        #return sample(candidates)
-        return sample(candidates, 1)[1]
+        return sample(candidates)
+        #return sample(candidates, 1)[1]
     end
     return nothing
 end
@@ -372,7 +372,7 @@ function choose_building_location(board, players, player::RobotPlayer, building_
             return sample(candidates, 1)[1]
         end
     elseif building_type == :City
-        settlement_locs = get_settlement_locations(board, player.player.team)
+        settlement_locs = get_admissible_city_locations(board, player.player)
         if length(settlement_locs) > 0
             return rand(settlement_locs)
         end

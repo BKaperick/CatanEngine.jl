@@ -229,7 +229,7 @@ function do_knight_action(board, players, player)
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
-        steal_random_resource(player, chosen_victim)
+        steal_random_resource(chosen_victim, player)
     end
 end
 
@@ -414,6 +414,9 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
         road_coord = choose_road_location(board, players, player, is_first_turn)
         println("road_coord: $road_coord")
+        if road_coord == nothing
+            print_board(board)
+        end
         road_coord1 = road_coord[1]
         road_coord2 = road_coord[2]
     end

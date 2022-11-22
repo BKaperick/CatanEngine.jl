@@ -220,6 +220,8 @@ end
 function test_board_api()
     board = read_map("sample.csv")
     build_settlement(board, :Test1, (1,1))
+    build_road(board, :Test1, (1,1),(1,2))
+    @test is_valid_settlement_placement(board, :Test1, (1,2)) == false
     build_settlement(board, :Test1, (1,2))
 
     @test length(board.buildings) == 2

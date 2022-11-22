@@ -8,7 +8,7 @@ function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)
     end
     println(resources)
     if length(items) == 0
-        return Nothing
+        return nothing
     end
     return sample(items, count, replace=false)
 end

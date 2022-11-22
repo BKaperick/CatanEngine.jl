@@ -28,7 +28,7 @@ function get_empty_spaces(board)
     building_coords = keys(board.coord_to_building)
     for (r,row) in enumerate(board.spaces)
         for (c,value) in enumerate(row)
-            if value == nothing && ~(value in building_coords)
+            if value == nothing && !(value in building_coords)
                 push!(empty, (r,c))
             end
         end
