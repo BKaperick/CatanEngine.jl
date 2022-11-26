@@ -2,6 +2,21 @@ using Logging
 include("board.jl")
 include("action_interface.jl")
 
+macro safeparse(ex)
+    quote
+        try
+            $(esc(ex))
+        catch e
+            if e isa InterruptException
+                throw(e)
+            else
+                println("parsing error: $e")
+            end
+
+        end
+    end
+end
+
 function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
@@ -154,94 +169,106 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
         showerror(io, ex.S)
     end
 end
-function _parse_team(desc)
+function parse_team(desc)
+    while true
+        return _parse_team(desc)
+    end
+end
+@safeparse function _parse_team(desc)
     return Symbol(titlecase(input(desc)))
 end
-function _parse_yesno(desc)
+function parse_yesno(desc)
+    while true
+        return _parse_yesno(desc)
+    end
+end
+@safeparse function _parse_yesno(desc)
     human_response = lowercase(input(desc))
     return human_response[1] == 'y'
 end
 
 
-function _parse_action(player::HumanPlayer, descriptor)
+function parse_action(player::HumanPlayer, descriptor)
     while true
-        try
-            human_response = lowercase(input(descriptor))
-            if (human_response[1] == 'e')
-                return nothing
-            end
-            out_str = split(human_response, " ")
-            fname = out_str[1]
-            
-            func = HUMAN_ACTIONS[fname]
-
-            if fname == "bs" || fname == "bc"
-                human_coords = out_str[2]
-                println(human_coords)
-                return (func,player, [get_coord_from_human_tile_description(human_coords)])
-            elseif fname == "br"
-                human_coords = join(out_str[2:3], " ")
-                return (func, player, [get_coords_from_human_tile_description(human_coords)...])
-            elseif fname == "pt" # pt 2 w w g g
-                amount_are_mine = parse(Int, out_str[2])
-                goods = join(out_str[3:end], " ")
-                return (func, player, [], amount_are_mine, [_parse_resources_str(goods)...])
-            elseif fname == "bd" || fname == "pd"
-                return (func, player, [])
-            end
-
-            ArgumentError("\"$human_response\" was not a valid command.")
-
-        catch e
-            println("parsing error: $e")
-        end
+        return _parse_action(player, descriptor)
     end
 end
+@safeparse function _parse_action(player::HumanPlayer, descriptor)
+    human_response = lowercase(input(descriptor))
+    if (human_response[1] == 'e')
+        return nothing
+    end
+    out_str = split(human_response, " ")
+    fname = out_str[1]
+    
+    func = HUMAN_ACTIONS[fname]
 
-function _parse_teams(descriptor)
+    if fname == "bs" || fname == "bc"
+        human_coords = out_str[2]
+        println(human_coords)
+        return (func,player, [get_coord_from_human_tile_description(human_coords)])
+    elseif fname == "br"
+        human_coords = join(out_str[2:3], " ")
+        return (func, player, [get_coords_from_human_tile_description(human_coords)...])
+    elseif fname == "pt" # pt 2 w w g g
+        amount_are_mine = parse(Int, out_str[2])
+        goods = join(out_str[3:end], " ")
+        return (func, player, [], amount_are_mine, [_parse_resources_str(goods)...])
+    elseif fname == "bd" || fname == "pd"
+        return (func, player, [])
+    end
+
+    ArgumentError("\"$human_response\" was not a valid command.")
+end
+
+@safeparse function _parse_teams(descriptor)
     human_response = input(descriptor)
     return Symbol(String(titlecase(human_response)))
 end
 
-function _parse_road_coord(descriptor)
+function parse_road_coord(descriptor)
     while true
-        try
-            human_response = input(descriptor)
-            asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-            if all([x == nothing || x == nothing for x in asints])
-                return get_road_coords_from_human_tile_description(human_response)
-            end
-        catch e
-            println("parsing error: $e")
-        end
+        return _parse_road_coord(descriptor)
     end
 end
-function _parse_int(descriptor)
-    while true
-        try
-            ints = _parse_ints(descriptor)
-            return ints[1]
-        catch e
-            println("parsing error: $e")
-        end
-    end
-end
-function _parse_ints(descriptor)
-    while true
-        try
-            human_response = input(descriptor)
-            asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-            if all([x == nothing || x == nothing for x in asints])
-                return get_coord_from_human_tile_description(human_response)
-            end
-            return asints
-        catch e
-            println("parsing error: $e")
-        end
+@safeparse function _parse_road_coord(descriptor)
+    human_response = input(descriptor)
+    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
+    if all([x == nothing || x == nothing for x in asints])
+        return get_road_coords_from_human_tile_description(human_response)
     end
 end
 
-function _parse_devcard(descriptor)
+function parse_int(descriptor)
+    while true
+        return _parse_int(descriptor)
+    end
+end
+@safeparse function _parse_int(descriptor)
+    ints = _parse_ints(descriptor)
+    return ints[1]
+end
+
+function parse_ints(descriptor)
+    while true
+        return _parse_ints(descriptor)
+    end
+end
+@safeparse function _parse_ints(descriptor)
+    human_response = input(descriptor)
+    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
+    if all([x == nothing || x == nothing for x in asints])
+        return get_coord_from_human_tile_description(human_response)
+    end
+    return asints
+end
+
+function parse_devcard(descriptor)
+    while true
+        _parse_devcard(desriptor)
+    end
+end
+@safeparse function _parse_devcard(descriptor)
     while true
         try
             reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
@@ -256,18 +283,22 @@ function _parse_devcard(descriptor)
         end
     end
 end
-function _parse_resources(descriptor)
+function parse_resources(descriptor)
     while true
-        try
-            reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
-            println("($reminder)")
-            _parse_resources_str(input(descriptor))
-        catch e
-            println("parsing error: $e")
-        end
+        return _parse_resources(descriptor)
     end
 end
-function _parse_resources_str(string_of_resources)
+@safeparse function _parse_resources(descriptor)
+    reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
+    println("($reminder)")
+    _parse_resources_str(input(descriptor))
+end
+function parse_resources_str(string_of_resources)
+    while true
+        return _parse_resources_str(string_of_resources)
+    end
+end
+@safeparse function _parse_resources_str(string_of_resources)
     return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(string_of_resources, ' ')])
 end
 

@@ -165,18 +165,18 @@ end
 
 # Human Player API
 function roll_dice(player::HumanPlayer)::Int
-    _parse_int("Dice roll:")
+    parse_int("Dice roll:")
 end
 
 function choose_cards_to_discard(player::HumanPlayer, amount)
-    return _parse_resources("$(player.player.team) discards: ")
+    return parse_resources("$(player.player.team) discards: ")
 end
 
 function choose_building_location(board, players, player::HumanPlayer, building_type, is_first_turn = false)::Tuple{Int, Int}
-    _parse_ints("$(player.player.team) places a $(building_type):")
+    parse_ints("$(player.player.team) places a $(building_type):")
 end
 function choose_road_location(board, players, player::HumanPlayer, is_first_turn = false)::Vector{Tuple{Int,Int}}
-    coords = _parse_road_coord("$(player.player.team) places a Road:")
+    coords = parse_road_coord("$(player.player.team) places a Road:")
     if length(coords) == 4
         out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
     else
@@ -186,30 +186,30 @@ function choose_road_location(board, players, player::HumanPlayer, is_first_turn
     return out
 end
 function choose_place_robber(board, players, player::HumanPlayer)
-    _parse_ints("$(player.player.team) places the Robber:")
+    parse_ints("$(player.player.team) places the Robber:")
 end
 
 choose_robber_victim(board, player, potential_victim::Symbol) = potential_victim
 
 function choose_year_of_plenty_resources(board, players, player::HumanPlayer)
-    _parse_resources("$(player.player.team) choose two resources for free:")
+    parse_resources("$(player.player.team) choose two resources for free:")
     return
 end
 
 function choose_monopoly_resource(board, players, player::HumanPlayer)
-    _parse_resources("$(player.player.team) will steal all:")
+    parse_resources("$(player.player.team) will steal all:")
 end
 function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
     if length(potential_victims) == 1
         return potential_victims[1]
     end
-    _parse_teams("$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
+    parse_teams("$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
 end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
-    _parse_resources("$(player.player.team) lost his:")
+    parse_resources("$(player.player.team) lost his:")
 end
 function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
-    _parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
+    parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
 end
 
 function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
@@ -267,14 +267,15 @@ end
 function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     full_options = """
     What does $(player.player.team) do next?
-    [pt] Propose trade (pt 2 w w g g)
+    [pt] Propose trade (e.g. "pt 2 w w g g")
     [bc] Build city
     [bs] Build settlement
+    [br] Build road
     [bd] Buy development card
     [pd] Play development card
     [E]nd turn
     """
-    action_and_args = _parse_action(player, full_options)
+    action_and_args = parse_action(player, full_options)
     if action_and_args == nothing
         return nothing
     end
@@ -351,7 +352,7 @@ function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
     give_resource(to_player.player, stolen_good)
 end
 function choose_who_to_trade_with(board, player::HumanPlayer, players)
-    _parse_team("$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
+    parse_team("$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
 end
 
 function choose_who_to_trade_with(board, player::RobotPlayer, players)
@@ -362,7 +363,7 @@ function choose_who_to_trade_with(board, player::RobotPlayer, players)
 end
 
 function choose_accept_trade(board, player::HumanPlayer, from_player::Player, from_goods, to_goods)
-    _parse_yesno("Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
+    parse_yesno("Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
 end
 function choose_accept_trade(board, player::RobotPlayer, from_player::Player, from_goods, to_goods)
     return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
