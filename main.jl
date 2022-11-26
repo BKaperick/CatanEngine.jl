@@ -426,6 +426,7 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
         println("road_coord: $road_coord")
         if road_coord == nothing
             print_board(board)
+            return
         end
         road_coord1 = road_coord[1]
         road_coord2 = road_coord[2]

@@ -51,14 +51,14 @@ function _parse_yesno(desc)
     return human_response[1] == 'y'
 end
 
-function parse_action(player::HumanPlayer, descriptor)
+function parse_action(descriptor)
     x = nothing
     while x == nothing
-        x = @safeparse _parse_action(player, descriptor)
+        x = @safeparse _parse_action(descriptor)
     end
     return x
 end
-function _parse_action(player::HumanPlayer, descriptor)
+function _parse_action(descriptor)
     human_response = lowercase(input(descriptor))
     if (human_response[1] == 'e')
         return nothing
@@ -71,16 +71,16 @@ function _parse_action(player::HumanPlayer, descriptor)
     if fname == "bs" || fname == "bc"
         human_coords = out_str[2]
         println(human_coords)
-        return (func,player, [get_coord_from_human_tile_description(human_coords)])
+        return (func, [get_coord_from_human_tile_description(human_coords)])
     elseif fname == "br"
         human_coords = join(out_str[2:3], " ")
-        return (func, player, [get_coords_from_human_tile_description(human_coords)...])
+        return (func, [get_coords_from_human_tile_description(human_coords)...])
     elseif fname == "pt" # pt 2 w w g g
         amount_are_mine = parse(Int, out_str[2])
         goods = join(out_str[3:end], " ")
-        return (func, player, [], amount_are_mine, [_parse_resources_str(goods)...])
+        return (func, [], amount_are_mine, [_parse_resources_str(goods)...])
     elseif fname == "bd" || fname == "pd"
-        return (func, player, [])
+        return (func, [])
     end
 
     ArgumentError("\"$human_response\" was not a valid command.")

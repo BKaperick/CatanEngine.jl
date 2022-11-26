@@ -276,13 +276,13 @@ function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     [pd] Play development card
     [E]nd turn
     """
-    action_and_args = parse_action(player, full_options)
+    action_and_args = parse_action(full_options)
     if action_and_args == nothing
         return nothing
     end
 
     func = PLAYER_ACTIONS[action_and_args[1]]
-    return (game, board) -> func(game, board, action_and_args[2:end]...)
+    return (game, board) -> func(game, board, player, action_and_args[2:end]...)
 end
 
 #function choose_rest_of_turn(game, board, players, player::RobotPlayer)

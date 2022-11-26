@@ -1,7 +1,7 @@
 using Dates
 
 BOARD_API = Set(["bs","br","bc"])
-VERBOSITY = 1
+VERBOSITY = 0
 
 MAX_CITY = 4
 MAX_SETTLEMENT = 5
