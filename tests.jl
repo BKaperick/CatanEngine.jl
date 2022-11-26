@@ -31,6 +31,7 @@ end
 @test get_coord_from_human_tile_description("bbb") == (1,4)
 @test get_coord_from_human_tile_description("ggg") == (2,9)
 @test get_coord_from_human_tile_description("llg") == (3,11)
+@test get_coord_from_human_tile_description("klp") == (4,9)
 @test get_road_coords_from_human_tile_description("nq") == [(5,3),(5,4)]
 @test get_road_coords_from_human_tile_description("jk") == [(3,7),(4,7)]
 @test get_road_coords_from_human_tile_description("bf") == [(2,5),(2,6)]

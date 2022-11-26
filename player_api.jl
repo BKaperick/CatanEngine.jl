@@ -3,7 +3,6 @@ import Random
 include("constants.jl")
 include("structs.jl")
 include("robo.jl")
-include("human.jl")
 
 # Players API
 

@@ -196,9 +196,19 @@ function get_coord_from_human_tile_description(desc)
         reduc = length(Set(desc))
         # repeated letter
         if reduc == 2
-            return _get_ambiguous_edge_tile(desc)[1]
+            candidate = _get_ambiguous_edge_tile(desc)
+            if length(candidate) < 1
+                throw("Coordinate $desc doesn't exist")
+            else
+                return candidate[1]
+            end
         elseif reduc == 1
-            return [TILE_TO_ISOLATED_EDGE_COORDS[get_tile_from_human_tile_description(desc[1])]...][1]
+            candidate = [TILE_TO_ISOLATED_EDGE_COORDS[get_tile_from_human_tile_description(desc[1])]...]
+            if length(candidate) < 1
+                throw("Coordinate $desc doesn't exist")
+            else
+                return candidate[1]
+            end
         end
         return pop!(_intersect_tiles_string_coords(desc))
     end

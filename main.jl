@@ -7,7 +7,6 @@ include("player_api.jl")
 include("game_api.jl")
 include("board.jl")
 include("draw_board.jl")
-include("human.jl")
 include("robo.jl")
 #include("action_interface.jl")
 
