@@ -1,16 +1,10 @@
 using Logging
 include("board.jl")
+include("action_interface.jl")
 
 function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
-    resourcestr_to_symbol = Dict(
-                                  "W" => :Wood,
-                                  "S" => :Stone,
-                                  "G" => :Grain,
-                                  "B" => :Brick,
-                                  "P" => :Pasture,
-                                  "D" => :Desert
-                                )
+    resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
     file_str = read(csvfile, String)
     board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
     tile_to_dicevalue = Dict()
@@ -161,12 +155,14 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     end
 end
 function _parse_team(desc)
-    return Symbol(input(desc))
+    return Symbol(titlecase(input(desc)))
 end
 function _parse_yesno(desc)
     human_response = lowercase(input(desc))
     return human_response[1] == 'y'
 end
+
+
 function _parse_action(player::HumanPlayer, descriptor)
     while true
         try
@@ -176,32 +172,22 @@ function _parse_action(player::HumanPlayer, descriptor)
             end
             out_str = split(human_response, " ")
             fname = out_str[1]
+            
+            func = PLAYER_ACTIONS[fname]
 
-            if fname == "bs"
+            if fname == "bs" || fname == "bc"
                 human_coords = out_str[2]
                 println(human_coords)
-            
-                #return (game, board) -> choose_validate_building(board, game.players, player, :Settlement, get_coord_from_human_tile_description(human_coords))
-                return (game, board) -> construct_settlement(board, player.player, get_coord_from_human_tile_description(human_coords))
-            elseif fname == "bc"
-                human_coords = out_str[2]
-                return (game, board) -> construct_city(board, player.player, get_coord_from_human_tile_description(human_coords))
+                return (game, board) -> func(game, board, player, get_coord_from_human_tile_description(human_coords))
             elseif fname == "br"
                 human_coords = join(out_str[2:3], " ")
-                return (game, board) -> construct_road(board, player.player, get_coords_from_human_tile_description(human_coords)...)
-            elseif fname == "tg" # tg Blue 2 w w g g
-                to_player_team = Symbol(out_str[2])
-                amount_are_mine = parse(Int, out_str[3])
-                goods = join(out_str[4:end], " ")
-                return (game, board) -> trade_goods(game.players, player.player, to_player_team, amount_are_mine, _parse_resources_str(goods)...)
+                return (game, board) -> func(game, board, player, [get_coords_from_human_tile_description(human_coords)...])
             elseif fname == "pt" # pt 2 w w g g
                 amount_are_mine = parse(Int, out_str[2])
                 goods = join(out_str[3:end], " ")
-                return (game, board) -> propose_trade_goods(board, game.players, player, amount_are_mine, _parse_resources_str(goods)...)
-            elseif fname == "bd"
-                return (game, board) -> buy_devcard(game, player.player)
-            elseif fname == "pd"
-                return (game, board) -> do_play_devcard(board, game.players, player)
+                return (game, board) -> func(game, board, player, [], amount_are_mine, [_parse_resources_str(goods)...])
+            elseif fname == "bd" || fname == "pd"
+                return (game, board) -> func(game, board, player, [])
             end
 
             ArgumentError("\"$human_response\" was not a valid command.")

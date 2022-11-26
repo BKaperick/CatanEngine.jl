@@ -9,6 +9,7 @@ include("board.jl")
 include("draw_board.jl")
 include("human.jl")
 include("robo.jl")
+include("action_interface.jl")
 
 API_DICTIONARY = Dict(
                       # Game commands

@@ -267,8 +267,7 @@ end
 function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     full_options = """
     What does $(player.player.team) do next?
-    [pt] Propose trade
-    [tg] Declare trade
+    [pt] Propose trade (pt 2 w w g g)
     [bc] Build city
     [bs] Build settlement
     [bd] Buy development card
