@@ -61,9 +61,10 @@ end
 
 function test_log()
     game = setup_robot_game()
-    played_hash = hash(game)
-
-    LOGFILE
+    board = read_map("sample.csv")
+    println("testing logfile $LOGFILE")
+    new_game, board = load_gamestate(game, board,LOGFILE)
+    @test hash(game) == hash(new_game)
 end
 
 function test_do_turn()
