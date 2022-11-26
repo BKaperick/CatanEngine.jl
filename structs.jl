@@ -56,9 +56,12 @@ Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, 
 mutable struct Game
     devcards::Dict{Symbol,Int}
     players::Vector{PlayerType}
+    already_played_this_turn::Set{Symbol}
     turn_num::Int
+    turn_order_set::Bool
+    first_turn_forward_finished::Bool
 end
-Game(players) = Game(DEVCARD_COUNTS, players, 0)
+Game(players) = Game(DEVCARD_COUNTS, players, Set(), 0, false, false)
 
 mutable struct Construction
 end

@@ -385,6 +385,7 @@ function choose_road_location(board, players, player::RobotPlayer, is_first_turn
         return sample(candidates)
         #return sample(candidates, 1)[1]
     end
+    println("Sorry, I didn't find any better options")
     return nothing
 end
 function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)

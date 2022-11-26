@@ -1,6 +1,5 @@
 using Test
 include("constants.jl")
-include("human.jl")
 include("main.jl")
 
 LOGFILE = "test_log_$(Dates.format(now(), "HHMMSS")).txt"
@@ -17,6 +16,7 @@ function setup_robot_game()
     players = [player(team) for (team,player) in team_and_playertype]
     game = Game(players)
     initialize_game(game, "sample.csv")
+    return game
 end
 
 
@@ -57,6 +57,14 @@ end
 function test_misc()
     random_sample_resources(Dict([:Brick => 0]), 1) == nothing
 end
+
+function test_log()
+    game = setup_robot_game()
+    played_hash = hash(game)
+
+    LOGFILE
+end
+
 function test_do_turn()
     board = read_map("sample.csv")
     player1 = RobotPlayer(:Test1)
@@ -304,6 +312,7 @@ function test_call_api()
 end
 
 function run_tests()
+    test_log()
     test_misc()
     test_max_construction()
     test_board_api()

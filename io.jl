@@ -1,26 +1,30 @@
 using Logging
 include("board.jl")
+include("parsing.jl")
 
-macro safeparse(ex)
-    quote
-        try
-            $(esc(ex))
-        catch e
-            if e isa InterruptException
-                throw(e)
-            else
-                println("parsing error: $e")
-            end
-
-        end
-    end
+function get_parsed_file_lines(file_str)
+    [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
 end
-
+function read_players_from_config(txtfile)::Vector{PlayerType}
+    file_str = read(txtfile, String)
+    configs = get_parsed_file_lines(file_str)
+    players = []
+    println("starting to read lines")
+    for l in configs
+        name,playertype = split(l, ',')
+        println("Starting add player $name of type $playertype")
+        name_sym = _parse_team(name)
+        println("Added player $name_sym of type $playertype")
+        player = eval(Meta.parse("$playertype(:$name_sym)"))
+        push!(players, player)
+    end
+    return players
+end
 function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
     file_str = read(csvfile, String)
-    board_state = [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
+    board_state = get_parsed_file_lines(file_str)
     tile_to_dicevalue = Dict()
     tile_to_resource = Dict()
     desert_tile = :Null
@@ -147,16 +151,6 @@ function load_gamestate(game, board, file)
     return game, board
 end
 
-function input(prompt::String)
-    println(prompt)
-    response = readline()
-    if response == "quit"
-        close(LOGFILEIO)
-        stop()
-    end
-    return response
-end
-
 stop(text="Stop.") = throw(StopException(text))
 
 struct StopException{T}
@@ -168,136 +162,3 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
         showerror(io, ex.S)
     end
 end
-function parse_team(desc)
-    while true
-        return _parse_team(desc)
-    end
-end
-@safeparse function _parse_team(desc)
-    return Symbol(titlecase(input(desc)))
-end
-function parse_yesno(desc)
-    while true
-        return _parse_yesno(desc)
-    end
-end
-@safeparse function _parse_yesno(desc)
-    human_response = lowercase(input(desc))
-    return human_response[1] == 'y'
-end
-
-
-function parse_action(player::HumanPlayer, descriptor)
-    while true
-        return _parse_action(player, descriptor)
-    end
-end
-@safeparse function _parse_action(player::HumanPlayer, descriptor)
-    human_response = lowercase(input(descriptor))
-    if (human_response[1] == 'e')
-        return nothing
-    end
-    out_str = split(human_response, " ")
-    fname = out_str[1]
-    
-    func = HUMAN_ACTIONS[fname]
-
-    if fname == "bs" || fname == "bc"
-        human_coords = out_str[2]
-        println(human_coords)
-        return (func,player, [get_coord_from_human_tile_description(human_coords)])
-    elseif fname == "br"
-        human_coords = join(out_str[2:3], " ")
-        return (func, player, [get_coords_from_human_tile_description(human_coords)...])
-    elseif fname == "pt" # pt 2 w w g g
-        amount_are_mine = parse(Int, out_str[2])
-        goods = join(out_str[3:end], " ")
-        return (func, player, [], amount_are_mine, [_parse_resources_str(goods)...])
-    elseif fname == "bd" || fname == "pd"
-        return (func, player, [])
-    end
-
-    ArgumentError("\"$human_response\" was not a valid command.")
-end
-
-@safeparse function _parse_teams(descriptor)
-    human_response = input(descriptor)
-    return Symbol(String(titlecase(human_response)))
-end
-
-function parse_road_coord(descriptor)
-    while true
-        return _parse_road_coord(descriptor)
-    end
-end
-@safeparse function _parse_road_coord(descriptor)
-    human_response = input(descriptor)
-    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    if all([x == nothing || x == nothing for x in asints])
-        return get_road_coords_from_human_tile_description(human_response)
-    end
-end
-
-function parse_int(descriptor)
-    while true
-        return _parse_int(descriptor)
-    end
-end
-@safeparse function _parse_int(descriptor)
-    ints = _parse_ints(descriptor)
-    return ints[1]
-end
-
-function parse_ints(descriptor)
-    while true
-        return _parse_ints(descriptor)
-    end
-end
-@safeparse function _parse_ints(descriptor)
-    human_response = input(descriptor)
-    asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
-    if all([x == nothing || x == nothing for x in asints])
-        return get_coord_from_human_tile_description(human_response)
-    end
-    return asints
-end
-
-function parse_devcard(descriptor)
-    while true
-        _parse_devcard(desriptor)
-    end
-end
-@safeparse function _parse_devcard(descriptor)
-    while true
-        try
-            reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
-            println("($reminder)")
-            dc_response = input(descriptor)
-            if dc_response in ["", "n", "no"]
-                return nothing
-            end
-            return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]
-        catch e
-            println("parsing error: $e")
-        end
-    end
-end
-function parse_resources(descriptor)
-    while true
-        return _parse_resources(descriptor)
-    end
-end
-@safeparse function _parse_resources(descriptor)
-    reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
-    println("($reminder)")
-    _parse_resources_str(input(descriptor))
-end
-function parse_resources_str(string_of_resources)
-    while true
-        return _parse_resources_str(string_of_resources)
-    end
-end
-@safeparse function _parse_resources_str(string_of_resources)
-    return Tuple([HUMAN_RESOURCE_TO_SYMBOL[uppercase(String(x))] for x in split(string_of_resources, ' ')])
-end
-

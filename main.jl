@@ -9,13 +9,15 @@ include("board.jl")
 include("draw_board.jl")
 include("human.jl")
 include("robo.jl")
-include("action_interface.jl")
+#include("action_interface.jl")
 
 API_DICTIONARY = Dict(
                       # Game commands
                       "dd" => _draw_devcard,
                       "ss" => _set_starting_player,
                       "st" => _start_turn,
+                      "fp" => _finish_player_turn,
+                      "ft" => _finish_turn,
 
                       # Board commands
                       "bc" => _build_city,
@@ -110,8 +112,8 @@ end
 function do_play_devcard(board, players, player, card::Union{Nothing,Symbol})
     if card != nothing
         do_devcard_action(board, players, player, card)
-        play_devcard(player, card)
-        assign_largest_army(game.players)
+        play_devcard(player.player, card)
+        assign_largest_army(players)
     end
 end
 
@@ -344,7 +346,7 @@ function do_turn(game, board, player)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
-        do_play_devcard(board, players, player, card)
+        do_play_devcard(board, game.players, player, card)
     end
     value = roll_dice(player)
     handle_dice_roll(board, game.players, player, value)
@@ -383,7 +385,7 @@ end
 function initialize_game(game::Game, csvfile::String, logfile)
     board = read_map(csvfile)
     game, board = load_gamestate(game, board, logfile)
-    do_game(game, board, false)
+    do_game(game, board)
 end
 function initialize_game(game::Game, csvfile::String)
     board = read_map(csvfile)
@@ -392,7 +394,7 @@ function initialize_game(game::Game, csvfile::String)
         println("$t => $r")
     end
 
-    do_game(game, board, false)
+    do_game(game, board)
 end
 
 function choose_validate_building(board, players, player, building_type, coord = nothing)
@@ -432,12 +434,24 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
     build_road(board, player.player.team, road_coord1, road_coord2)
 end
 
-function do_first_turn(board, players)
-    for player in players
+function do_first_turn(game, board, players)
+    if !game.first_turn_forward_finished
+        do_first_turn_forward(game, board, players)
+    end
+    do_first_turn_reverse(game, board, players)
+end
+function do_first_turn_forward(game, board, players)
+    players_to_play = [p for p in players if !(p.player.team in game.already_played_this_turn)]
+    for player in players_to_play
         choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player, true)
+        finish_player_turn(game, player.player.team)
     end
-    for player in reverse(players)
+    finish_turn(game)
+end
+function do_first_turn_reverse(game, board, players)
+    reverse_players_to_play = [p for p in reverse(players) if !(p.player.team in game.already_played_this_turn)]
+    for player in reverse_players_to_play
         settlement = choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player, true)
         
@@ -449,20 +463,22 @@ function do_first_turn(board, players)
 end
 
 function do_set_turn_order(game)
-    out_players = []
-    values = []
-    for player in game.players
-        push!(values, roll_dice(player))
-    end
+    if !game.turn_order_set
+        out_players = []
+        values = []
+        for player in game.players
+            push!(values, roll_dice(player))
+        end
 
-    set_starting_player(game, argmax(values))
+        set_starting_player(game, argmax(values))
+    end
 end
 
-function do_game(game::Game, board::Board, play_first_turn)
-    if play_first_turn
+function do_game(game::Game, board::Board)
+    if game.turn_num == 0
         # Here we need to pass the whole game so we can modify the players list order in-place
         do_set_turn_order(game) 
-        do_first_turn(board, game.players)
+        do_first_turn(game, board, game.players)
     end
 
     while ~someone_has_won(game, board, game.players)
