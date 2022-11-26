@@ -15,7 +15,7 @@ function _start_turn(game::Game)
     end
 end
 function finish_player_turn(game::Game, team)
-    log_action("game fp")
+    log_action("game fp :$team")
     _finish_player_turn(game, team)
 end
 function _finish_player_turn(game, team)
