@@ -165,7 +165,7 @@ end
 
 # Human Player API
 function roll_dice(player::HumanPlayer)::Int
-    _parse_ints("Dice roll:")[1]
+    _parse_int("Dice roll:")
 end
 
 function choose_cards_to_discard(player::HumanPlayer, amount)
@@ -274,8 +274,20 @@ function choose_rest_of_turn(game, board, players, player::HumanPlayer)
     [pd] Play development card
     [E]nd turn
     """
-    return _parse_action(player, full_options)
+    action_and_args = _parse_action(player, full_options)
+    if action_and_args == nothing
+        return nothing
+    end
+
+    func = PLAYER_ACTIONS[action_and_args[1]]
+    return (game, board) -> func(game, board, action_and_args[2:end]...)
 end
+
+#function choose_rest_of_turn(game, board, players, player::RobotPlayer)
+#    actions = values(PLAYER_ACTIONS)
+#
+#    for act in actions
+#end
 function choose_rest_of_turn(game, board, players, player::RobotPlayer)
     if has_enough_resources(player.player, COSTS[:City])
         coord = choose_building_location(board, players, player, :City)

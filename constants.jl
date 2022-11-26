@@ -13,6 +13,16 @@ VP_AWARDS = Dict([
                   :City => 2,
                   :Road => 0
                  ])
+
+HUMAN_ACTIONS = Dict(
+    "bs" => :ConstructSettlement,
+    "bc" => :ConstructCity,
+    "br" => :ConstructRoad,
+    "pt" => :ProposeTrade,
+    "bd" => :BuyDevCard,
+    "pd" => :PlayDevCard
+   )
+
 COSTS = Dict([
               :Settlement => Dict([
                                    :Wood => 1,
