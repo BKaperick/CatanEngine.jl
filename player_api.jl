@@ -160,6 +160,8 @@ end
 function _take_resource(player::Player, resource::Symbol)
     if haskey(player.resources, resource) && player.resources[resource] > 0
         player.resources[resource] -= 1
+    else
+        @warn "$(player.team) has insufficient $(resource) cards"
     end
 end
 

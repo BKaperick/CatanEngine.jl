@@ -64,11 +64,12 @@ end
 function _build_city(board, team, coord::Tuple{Int, Int})
     
     # Remove current settlement
+    current_settlement = nothing
     try
         current_settlement = board.coord_to_building[coord]
     catch e
         throw("$team doesn't have a settlement at this location")
-    end
+    finally
     println(board.buildings)
     filter!(b -> b.coord != current_settlement.coord, board.buildings)
     println(board.buildings)
@@ -78,6 +79,7 @@ function _build_city(board, team, coord::Tuple{Int, Int})
     push!(board.buildings, city)
     board.coord_to_building[coord] = city
     return city
+    end
 end
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})

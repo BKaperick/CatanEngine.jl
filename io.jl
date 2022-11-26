@@ -1,6 +1,5 @@
 using Logging
 include("board.jl")
-include("action_interface.jl")
 
 macro safeparse(ex)
     quote
