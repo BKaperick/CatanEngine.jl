@@ -1,0 +1,4 @@
+Green,HumanPlayer
+Marron,RobotPlayer
+Red,HumanPlayer
+Blue,RobotPlayer

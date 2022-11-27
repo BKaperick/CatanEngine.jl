@@ -63,7 +63,13 @@ function test_log()
     game = setup_robot_game()
     board = read_map("sample.csv")
     println("testing logfile $LOGFILE")
-    new_game, board = load_gamestate(game, board,LOGFILE)
+    new_game = Game(game.players)
+    new_game, board = load_gamestate(new_game, board,LOGFILE)
+    @test game.devcards == new_game.devcards
+    @test game.already_played_this_turn == new_game.already_played_this_turn
+    @test game.turn_num == new_game.turn_num
+    @test game.turn_order_set == new_game.turn_order_set
+    @test game.first_turn_forward_finished == new_game.first_turn_forward_finished
     @test hash(game) == hash(new_game)
 end
 

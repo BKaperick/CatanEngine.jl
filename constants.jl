@@ -1,4 +1,5 @@
 using Dates
+using Logging
 
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0

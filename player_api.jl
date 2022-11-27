@@ -183,7 +183,7 @@ function choose_road_location(board, players, player::HumanPlayer, is_first_turn
     else
         out = coords
     end
-    println(out)
+    @info out
     return out
 end
 function choose_place_robber(board, players, player::HumanPlayer)
@@ -341,7 +341,7 @@ end
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
     input("Press Enter when $(to_player.team) is ready to see the message")
-    println("$(from_player.player.team) stole $stolen_good from $(to_player.team)")
+    @info "$(from_player.player.team) stole $stolen_good from $(to_player.team)"
     input("Press Enter again when you are ready to hide the message")
     run(`clear`)
     take_resource(from_player.player, stolen_good)
@@ -359,7 +359,7 @@ end
 function choose_who_to_trade_with(board, player::RobotPlayer, players)
     public_scores = count_victory_points_from_board(board)
     max_ind = argmax(v -> public_scores[v.player.team], players)
-    println("$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player")
+    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player"
     return max_ind.player.team
 end
 
@@ -375,7 +375,7 @@ end
 
 function roll_dice(player::RobotPlayer)::Int
     value = rand(1:6) + rand(1:6)
-    println("$(player.player.team) rolled a $value")
+    @info "$(player.player.team) rolled a $value"
     return value
 end
 function choose_road_location(board, players, player::RobotPlayer, is_first_turn = false)
@@ -384,7 +384,7 @@ function choose_road_location(board, players, player::RobotPlayer, is_first_turn
         return sample(candidates)
         #return sample(candidates, 1)[1]
     end
-    println("Sorry, I didn't find any better options")
+    @info "Sorry, I didn't find any better options"
     return nothing
 end
 function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)
@@ -439,7 +439,7 @@ function choose_robber_victim(board, player::RobotPlayer, potential_victims...):
     max_ind = argmax(v -> public_scores[v.player.team], potential_victims)
     
     
-    println("$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player")
+    @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player"
     return max_ind
 end
 function choose_card_to_steal(player::RobotPlayer)::Symbol

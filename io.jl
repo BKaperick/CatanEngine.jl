@@ -131,15 +131,19 @@ function execute_api_call(game::Game, board::Board, line::String)
     other_args = [eval(Meta.parse(a)) for a in values[3:end]]
     filter!(x -> x != nothing, other_args)
     if values[1] == "board"
+        @debug "API: $api_call(board, $(other_args...))"
         api_call(board, other_args...)
     elseif values[1] == "game"
         if length(other_args) > 0
+            @debug "API: $api_call(game, $(other_args...))"
             api_call(game, other_args...)
         else
+            @debug "API: $api_call(game)"
             api_call(game)
         end
     else
         player = team_to_player[eval(Meta.parse(values[1]))]
+        @debug "API: $api_call($player, $(other_args...))"
         api_call(player, other_args...)
     end
 end

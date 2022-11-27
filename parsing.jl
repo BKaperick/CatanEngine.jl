@@ -7,7 +7,7 @@ macro safeparse(ex)
             if e isa InterruptException
                 throw(e)
             else
-                println("parsing error: $e")
+                @error "parsing error: $e"
             end
 
         end
@@ -17,7 +17,7 @@ function parse_generic(descriptor, parsing_func, reminder = nothing)
     x = nothing
     while x == nothing
         if reminder != nothing
-            println(reminder)
+            @info reminder
         end
         x = @safeparse parsing_func(descriptor)
     end
@@ -70,7 +70,7 @@ function _parse_action(descriptor)
 
     if fname == "bs" || fname == "bc"
         human_coords = out_str[2]
-        println(human_coords)
+        @info human_coords
         return (func, [get_coord_from_human_tile_description(human_coords)])
     elseif fname == "br"
         human_coords = join(out_str[2:3], " ")
@@ -118,7 +118,7 @@ end
 
 function _parse_devcard(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
-    println("($reminder)")
+    @info "($reminder)"
     dc_response = input(descriptor)
     if dc_response in ["", "n", "no"]
         return nothing
@@ -128,7 +128,7 @@ end
 
 function _parse_resources(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
-    println("($reminder)")
+    @info "($reminder)"
     _parse_resources_str(input(descriptor))
 end
 

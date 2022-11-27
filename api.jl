@@ -58,7 +58,7 @@ end
 
 function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
     log_action("board bc", team, coord)
-    println("$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))")
+    @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_city(board, team, coord)
 end
 function _build_city(board, team, coord::Tuple{Int, Int})
@@ -69,22 +69,19 @@ function _build_city(board, team, coord::Tuple{Int, Int})
         current_settlement = board.coord_to_building[coord]
     catch e
         throw("$team doesn't have a settlement at this location")
-    finally
-    println(board.buildings)
+    end    
     filter!(b -> b.coord != current_settlement.coord, board.buildings)
-    println(board.buildings)
 
     # Add a city in its place
     city = Building(coord, :City, team)
     push!(board.buildings, city)
     board.coord_to_building[coord] = city
     return city
-    end
 end
 
 function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
     log_action("board bs", board, team, coord)
-    println("$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))")
+    @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement(board, team, coord)
 end
 function _build_settlement(board, team, coord::Tuple{Int,Int})
@@ -96,7 +93,7 @@ end
 
 function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
     log_action("board br", board, team, coord1, coord2)
-    println("$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))")
+    @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road(board, team, coord1, coord2)
 end
 function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
@@ -161,16 +158,14 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     end
     # 1. There cannot be another road at the same location
     if haskey(board.coord_to_building, coord)
-        if VERBOSITY > 0 println("[Invalid settlement] 1. There cannot be another settlement at the same location")
-        end
+        @debug "[Invalid settlement] 1. There cannot be another settlement at the same location"
         return false
     end
     
     # 2. New building cannot be neighbors of an existing building
     for neigh in get_neighbors(coord)
         if haskey(board.coord_to_building, neigh)
-            if VERBOSITY > 0 println("[Invalid settlement] 2. New building cannot be neighbors of an existing building")
-            end
+            @debug "[Invalid settlement] 2. New building cannot be neighbors of an existing building"
             return false
         end
     end
@@ -179,8 +174,7 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     if haskey(board.coord_to_roads, coord)
         roads = board.coord_to_roads[coord]
         if ~any([r.team == team for r in roads])
-            if VERBOSITY > 0 println("[Invalid settlement] 3. New building must be next to a road of the same team")
-            end
+            @debug "[Invalid settlement] 3. New building must be next to a road of the same team"
             return false
         end
     end
@@ -208,8 +202,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     # 1. There cannot be another road at the same location
     if haskey(board.coord_to_roads, coord1)
         if any([(coord2 == road.coord1 || coord2 == road.coord2) for road in board.coord_to_roads[coord1]])
-            if VERBOSITY > 0 println("[Invalid road] 1. There cannot be another road at the same location")
-            end
+            @debug "[Invalid road] 1. There cannot be another road at the same location"
             return false
         end
     end
@@ -233,8 +226,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
         end
     end
     if ~found_neighbor
-        if VERBOSITY > 0 println("[Invalid road] never found a valid neighbor")
-        end
+        @debug "[Invalid road] never found a valid neighbor"
     end
     return found_neighbor
 end

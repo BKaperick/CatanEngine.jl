@@ -334,7 +334,7 @@ function get_potential_theft_victims(board, players, thief, new_tile)
         team = board.coord_to_building[c].team
         victim = [p for p in players if p.player.team == team][1]
         if has_any_resources(victim.player) && (team != thief.player.team)
-            println("vr: $(victim.player.resources)")
+            @info "vr: $(victim.player.resources)"
             push!(potential_victims, victim)
         end
     end
@@ -373,7 +373,7 @@ function get_winner(game, board, players)::Union{Nothing,PlayerType}
     for player in players
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
-            println("WINNER $player_points ($player)")
+            @info "WINNER $player_points ($player)"
             print_board(board)
             print_player_stats(game, board, player.player)
             return player
@@ -388,9 +388,9 @@ function initialize_game(game::Game, csvfile::String, logfile)
 end
 function initialize_game(game::Game, csvfile::String)
     board = read_map(csvfile)
-    print_board(board)
+    # print_board(board)
     for (t,r) in board.tile_to_resource
-        println("$t => $r")
+        @debug "$t => $r"
     end
 
     do_game(game, board)
@@ -423,7 +423,7 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
     road_coord2 = nothing
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
         road_coord = choose_road_location(board, players, player, is_first_turn)
-        println("road_coord: $road_coord")
+        @debug "road_coord: $road_coord"
         if road_coord == nothing
             print_board(board)
             return
@@ -493,20 +493,20 @@ end
 function print_player_stats(game, board, player::Player)
     public_points = get_public_vp_count(board, player)
     total_points = get_total_vp_count(board, player)
-    println("$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)")
-    println("$(count_roads(board, player.team)) roads")
-    println("$(count_settlements(board, player.team)) settlements")
-    println("$(count_cities(board, player.team)) cities")
+    @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
+    @info "$(count_roads(board, player.team)) roads"
+    @info "$(count_settlements(board, player.team)) settlements"
+    @info "$(count_cities(board, player.team)) cities"
     if player.has_largest_army
-        println("Largest Army ($(player.dev_cards_used[:Knight]) knights)")
+        @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
     if player.has_longest_road
-        println("Longest road")
+        @info "Longest road"
     end
     if get_vp_count_from_dev_cards(player) > 0
-        println("$(get_vp_count_from_dev_cards(player)) points from dev cards")
+        @info "$(get_vp_count_from_dev_cards(player)) points from dev cards"
     end
-    println(player)
+    @info player
 end
 
 
