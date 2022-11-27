@@ -152,7 +152,7 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods::
             to_goods_dict[g] = 1
         end
     end
-    accepted = []
+    accepted = Vector{PlayerType}()
     for player in players
         # Don't propose trade to yourself
         if player.player.team == from_player.player.team
@@ -287,8 +287,8 @@ function do_robber_move(board, players, player)
     end
 end
 
-function get_legal_actions(game, board, player)
-    actions = Set()
+function get_legal_actions(game, board, player)::Set{Symbol}
+    actions = Set{Symbol}()
     if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player)) > 0
         push!(actions, :ConstructCity)
     end
@@ -527,6 +527,10 @@ function do_game(game::Game, board::Board)
         start_turn(game)
         for player in get_players_to_play(game)
             do_turn(game, board, player)
+        end
+
+        if game.turn_num >= 100
+            break
         end
     end
 end

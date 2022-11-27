@@ -20,15 +20,18 @@ function reset_savefile(name)
     return SAVEFILE, SAVEFILEIO
 end
 
+function test_actions()
+    @test length(keys(PLAYER_ACTIONS)) == 6
+end
 function test_set_starting_player()
     reset_savefile("test_set_starting_player")
     team_and_playertype = [
-                          (:Robo1, RobotPlayer),
-                          (:Sobo2, RobotPlayer),
-                          (:Tobo3, RobotPlayer),
-                          (:Uobo4, RobotPlayer)
+                          (:Robo1, DefaultRobotPlayer),
+                          (:Sobo2, DefaultRobotPlayer),
+                          (:Tobo3, DefaultRobotPlayer),
+                          (:Uobo4, DefaultRobotPlayer)
             ]
-    players = [player(team) for (team,player) in team_and_playertype]
+    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
 
     set_starting_player(game, 2)
@@ -59,12 +62,12 @@ end
 function setup_robot_game()
     # Configure players and table configuration
     team_and_playertype = [
-                          (:Robo1, RobotPlayer),
-                          (:Sobo2, RobotPlayer),
-                          (:Tobo3, RobotPlayer),
-                          (:Uobo4, RobotPlayer)
+                          (:Robo1, DefaultRobotPlayer),
+                          (:Sobo2, DefaultRobotPlayer),
+                          (:Tobo3, DefaultRobotPlayer),
+                          (:Uobo4, DefaultRobotPlayer)
             ]
-    players = [player(team) for (team,player) in team_and_playertype]
+    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
     initialize_game(game, "sample.csv")
     return game
@@ -113,12 +116,12 @@ end
 function test_log()
     reset_savefile("test_log")
     team_and_playertype = [
-                          (:Robo1, RobotPlayer),
-                          (:Sobo2, RobotPlayer),
-                          (:Tobo3, RobotPlayer),
-                          (:Uobo4, RobotPlayer)
+                          (:Robo1, DefaultRobotPlayer),
+                          (:Sobo2, DefaultRobotPlayer),
+                          (:Tobo3, DefaultRobotPlayer),
+                          (:Uobo4, DefaultRobotPlayer)
             ]
-    players = [player(team) for (team,player) in team_and_playertype]
+    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = setup_robot_game()
     flush(SAVEFILEIO)
     board = read_map("sample.csv")
@@ -149,9 +152,9 @@ end
 
 function test_do_turn()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
-    players = [player1, player2]
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
     game = Game(players)
     start_turn(game)
     @test game.turn_num == 1
@@ -160,9 +163,9 @@ end
 
 function test_robber()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
-    players = [player1, player2]
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
     build_settlement(board, :Test1, (1,1))
     build_settlement(board, :Test2, (1,3))
 
@@ -185,7 +188,7 @@ end
 
 function test_max_construction()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
+    player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
         build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
     end
@@ -216,9 +219,9 @@ end
 # API Tests
 function test_devcards()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
-    players = [player1, player2]
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
 
     give_resource(player1.player, :Grain)
     give_resource(player1.player, :Stone)
@@ -243,9 +246,9 @@ function test_devcards()
 end
 function test_largest_army()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
-    players = [player1, player2]
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
     
     add_devcard(player1.player, :Knight)
     add_devcard(player1.player, :Knight)
@@ -285,8 +288,8 @@ end
 
 function test_ports()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
     @test all([v == 4 for v in values(player1.player.ports)])
     @test length(keys(player1.player.ports)) == 5
 
@@ -330,9 +333,9 @@ end
 
 function test_call_api()
     board = read_map("sample.csv")
-    player1 = RobotPlayer(:Test1)
-    player2 = RobotPlayer(:Test2)
-    players = [player1, player2]
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
 
     @test has_any_resources(player1.player) == false
     @test has_any_resources(player2.player) == false
@@ -392,6 +395,7 @@ function test_call_api()
 end
 
 function run_tests(neverend = false)
+    test_actions()
     test_set_starting_player()
     test_log()
     test_misc()
@@ -410,4 +414,5 @@ function run_tests(neverend = false)
     else
         setup_robot_game()
     end
+    test_actions()
 end

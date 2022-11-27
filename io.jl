@@ -13,7 +13,7 @@ function read_players_from_config(txtfile)::Vector{PlayerType}
     for l in configs
         name,playertype = split(l, ',')
         @debug "Starting add player $name of type $playertype"
-        name_sym = _parse_team(name)
+        name_sym = _parse_symbol(name)
         @debug "Added player $name_sym of type $playertype"
         player = eval(Meta.parse("$playertype(:$name_sym)"))
         push!(players, player)

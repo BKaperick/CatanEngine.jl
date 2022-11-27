@@ -34,7 +34,8 @@ function input(prompt::AbstractString)
     return response
 end
 
-parse_team(desc)            = parse_generic(desc, _parse_team)
+parse_team(desc)            = parse_generic(desc, _parse_symbol)
+parse_tile(desc)            = parse_generic(desc, _parse_tile)
 parse_yesno(desc)           = parse_generic(desc, _parse_yesno)
 parse_road_coord(desc)      = parse_generic(desc, _parse_road_coord)
 parse_resources_str(desc)   = parse_generic(desc, _parse_resources_str)
@@ -44,8 +45,17 @@ parse_int(desc)             = parse_generic(desc, _parse_int)
 parse_ints(desc)            = parse_generic(desc, _parse_ints)
 parse_action(desc)          = parse_generic(desc, _parse_action)
 
-function _parse_team(desc)
+function _parse_symbol(desc)
     return Symbol(titlecase(desc))
+end
+
+function _parse_tile(desc)
+    tile = Symbol(titlecase(input(desc)))
+    if haskey(TILE_TO_COORDS, tile)
+        return tile
+    else
+        return nothing
+    end
 end
 
 function _parse_yesno(desc)

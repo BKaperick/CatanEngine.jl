@@ -3,6 +3,8 @@ import Random
 include("constants.jl")
 include("structs.jl")
 include("robo.jl")
+include("default_robot_player.jl")
+include("action_interface.jl")
 
 # Players API
 
@@ -187,7 +189,7 @@ function choose_road_location(board, players, player::HumanPlayer, is_first_turn
     return out
 end
 function choose_place_robber(board, players, player::HumanPlayer)
-    parse_ints("$(player.player.team) places the Robber:")
+    parse_tile("$(player.player.team) places the Robber:")
 end
 
 choose_robber_victim(board, player, potential_victim::Symbol) = potential_victim
@@ -211,16 +213,6 @@ function choose_card_to_steal(player::HumanPlayer)::Symbol
 end
 function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
     parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
-end
-
-function choose_play_devcard(board, players, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-    if length(values(devcards)) > 0
-        card = random_sample_resources(devcards, 1)[1]
-        if card != :VictoryPoint
-            return card
-        end
-    end
-    return nothing
 end
 
 function assign_largest_army(players)
@@ -272,7 +264,7 @@ function choose_rest_of_turn(game, board, players, player::HumanPlayer, actions)
     if action_and_args == :EndTurn
         return nothing
     end
-
+    @warn keys(PLAYER_ACTIONS)
     func = PLAYER_ACTIONS[action_and_args[1]]
     return (game, board) -> func(game, board, player, action_and_args[2:end]...)
 end
@@ -281,45 +273,6 @@ end
 #    actions = values(PLAYER_ACTIONS)
 #    for act in actions
 #end
-
-function choose_rest_of_turn(game, board, players, player::RobotPlayer, actions)
-    if :ConstructCity in actions
-        coord = choose_building_location(board, players, player, :City)
-        return (game, board) -> construct_city(board, player.player, coord)
-    end
-    if :ConstructSettlement in actions
-        coord = choose_building_location(board, players, player, :Settlement)
-        return (game, board) -> construct_settlement(board, player.player, coord)
-    end
-    if :ConstructRoad in actions
-        coord = choose_road_location(board, players, player, false)
-        coord1 = coord[1]
-        coord2 = coord[2]
-        return (game, board) -> construct_road(board, player.player, coord1, coord2)
-    end
-    if :BuyDevCard in actions
-        return (game, board) -> buy_devcard(game, player.player)
-    end
-    if :PlayDevCard in actions
-        devcards = get_admissible_devcards(player.player)
-        card = choose_play_devcard(board, game.players, player, devcards)
-        if card != nothing
-            return (game, board) -> do_play_devcard(board, game.players, player, card)
-        end
-    elseif :ProposeTrade in actions
-        if rand() > .8
-            sampled = random_sample_resources(player.player.resources, 1)
-            rand_resource_from = [sampled...]
-            
-            rand_resource_to = [get_random_resource()]
-            while rand_resource_to[1] == rand_resource_from[1]
-                rand_resource_to = [get_random_resource()]
-            end
-            return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
-        end
-    end
-    return nothing
-end
 
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
@@ -339,92 +292,12 @@ function choose_who_to_trade_with(board, player::HumanPlayer, players)
     parse_team("$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
 end
 
-function choose_who_to_trade_with(board, player::RobotPlayer, players)
-    public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.player.team], players)
-    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player"
-    return max_ind.player.team
-end
-
 function choose_accept_trade(board, player::HumanPlayer, from_player::Player, from_goods, to_goods)
     parse_yesno("Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
 end
-function choose_accept_trade(board, player::RobotPlayer, from_player::Player, from_goods, to_goods)
-    return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
-end
-
-
-# Robot Player API.  Your RobotPlayer type must implement these methods
 
 function roll_dice(player::RobotPlayer)::Int
     value = rand(1:6) + rand(1:6)
     @info "$(player.player.team) rolled a $value"
     return value
-end
-function choose_road_location(board, players, player::RobotPlayer, is_first_turn = false)
-    candidates = get_admissible_road_locations(board, player.player, is_first_turn)
-    if length(candidates) > 0
-        return sample(candidates)
-        #return sample(candidates, 1)[1]
-    end
-    @info "Sorry, I didn't find any better options"
-    return nothing
-end
-function choose_building_location(board, players, player::RobotPlayer, building_type, is_first_turn = false)
-    if building_type == :Settlement
-        candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
-        if length(candidates) > 0
-            return sample(candidates, 1)[1]
-        end
-    elseif building_type == :City
-        settlement_locs = get_admissible_city_locations(board, player.player)
-        if length(settlement_locs) > 0
-            return rand(settlement_locs)
-        end
-    end
-    return nothing
-end
-
-function choose_cards_to_discard(player::RobotPlayer, amount)
-    return random_sample_resources(player.player.resources, amount)
-end
-
-function choose_place_robber(board, players, player::RobotPlayer)
-    validated = false
-    sampled_value = nothing
-    while ~validated
-        sampled_value = get_random_tile(board)
-
-        # Rules say you have to move the robber, can't leave it in place
-        if sampled_value == board.robber_tile
-            continue
-        end
-        validated = true
-        neighbors = TILE_TO_COORDS[sampled_value]
-        for c in neighbors
-            if haskey(board.coord_to_building, c) && board.coord_to_building[c].team == player.player.team
-                validated = false
-            end
-        end
-    end
-    return sampled_value
-end
-
-function choose_monopoly_resource(board, players, player::RobotPlayer)
-    return get_random_resource()
-end
-
-function choose_year_of_plenty_resources(board, players, player::RobotPlayer)
-    return get_random_resource(),get_random_resource()
-end
-function choose_robber_victim(board, player::RobotPlayer, potential_victims...)::PlayerType
-    public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.player.team], potential_victims)
-    
-    
-    @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player"
-    return max_ind
-end
-function choose_card_to_steal(player::RobotPlayer)::Symbol
-    random_sample_resources(player.player.resources, 1)[1]
 end
