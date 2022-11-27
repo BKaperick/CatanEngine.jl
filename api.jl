@@ -159,6 +159,8 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     end
     
     # 2. New building cannot be neighbors of an existing building
+    println("$coord: $(get_neighbors(coord))")
+
     for neigh in get_neighbors(coord)
         if haskey(board.coord_to_building, neigh)
             @debug "[Invalid settlement] 2. New building cannot be neighbors of an existing building"

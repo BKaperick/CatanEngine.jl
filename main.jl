@@ -325,10 +325,17 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     end
     coords_near_player_road = get_road_locations(board, player.team)
     empty = get_empty_spaces(board)
+    isolated_empty = []
+    for e in empty
+        if all([!haskey(board.coord_to_building, n) for n in get_neighbors(e)])
+            push!(isolated_empty, e)
+        end
+    end
+
     if first_turn
-        admissible = empty
+        admissible = isolated_empty
     else
-        admissible = intersect(empty, coords_near_player_road)
+        admissible = intersect(isolated_empty, coords_near_player_road)
     end
 
     valid = []

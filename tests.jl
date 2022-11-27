@@ -5,6 +5,7 @@ include("main.jl")
 SAVEFILE = "test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
 SAVE_GAME_TO_FILE = true
+println(SAVEFILE)
 
 # Reset the one-off test log
 io = open("oneoff_test_log.txt", "w")
@@ -313,24 +314,33 @@ function test_ports()
 end
 
 function test_board_api()
+
+    @test length(get_neighbors((3,8))) == 3
+    @test length(get_neighbors((3,11))) == 2
+    @test length(get_neighbors((4,1))) == 2
+
     board = read_map("sample.csv")
     build_settlement(board, :Test1, (1,1))
     build_road(board, :Test1, (1,1),(1,2))
     @test is_valid_settlement_placement(board, :Test1, (1,2)) == false
     build_settlement(board, :Test1, (1,2))
 
-    @test length(board.buildings) == 2
-    @test length(keys(board.coord_to_building)) == 2
-    @test count_settlements(board, :Test1) == 2
+    build_settlement(board, :Test1, (3,9))
+    @test is_valid_settlement_placement(board, :Test1, (4,9)) == false
+    @test !((4,9) in get_admissible_settlement_locations(board, Player(:Test1), true))
+
+    @test length(board.buildings) == 3
+    @test length(keys(board.coord_to_building)) == 3
+    @test count_settlements(board, :Test1) == 3
     @test count_settlements(board, :Test2) == 0
 
     build_city(board, :Test1, (1,1))
-    @test length(board.buildings) == 2
-    @test length(keys(board.coord_to_building)) == 2
-    @test count_settlements(board, :Test1) == 1
+    @test length(board.buildings) == 3
+    @test length(keys(board.coord_to_building)) == 3
+    @test count_settlements(board, :Test1) == 2
     @test count_cities(board, :Test1) == 1
     @test count_settlements(board, :Test2) == 0
-    @test count_victory_points_from_board(board, :Test1) == 3
+    @test count_victory_points_from_board(board, :Test1) == 4
 end
 
 function test_call_api()

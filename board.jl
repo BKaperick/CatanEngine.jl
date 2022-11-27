@@ -35,7 +35,8 @@ function get_neighbors(coord)
             elseif DIMS[r] == DIMS[r+1]
                 push!(neighbors, (r+1,c))
             end
-        elseif r > 1
+        end
+        if r > 1
             if DIMS[r-1]  > DIMS[r]  
                 push!(neighbors, (r-1, c+1))
             elseif DIMS[r-1] == DIMS[r]  
