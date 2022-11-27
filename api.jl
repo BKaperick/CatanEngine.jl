@@ -148,7 +148,7 @@ end
 
 # Construction validation
 
-function is_valid_settlement_placement(board, team, coord)::Bool
+function is_valid_settlement_placement(board, team, coord, is_first_turn::Bool = false)::Bool
     if coord == nothing
         return false
     end
@@ -159,13 +159,16 @@ function is_valid_settlement_placement(board, team, coord)::Bool
     end
     
     # 2. New building cannot be neighbors of an existing building
-    println("$coord: $(get_neighbors(coord))")
-
     for neigh in get_neighbors(coord)
         if haskey(board.coord_to_building, neigh)
             @debug "[Invalid settlement] 2. New building cannot be neighbors of an existing building"
             return false
         end
+    end
+
+    # Last condition does not need to be checked on first turn
+    if is_first_turn
+        return true
     end
 
     # 3. New building must be next to a road of the same team

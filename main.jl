@@ -325,12 +325,12 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     end
     coords_near_player_road = get_road_locations(board, player.team)
     empty = get_empty_spaces(board)
-    isolated_empty = []
-    for e in empty
-        if all([!haskey(board.coord_to_building, n) for n in get_neighbors(e)])
-            push!(isolated_empty, e)
-        end
-    end
+    isolated_empty = empty #[]
+#     for e in empty
+#         if all([!haskey(board.coord_to_building, n) for n in get_neighbors(e)])
+#             push!(isolated_empty, e)
+#         end
+#     end
 
     if first_turn
         admissible = isolated_empty
@@ -340,7 +340,7 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
 
     valid = []
     for coord in admissible
-        if is_valid_settlement_placement(board, player.team, coord)
+        if is_valid_settlement_placement(board, player.team, coord, first_turn)
             push!(valid, coord)
         end
     end
