@@ -2,8 +2,52 @@ using Test
 include("constants.jl")
 include("main.jl")
 
-LOGFILE = "test_log_$(Dates.format(now(), "HHMMSS")).txt"
-LOGFILEIO = open(LOGFILE, "a")
+SAVEFILE = "test_save_$(Dates.format(now(), "HHMMSS")).txt"
+SAVEFILEIO = open(SAVEFILE, "a")
+
+# Reset the one-off test log
+io = open("oneoff_test_log.txt", "w")
+write(io,"")
+close(io)
+
+logger_io = open("oneoff_test_log.txt","w+")
+logger = SimpleLogger(logger_io, Logging.Debug)
+global_logger(logger)
+
+function test_set_starting_player()
+    team_and_playertype = [
+                          (:Robo1, RobotPlayer),
+                          (:Sobo2, RobotPlayer),
+                          (:Tobo3, RobotPlayer),
+                          (:Uobo4, RobotPlayer)
+            ]
+    players = [player(team) for (team,player) in team_and_playertype]
+    game = Game(players)
+
+    set_starting_player(game, 2)
+
+    @test game.turn_order_set == true
+    @test game.players[1].player.team == :Sobo2
+    @test game.players[2].player.team == :Tobo3
+    @test game.players[3].player.team == :Uobo4
+    @test game.players[4].player.team == :Robo1
+    
+    flush(SAVEFILEIO)
+    board = read_map("sample.csv")
+    println("testing logfile $SAVEFILE")
+    new_game = Game(players)
+    new_game, board = load_gamestate(new_game, board, SAVEFILE)
+    
+    flush(logger_io)
+
+    @test new_game.turn_order_set == true
+    @test new_game.players[2].player.team == :Tobo3
+    @test new_game.players[3].player.team == :Uobo4
+    @test new_game.players[4].player.team == :Robo1
+    @test new_game.players[1].player.team == :Sobo2
+
+    #players: Tobo3, Uobo4, 
+end
 
 function setup_robot_game()
     # Configure players and table configuration
@@ -60,16 +104,28 @@ function test_misc()
 end
 
 function test_log()
+    team_and_playertype = [
+                          (:Robo1, RobotPlayer),
+                          (:Sobo2, RobotPlayer),
+                          (:Tobo3, RobotPlayer),
+                          (:Uobo4, RobotPlayer)
+            ]
+    players = [player(team) for (team,player) in team_and_playertype]
     game = setup_robot_game()
+    flush(SAVEFILEIO)
     board = read_map("sample.csv")
-    println("testing logfile $LOGFILE")
-    new_game = Game(game.players)
-    new_game, board = load_gamestate(new_game, board,LOGFILE)
+    println("testing savefile $SAVEFILE")
+    new_game = Game(players)
+    new_game, board = load_gamestate(new_game, board, SAVEFILE)
     @test game.devcards == new_game.devcards
     @test game.already_played_this_turn == new_game.already_played_this_turn
     @test game.turn_num == new_game.turn_num
     @test game.turn_order_set == new_game.turn_order_set
     @test game.first_turn_forward_finished == new_game.first_turn_forward_finished
+    for (i,player) in enumerate(game.players)
+        @test player == new_game.players[i]
+    end
+    @test game.players == new_game.players
     @test hash(game) == hash(new_game)
 end
 

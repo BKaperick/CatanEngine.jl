@@ -20,12 +20,8 @@ harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 macro api_name(x)
     API_DICTIONARY[string(x)] = x
 end
-macro log(x)
-    log_action(LOGFILE, x)
-end
 
 function create_board(csvfile::String)
-    # log_action("board.cb", csvfile)
     read_map(csvfile)
 end
 

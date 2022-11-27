@@ -9,12 +9,12 @@ function read_players_from_config(txtfile)::Vector{PlayerType}
     file_str = read(txtfile, String)
     configs = get_parsed_file_lines(file_str)
     players = []
-    println("starting to read lines")
+    @debug "starting to read lines"
     for l in configs
         name,playertype = split(l, ',')
-        println("Starting add player $name of type $playertype")
+        @debug "Starting add player $name of type $playertype"
         name_sym = _parse_team(name)
-        println("Added player $name_sym of type $playertype")
+        @debug "Added player $name_sym of type $playertype"
         player = eval(Meta.parse("$playertype(:$name_sym)"))
         push!(players, player)
     end
@@ -108,15 +108,16 @@ function serialize_action(fname::String, args...)
     string("$fname ", join(arg_strs, " "))
 end
 function log_action(fname::String, args...)
+    @info "logging $fname in $SAVEFILE"
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
-    println(outstring)
-    write(LOGFILEIO, outstring)
+    @debug outstring
+    write(SAVEFILEIO, outstring)
     return serialized
 end
-function log_action(f, expression)
-    write(LOGFILEIO, "$(string(expression))\n")
-end
+#function log_action(f, expression)
+#    write(SAVEFILEIO, "$(string(expression))\n")
+#end
 
 function read_action()
 end
@@ -125,7 +126,7 @@ function execute_api_call(game::Game, board::Board, line::String)
     team_to_player = Dict([p.player.team => p.player for p in game.players])
     values = split(line, " ")
     func_key = values[2]
-    println(line)
+    @debug line
     api_call = API_DICTIONARY[func_key]
 
     other_args = [eval(Meta.parse(a)) for a in values[3:end]]
@@ -151,7 +152,7 @@ function load_gamestate(game, board, file)
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
-    print_board(board)
+    #print_board(board)
     return game, board
 end
 

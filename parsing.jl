@@ -28,7 +28,7 @@ function input(prompt::AbstractString)
     println(prompt)
     response = readline()
     if response == "quit"
-        close(LOGFILEIO)
+        close(SAVEFILEIO)
         stop()
     end
     return response

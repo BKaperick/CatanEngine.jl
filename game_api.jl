@@ -8,7 +8,6 @@ function start_turn(game::Game)
     _start_turn(game)
 end
 function _start_turn(game::Game)
-    println("adding turns !!! $(game.turn_num)")
     game.turn_num += 1
     for p in game.players
         p.player.played_dev_card_this_turn = false
@@ -47,7 +46,9 @@ function set_starting_player(game, index)
     _set_starting_player(game, index)
 end
 function _set_starting_player(game::Game, index)
+    @debug "Before: $([p.player.team for p in game.players])"
     game.players = circshift(game.players, length(game.players) - index + 1)
+    @debug "After: $([p.player.team for p in game.players])"
     game.turn_order_set = true
 end
     

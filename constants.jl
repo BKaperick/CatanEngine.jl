@@ -1,6 +1,10 @@
 using Dates
 using Logging
 
+#logger = ConsoleLogger(stderr, Logging.Debug)
+logger = ConsoleLogger(stderr, Logging.Info)
+global_logger(logger)
+
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
 
@@ -8,7 +12,7 @@ MAX_CITY = 4
 MAX_SETTLEMENT = 5
 MAX_ROAD = 14
 
-LOGFILE = "log_$(Dates.format(now(), "HHMMSS")).txt"
+SAVEFILE = "game_$(Dates.format(now(), "HHMMSS")).txt"
 VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,

@@ -17,11 +17,11 @@ if length(ARGS) >= 2
     MAPFILE = ARGS[2]
 end
 if length(ARGS) >= 3
-    LOGFILE = ARGS[3]
-    load_game(game, LOGFILE)
+    SAVEFILE = ARGS[3]
+    load_game(game, SAVEFILE)
 elseif length(ARGS) < 4
-    LOGFILEIO = open(LOGFILE, "a")
+    SAVEFILEIO = open(SAVEFILE, "a")
 end
-LOGFILEIO = open(LOGFILE, "a")
-#initialize_game(game, "sample.csv", LOGFILE)
-initialize_game(game, MAPFILE, LOGFILE)
+SAVEFILEIO = open(SAVEFILE, "a")
+#initialize_game(game, "sample.csv", SAVEFILE)
+initialize_game(game, MAPFILE, SAVEFILE)
