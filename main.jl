@@ -143,7 +143,15 @@ function propose_trade_goods(board, players, from_player, amount::Int, resource_
     to_goods = resource_symbols[amount+1:end]
     return propose_trade_goods(board, players, from_player, from_goods, to_goods)
 end
-function propose_trade_goods(board, players, from_player, from_goods, to_goods)
+function propose_trade_goods(board, players, from_player, from_goods, to_goods::Vector{Symbol})
+    to_goods_dict = Dict{Symbol,Int}()
+    for g in to_goods
+        if haskey(to_goods_dict,g)
+            to_goods_dict[g] += 1
+        else
+            to_goods_dict[g] = 1
+        end
+    end
     accepted = []
     for player in players
         # Don't propose trade to yourself
@@ -151,7 +159,10 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods)
             continue
         end
         if choose_accept_trade(board, player, from_player.player, from_goods, to_goods)
-            push!(accepted, player)
+            # We do this act the "choose" step to not leak information from player's hand
+            if has_enough_resources(player.player, to_goods_dict) 
+                push!(accepted, player)
+            end
         end
     end
     if length(accepted) == 0

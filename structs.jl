@@ -61,7 +61,7 @@ mutable struct Game
     turn_order_set::Bool
     first_turn_forward_finished::Bool
 end
-Game(players) = Game(DEVCARD_COUNTS, players, Set(), 0, false, false)
+Game(players) = Game(copy(DEVCARD_COUNTS), players, Set(), 0, false, false)
 
 mutable struct Construction
 end
