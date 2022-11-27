@@ -34,14 +34,16 @@ function input(prompt::AbstractString)
     return response
 end
 
-parse_team(desc)    = parse_generic(desc, _parse_team)
-parse_yesno(desc)   = parse_generic(desc, _parse_yesno)
-parse_road_coord(desc) = parse_generic(desc, _parse_road_coord)
-parse_resources_str(desc) = parse_generic(desc, _parse_resources_str)
-parse_resources(desc) = parse_generic(desc, _parse_resources)
-parse_devcard(desc) = parse_generic(desc, _parse_devcard)
-parse_int(desc) = parse_generic(desc, _parse_int)
-parse_ints(desc) = parse_generic(desc, _parse_ints)
+parse_team(desc)            = parse_generic(desc, _parse_team)
+parse_yesno(desc)           = parse_generic(desc, _parse_yesno)
+parse_road_coord(desc)      = parse_generic(desc, _parse_road_coord)
+parse_resources_str(desc)   = parse_generic(desc, _parse_resources_str)
+parse_resources(desc)       = parse_generic(desc, _parse_resources)
+parse_devcard(desc)         = parse_generic(desc, _parse_devcard)
+parse_int(desc)             = parse_generic(desc, _parse_int)
+parse_ints(desc)            = parse_generic(desc, _parse_ints)
+parse_action(desc)          = parse_generic(desc, _parse_action)
+
 function _parse_team(desc)
     return Symbol(titlecase(desc))
 end
@@ -51,13 +53,6 @@ function _parse_yesno(desc)
     return human_response[1] == 'y'
 end
 
-function parse_action(descriptor)
-    x = nothing
-    while x == nothing
-        x = @safeparse _parse_action(descriptor)
-    end
-    return x
-end
 function _parse_action(descriptor)
     human_response = lowercase(input(descriptor))
     if (human_response[1] == 'e')

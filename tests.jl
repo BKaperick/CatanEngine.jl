@@ -41,7 +41,7 @@ function test_set_starting_player()
     
     flush(SAVEFILEIO)
     board = read_map("sample.csv")
-    println("testing logfile $SAVEFILE")
+    @info "testing logfile $SAVEFILE"
     new_game = Game(players)
     new_game, board = load_gamestate(new_game, board, SAVEFILE)
     
@@ -143,10 +143,8 @@ function test_log()
         @test player.bought_dev_card_this_turn == new_player.bought_dev_card_this_turn
         @test player.has_largest_army == new_player.has_largest_army
         @test player.has_longest_road == new_player.has_longest_road
-        #@test player == new_player
-        #@test hash(player) == hash(new_player)
-        #@test player == new_player
     end
+    rm(SAVEFILE)
 end
 
 function test_do_turn()
@@ -281,8 +279,6 @@ function test_largest_army()
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
     play_devcard(player2.player, :Knight)
     assign_largest_army(players)
-    println(player1.player)
-    println(player2.player)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
 end
