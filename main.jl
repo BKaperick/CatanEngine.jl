@@ -283,6 +283,29 @@ function do_robber_move(board, players, player)
     end
 end
 
+function get_legal_actions(game, board, player)
+    actions = Set()
+    if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player)) > 0
+        push!(actions, :ConstructCity)
+    end
+    if has_enough_resources(player, COSTS[:Settlement]) && length(get_admissible_settlement_locations(board, player)) > 0
+        push!(actions, :ConstructSettlement)
+    end
+    if has_enough_resources(player, COSTS[:Road]) && length(get_admissible_road_locations(board, player)) > 0
+        push!(actions, :ConstructRoad)
+    end
+    if has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
+        push!(actions, :BuyDevCard)
+    end
+    if can_play_dev_card(player)
+        push!(actions, :PlayDevCard)
+    end
+    if has_any_resources(player)
+        push!(actions, :ProposeTrade)
+    end
+    return actions
+end
+
 function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
     if count_cities(board, player.team) >= MAX_CITY
         return []
@@ -363,7 +386,11 @@ function do_turn(game, board, player)
     
     next_action = "tmp"
     while next_action != nothing
-        next_action = choose_rest_of_turn(game, board, game.players, player)
+        actions = get_legal_actions(game, board, player.player)
+        if length(actions) == 0
+            break
+        end
+        next_action = choose_rest_of_turn(game, board, game.players, player, actions)
         if next_action != nothing
             next_action(game, board)
         end

@@ -287,45 +287,36 @@ end
 
 #function choose_rest_of_turn(game, board, players, player::RobotPlayer)
 #    actions = values(PLAYER_ACTIONS)
-#
 #    for act in actions
 #end
-function choose_rest_of_turn(game, board, players, player::RobotPlayer)
-    if has_enough_resources(player.player, COSTS[:City])
+
+function choose_rest_of_turn(game, board, players, player::RobotPlayer, actions)
+    if :ConstructCity in actions
         coord = choose_building_location(board, players, player, :City)
-        if coord != nothing
-            return (game, board) -> construct_city(board, player.player, coord)
-        end
+        return (game, board) -> construct_city(board, player.player, coord)
     end
-    if has_enough_resources(player.player, COSTS[:Settlement])
+    if :ConstructSettlement in actions
         coord = choose_building_location(board, players, player, :Settlement)
-        if coord != nothing
-            return (game, board) -> construct_settlement(board, player.player, coord)
-        end
+        return (game, board) -> construct_settlement(board, player.player, coord)
     end
-    if has_enough_resources(player.player, COSTS[:Road])
+    if :ConstructRoad in actions
         coord = choose_road_location(board, players, player, false)
-        if coord != nothing
-            coord1 = coord[1]
-            coord2 = coord[2]
-            return (game, board) -> construct_road(board, player.player, coord1, coord2)
-        end
+        coord1 = coord[1]
+        coord2 = coord[2]
+        return (game, board) -> construct_road(board, player.player, coord1, coord2)
     end
-    if has_enough_resources(player.player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
+    if :BuyDevCard in actions
         return (game, board) -> buy_devcard(game, player.player)
     end
-    if can_play_dev_card(player.player)
+    if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
         if card != nothing
             return (game, board) -> do_play_devcard(board, game.players, player, card)
         end
-    else
-        if rand() > .8 && length(values(player.player.resources)) > 0
+    elseif :ProposeTrade in actions
+        if rand() > .8
             sampled = random_sample_resources(player.player.resources, 1)
-            if sampled == nothing
-                return nothing
-            end
             rand_resource_from = [sampled...]
             
             rand_resource_to = [get_random_resource()]

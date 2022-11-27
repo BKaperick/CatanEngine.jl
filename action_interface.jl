@@ -30,3 +30,12 @@ PLAYER_ACTIONS = Dict(
     :BuyDevCard             => act_buy_devcard,
     :PlayDevCard            => act_play_devcard
    )
+
+PLAYER_ACTIONS_LEGAL = Dict(
+    :ConstructSettlement    => has_enough_resources(player.player, COSTS[:Settlement]),
+    :ConstructCity          => has_enough_resources(player.player, COSTS[:City]),
+    :ConstructRoad          => has_enough_resources(player.player, COSTS[:City]),
+    :ProposeTrade           => act_propose_trade_goods,
+    :BuyDevCard             => act_buy_devcard,
+    :PlayDevCard            => act_play_devcard
+   )
