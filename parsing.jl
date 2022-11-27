@@ -4,7 +4,7 @@ macro safeparse(ex)
         try
             xx = $(esc(ex))
         catch e
-            if e isa InterruptException
+            if e isa InterruptException || e isa StopException
                 throw(e)
             else
                 @error "parsing error: $e"
@@ -56,7 +56,7 @@ end
 function _parse_action(descriptor)
     human_response = lowercase(input(descriptor))
     if (human_response[1] == 'e')
-        return nothing
+        return (:EndTurn)
     end
     out_str = split(human_response, " ")
     fname = out_str[1]

@@ -108,7 +108,7 @@ function serialize_action(fname::String, args...)
     string("$fname ", join(arg_strs, " "))
 end
 function log_action(fname::String, args...)
-    @info "logging $fname in $SAVEFILE"
+    @debug "logging $fname in $SAVEFILE"
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
     @debug outstring

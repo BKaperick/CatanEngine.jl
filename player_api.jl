@@ -265,19 +265,11 @@ function _remove_largest_army(player::Player)
     player.has_largest_army = false
 end
 
-function choose_rest_of_turn(game, board, players, player::HumanPlayer)
-    full_options = """
-    What does $(player.player.team) do next?
-    [pt] Propose trade (e.g. "pt 2 w w g g")
-    [bc] Build city
-    [bs] Build settlement
-    [br] Build road
-    [bd] Buy development card
-    [pd] Play development card
-    [E]nd turn
-    """
+function choose_rest_of_turn(game, board, players, player::HumanPlayer, actions)
+    header = "What does $(player.player.team) do next?\n"
+    full_options = string(header, [ACTION_TO_DESCRIPTION[a] for a in actions]..., "\n[E]nd turn")
     action_and_args = parse_action(full_options)
-    if action_and_args == nothing
+    if action_and_args == :EndTurn
         return nothing
     end
 

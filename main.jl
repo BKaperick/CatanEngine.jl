@@ -193,12 +193,14 @@ function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{
 end
 
 function harvest_resource(players, building::Building, resource::Symbol)
-    player = [p for p in players if p.player.team == building.team][1]
+    player = [p.player for p in players if p.player.team == building.team][1]
     if building.type == :Settlement
-        give_resource(player.player, resource)
+        @info "$(player.team) harvests a $resource"
+        give_resource(player, resource)
     elseif building.type == :City
-        give_resource(player.player, resource)
-        give_resource(player.player, resource)
+        @info "$(player.team) harvests two $(resource)s"
+        give_resource(player, resource)
+        give_resource(player, resource)
     end
 end
 
@@ -210,7 +212,8 @@ function handle_dice_roll(board::Board, players, player, value)
     if value != 7
         for tile in board.dicevalue_to_tiles[value]
             resource = board.tile_to_resource[tile]
-            if tile == board.robber_tile
+            # Don't harvest Desert, and don't harvest the robber resource
+            if tile == board.robber_tile || resource == :Desert
                 continue
             end
             for coord in TILE_TO_COORDS[tile]
@@ -268,6 +271,7 @@ end
 
 function do_robber_move(board, players, player)
     new_tile = move_robber(board, choose_place_robber(board, players, player))
+    @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
         r_count = count_cards(player.player)
@@ -391,6 +395,7 @@ function do_turn(game, board, player)
             break
         end
         next_action = choose_rest_of_turn(game, board, game.players, player, actions)
+        @info next_action
         if next_action != nothing
             next_action(game, board)
         end
