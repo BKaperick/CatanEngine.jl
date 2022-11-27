@@ -10,8 +10,6 @@ if length(ARGS) >= 2
 end
 if length(ARGS) >= 3
     SAVEFILE = ARGS[3]
-elseif length(ARGS) < 4
-    SAVEFILEIO = open(SAVEFILE, "a")
 end
 SAVEFILEIO = open(SAVEFILE, "a")
 #initialize_game(game, "sample.csv", SAVEFILE)

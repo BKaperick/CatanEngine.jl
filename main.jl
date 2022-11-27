@@ -4,10 +4,12 @@ include("constants.jl")
 include("io.jl")
 include("api.jl")
 include("player_api.jl")
+include("robot_player.jl")
+include("test_robot_player.jl")
 include("game_api.jl")
 include("board.jl")
 include("draw_board.jl")
-include("robo.jl")
+include("random_helper.jl")
 #include("action_interface.jl")
 
 API_DICTIONARY = Dict(
@@ -372,7 +374,7 @@ function get_potential_theft_victims(board, players, thief, new_tile)
         team = board.coord_to_building[c].team
         victim = [p for p in players if p.player.team == team][1]
         if has_any_resources(victim.player) && (team != thief.player.team)
-            @info "vr: $(victim.player.resources)"
+            @debug "vr: $(victim.player.resources)"
             push!(potential_victims, victim)
         end
     end
@@ -381,7 +383,7 @@ end
 
 function do_turn(game, board, player)
     if can_play_dev_card(player.player)
-        devcards = get_admissible_devcards(player.player)
+        devcards = get_admissible_devcards(player)
         card = choose_play_devcard(board, game.players, player, devcards)
         do_play_devcard(board, game.players, player, card)
     end
@@ -394,8 +396,7 @@ function do_turn(game, board, player)
         if length(actions) == 0
             break
         end
-        next_action = choose_rest_of_turn(game, board, game.players, player, actions)
-        @info next_action
+        next_action = choose_next_action(game, board, game.players, player, actions)
         if next_action != nothing
             next_action(game, board)
         end
@@ -417,25 +418,20 @@ function get_winner(game, board, players)::Union{Nothing,PlayerType}
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
             @info "WINNER $player_points ($player)"
-            print_board(board)
+            # print_board(board)
             print_player_stats(game, board, player.player)
             return player
         end
     end
     return nothing
 end
+initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
 function initialize_game(game::Game, csvfile::String, logfile)
     board = read_map(csvfile)
     game, board = load_gamestate(game, board, logfile)
-    do_game(game, board)
-end
-function initialize_game(game::Game, csvfile::String)
-    board = read_map(csvfile)
-    # print_board(board)
-    for (t,r) in board.tile_to_resource
-        @debug "$t => $r"
+    for p in game.players
+        initialize_player(board, p)
     end
-
     do_game(game, board)
 end
 
@@ -468,7 +464,6 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
         road_coord = choose_road_location(board, players, player, is_first_turn)
         @debug "road_coord: $road_coord"
         if road_coord == nothing
-            print_board(board)
             return
         end
         road_coord1 = road_coord[1]
@@ -533,6 +528,7 @@ function do_game(game::Game, board::Board)
             break
         end
     end
+    return get_winner(game, board, game.players)
 end
 
 function print_player_stats(game, board, player::Player)

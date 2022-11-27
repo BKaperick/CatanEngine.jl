@@ -36,7 +36,6 @@ HumanPlayer(team::Symbol) = HumanPlayer(Player(team))
 DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
 
 
-
 mutable struct Public_Info
     resource_count::Int
     dev_cards_count::Int
@@ -97,3 +96,4 @@ mutable struct Board
 end
 
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS))
+

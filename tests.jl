@@ -4,6 +4,7 @@ include("main.jl")
 
 SAVEFILE = "test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
+SAVE_GAME_TO_FILE = true
 
 # Reset the one-off test log
 io = open("oneoff_test_log.txt", "w")
@@ -69,6 +70,7 @@ function setup_robot_game()
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
+    reset_savefile("test_robot_game")
     initialize_game(game, "sample.csv")
     return game
 end

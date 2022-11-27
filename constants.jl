@@ -3,10 +3,12 @@ using Logging
 
 #logger = ConsoleLogger(stderr, Logging.Debug)
 logger = ConsoleLogger(stderr, Logging.Info)
+#logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
 global_logger(logger)
 
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
+SAVE_GAME_TO_FILE = true
 
 MAX_CITY = 4
 MAX_SETTLEMENT = 5

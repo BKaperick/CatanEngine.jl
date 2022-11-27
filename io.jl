@@ -112,7 +112,9 @@ function log_action(fname::String, args...)
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
     @debug outstring
-    write(SAVEFILEIO, outstring)
+    if SAVE_GAME_TO_FILE
+        write(SAVEFILEIO, outstring)
+    end
     return serialized
 end
 #function log_action(f, expression)
