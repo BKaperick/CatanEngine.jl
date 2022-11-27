@@ -441,8 +441,7 @@ function do_first_turn(game, board, players)
     do_first_turn_reverse(game, board, players)
 end
 function do_first_turn_forward(game, board, players)
-    players_to_play = [p for p in players if !(p.player.team in game.already_played_this_turn)]
-    for player in players_to_play
+    for player in get_players_to_play(game)
         choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player, true)
         finish_player_turn(game, player.player.team)
@@ -450,8 +449,7 @@ function do_first_turn_forward(game, board, players)
     finish_turn(game)
 end
 function do_first_turn_reverse(game, board, players)
-    reverse_players_to_play = [p for p in reverse(players) if !(p.player.team in game.already_played_this_turn)]
-    for player in reverse_players_to_play
+    for player in reverse(get_players_to_play(game))
         settlement = choose_validate_build_settlement(board, players, player)
         choose_validate_build_road(board, players, player, true)
         
@@ -484,7 +482,7 @@ function do_game(game::Game, board::Board)
     while ~someone_has_won(game, board, game.players)
         
         start_turn(game)
-        for player in game.players
+        for player in get_players_to_play(game)
             do_turn(game, board, player)
         end
     end

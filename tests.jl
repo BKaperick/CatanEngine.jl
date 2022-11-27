@@ -14,7 +14,14 @@ logger_io = open("oneoff_test_log.txt","w+")
 logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
+function reset_savefile(name)
+    global SAVEFILE = "_$(name)_$(Dates.format(now(), "HHMMSS")).txt"
+    global SAVEFILEIO = open(SAVEFILE, "a")
+    return SAVEFILE, SAVEFILEIO
+end
+
 function test_set_starting_player()
+    reset_savefile("test_set_starting_player")
     team_and_playertype = [
                           (:Robo1, RobotPlayer),
                           (:Sobo2, RobotPlayer),
@@ -104,6 +111,7 @@ function test_misc()
 end
 
 function test_log()
+    reset_savefile("test_log")
     team_and_playertype = [
                           (:Robo1, RobotPlayer),
                           (:Sobo2, RobotPlayer),
@@ -114,7 +122,7 @@ function test_log()
     game = setup_robot_game()
     flush(SAVEFILEIO)
     board = read_map("sample.csv")
-    println("testing savefile $SAVEFILE")
+    @info "testing savefile $SAVEFILE"
     new_game = Game(players)
     new_game, board = load_gamestate(new_game, board, SAVEFILE)
     @test game.devcards == new_game.devcards
@@ -122,11 +130,23 @@ function test_log()
     @test game.turn_num == new_game.turn_num
     @test game.turn_order_set == new_game.turn_order_set
     @test game.first_turn_forward_finished == new_game.first_turn_forward_finished
-    for (i,player) in enumerate(game.players)
-        @test player == new_game.players[i]
+    for (i,playertype) in enumerate(game.players)
+        player = playertype.player
+        new_player = new_game.players[i].player
+        @test player.team == new_player.team
+        @test player.resources == new_player.resources
+        @test player.vp_count == new_player.vp_count
+        @test player.dev_cards == new_player.dev_cards
+        @test player.dev_cards_used == new_player.dev_cards_used
+        @test player.ports == new_player.ports
+        @test player.played_dev_card_this_turn == new_player.played_dev_card_this_turn
+        @test player.bought_dev_card_this_turn == new_player.bought_dev_card_this_turn
+        @test player.has_largest_army == new_player.has_largest_army
+        @test player.has_longest_road == new_player.has_longest_road
+        #@test player == new_player
+        #@test hash(player) == hash(new_player)
+        #@test player == new_player
     end
-    @test game.players == new_game.players
-    @test hash(game) == hash(new_game)
 end
 
 function test_do_turn()
@@ -375,7 +395,8 @@ function test_call_api()
     
 end
 
-function run_tests()
+function run_tests(neverend = false)
+    test_set_starting_player()
     test_log()
     test_misc()
     test_max_construction()
@@ -386,7 +407,11 @@ function run_tests()
     test_devcards()
     test_do_turn()
     test_call_api()
-    while true
+    if neverend
+        while true
+            setup_robot_game()
+        end
+    else
         setup_robot_game()
     end
 end

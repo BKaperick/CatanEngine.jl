@@ -42,7 +42,7 @@ function read_map(csvfile)::Board
                 desert_tile = tile
             end
         elseif count(",", line) == 1
-            println(line)
+            @debug line
             port,resource_str = split(line,',')
             portnum = parse(Int,port)
             ports[portnum] = resourcestr_to_symbol[uppercase(resource_str)]
@@ -62,7 +62,7 @@ function read_map(csvfile)::Board
         end
     end
 
-    println(dicevalue_to_tiles)
+    @debug dicevalue_to_tiles
     board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile, coord_to_port)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))

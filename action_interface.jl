@@ -6,7 +6,7 @@ macro safeact(ex)
             if e isa InterruptException
                 throw(e)
             else
-                println("Action failed: $e")
+                @warn "Action failed: $e"
             end
         end
     end

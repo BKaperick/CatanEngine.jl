@@ -10,7 +10,6 @@ include("main.jl")
 game = nothing
 println(ARGS)
 if length(ARGS) >= 2
-    println("Loading player types and map...")
     CONFIGFILE = ARGS[1]
     PLAYERS = read_players_from_config(CONFIGFILE)
     game = Game(PLAYERS)

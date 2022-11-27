@@ -14,6 +14,9 @@ function _start_turn(game::Game)
         p.player.bought_dev_card_this_turn = nothing
     end
 end
+function get_players_to_play(game::Game)
+    [p for p in game.players if !(p.player.team in game.already_played_this_turn)]
+end
 function finish_player_turn(game::Game, team)
     log_action("game fp :$team")
     _finish_player_turn(game, team)
