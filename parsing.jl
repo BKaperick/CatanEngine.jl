@@ -84,8 +84,10 @@ function _parse_action(descriptor)
         amount_are_mine = parse(Int, out_str[2])
         goods = join(out_str[3:end], " ")
         return (func, [], amount_are_mine, [_parse_resources_str(goods)...])
-    elseif fname == "bd" || fname == "pd"
+    elseif fname == "bd"
         return (func, [])
+    elseif fname == "pd"
+        return (func, [], 0, nothing, _parse_symbol(out_str[2]))
     end
 
     ArgumentError("\"$human_response\" was not a valid command.")
@@ -126,7 +128,7 @@ function _parse_devcard(descriptor)
     @info "($reminder)"
     dc_response = input(descriptor)
     if dc_response in ["", "n", "no"]
-        return nothing
+        return :nothing
     end
     return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]
 end

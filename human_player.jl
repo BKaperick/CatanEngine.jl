@@ -21,7 +21,8 @@ function choose_road_location(board, players, player::HumanPlayer, is_first_turn
     @info out
     return out
 end
-function choose_place_robber(board, players, player::HumanPlayer)
+
+function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer)
     parse_tile("$(player.player.team) places the Robber:")
 end
 
@@ -49,7 +50,10 @@ function choose_card_to_steal(player::RobotPlayer)::Symbol
 end
 
 function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
-    parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
+    p = parse_devcard("Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
+    if p == :nothing
+        return nothing
+    end
 end
 
 function choose_next_action(game, board, players, player::HumanPlayer, actions)
@@ -71,8 +75,8 @@ end
 
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
-    input("Press Enter when $(to_player.team) is ready to see the message")
-    @info "$(from_player.player.team) stole $stolen_good from $(to_player.team)"
+    input("Press Enter when $(to_player.player.team) is ready to see the message")
+    @info "$(to_player.player.team) stole $stolen_good from $(from_player.player.team)"
     input("Press Enter again when you are ready to hide the message")
     run(`clear`)
     take_resource(from_player.player, stolen_good)

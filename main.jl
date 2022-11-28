@@ -14,6 +14,8 @@ include("random_helper.jl")
 
 API_DICTIONARY = Dict(
                       # Game commands
+                      "dt" => _reset_dice,
+                      "df" => _reset_dice,
                       "dd" => _draw_devcard,
                       "ss" => _set_starting_player,
                       "st" => _start_turn,
@@ -110,7 +112,7 @@ function pay_price(player::Player, cost::Dict)
     end
 end
 
-function do_play_devcard(board, players, player, card::Union{Nothing,Symbol})
+function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
     if card != nothing
         do_devcard_action(board, players, player, card)
         play_devcard(player.player, card)
@@ -140,12 +142,12 @@ function pay_construction(player::Player, construction::Symbol)
     cost = COSTS[construction]
     pay_price(player, cost)
 end
-function propose_trade_goods(board, players, from_player, amount::Int, resource_symbols...)
-    from_goods = resource_symbols[1:amount]
-    to_goods = resource_symbols[amount+1:end]
+function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, amount::Int, resource_symbols...)
+    from_goods = collect(resource_symbols[1:amount])
+    to_goods = collect(resource_symbols[amount+1:end])
     return propose_trade_goods(board, players, from_player, from_goods, to_goods)
 end
-function propose_trade_goods(board, players, from_player, from_goods, to_goods::Vector{Symbol})
+function propose_trade_goods(board, players, from_player, from_goods, to_goods)
     to_goods_dict = Dict{Symbol,Int}()
     for g in to_goods
         if haskey(to_goods_dict,g)
@@ -208,8 +210,7 @@ end
 
 buildings = Array{Building,1}()
 
-function handle_dice_roll(board::Board, players, player, value)
-
+function handle_dice_roll(game, board::Board, players, player, value)
     # In all cases except 7, we allocate resources
     if value != 7
         for tile in board.dicevalue_to_tiles[value]
@@ -228,6 +229,7 @@ function handle_dice_roll(board::Board, players, player, value)
     else
         do_robber_move(board, players, player)
     end
+    game.rolled_dice_already = true
 end
 
 function do_devcard_action(board, players, player, card::Symbol)
@@ -392,10 +394,13 @@ function do_turn(game, board, player)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
         card = choose_play_devcard(board, game.players, player, devcards)
+        
         do_play_devcard(board, game.players, player, card)
     end
-    value = roll_dice(player)
-    handle_dice_roll(board, game.players, player, value)
+    if !game.rolled_dice_already
+        value = roll_dice(player)
+        handle_dice_roll(game, board, game.players, player, value)
+    end
     
     next_action = "tmp"
     while next_action != nothing
@@ -408,6 +413,7 @@ function do_turn(game, board, player)
             next_action(game, board)
         end
     end
+    reset_dice(game)
 end
 
 function buy_devcard(game::Game, player::Player)

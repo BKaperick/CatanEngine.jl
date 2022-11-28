@@ -24,6 +24,18 @@ end
 function _finish_player_turn(game, team)
     push!(game.already_played_this_turn, team)
 end
+
+function set_dice_true(game::Game)
+    log_action("game dt")
+    _reset_dice(game, true)
+end
+function set_dice_false(game::Game)
+    log_action("game df")
+    _reset_dice(game, false)
+end
+function _reset_dice(game::Game, choice::Bool)
+    game.rolled_dice_already = choice
+end
 function finish_turn(game::Game)
     log_action("game ft")
     _finish_turn(game)
