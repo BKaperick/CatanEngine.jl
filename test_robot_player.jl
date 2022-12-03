@@ -16,7 +16,7 @@ function _get_optimal_building_placement(board, players, player, is_first_turn, 
     max_dice = 0
     best_coord = []
     for a in admissible
-        dice = sum([board.tile_to_dicevalue[t] for t in COORD_TO_TILES[a]])
+        dice = sum([DICEVALUE_TO_PROBA_WEIGHT[board.tile_to_dicevalue[t]] for t in COORD_TO_TILES[a]])
         if dice >= max_dice
             max_dice = dice
             if dice == max_dice

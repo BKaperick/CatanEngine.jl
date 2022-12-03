@@ -27,12 +27,14 @@ end
 
 function set_dice_true(game::Game)
     log_action("game dt")
-    _reset_dice(game, true)
+    _reset_dice_true(game)
 end
 function set_dice_false(game::Game)
     log_action("game df")
-    _reset_dice(game, false)
+    _reset_dice_false(game)
 end
+_reset_dice_true(game::Game) = _reset_dice(game, true)
+_reset_dice_false(game::Game) = _reset_dice(game, false)
 function _reset_dice(game::Game, choice::Bool)
     game.rolled_dice_already = choice
 end

@@ -80,7 +80,9 @@ function play_devcard(player::Player, devcard::Symbol)
     _play_devcard(player, devcard)
 end
 function _play_devcard(player::Player, devcard::Symbol)
-    player.dev_cards[devcard] -= 1
+    if haskey(player.dev_cards, devcard)
+        player.dev_cards[devcard] -= 1
+    end
     if ~haskey(player.dev_cards_used, devcard)
         player.dev_cards_used[devcard] = 0
     end

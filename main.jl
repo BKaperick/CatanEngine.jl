@@ -14,8 +14,8 @@ include("random_helper.jl")
 
 API_DICTIONARY = Dict(
                       # Game commands
-                      "dt" => _reset_dice,
-                      "df" => _reset_dice,
+                      "dt" => _reset_dice_true,
+                      "df" => _reset_dice_false,
                       "dd" => _draw_devcard,
                       "ss" => _set_starting_player,
                       "st" => _start_turn,

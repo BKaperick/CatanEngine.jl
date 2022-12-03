@@ -78,8 +78,10 @@ function _parse_action(io, descriptor)
         @info human_coords
         return (func, [get_coord_from_human_tile_description(human_coords)])
     elseif fname == "br"
-        human_coords = join(out_str[2:3], " ")
-        return (func, [get_coords_from_human_tile_description(human_coords)...])
+        human_coords = out_str[2]
+        @info human_coords
+        @info [get_road_coords_from_human_tile_description(human_coords)]
+        return (func, [get_road_coords_from_human_tile_description(human_coords)...])
     elseif fname == "pt" # pt 2 w w g g
         amount_are_mine = parse(Int, out_str[2])
         goods = join(out_str[3:end], " ")
@@ -123,7 +125,7 @@ function _parse_ints(io, descriptor)
     return asints
 end
 
-function _parse_devcard(descriptor)
+function _parse_devcard(io, descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
     @info "($reminder)"
     dc_response = input(io, descriptor)
