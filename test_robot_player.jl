@@ -5,7 +5,7 @@ mutable struct TestRobotPlayer <: RobotPlayer
     resource_to_proba_weight::Dict{Symbol, Int}
 end
 
-TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team), .5, .1, Dict())
+TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team), .5, .5, Dict())
 
 function initialize_player(board::Board, player::TestRobotPlayer)
     player.resource_to_proba_weight = _get_total_resource_probabilities(board)
@@ -107,7 +107,7 @@ function choose_next_action(game::Game, board::Board, players::Vector{PlayerType
             return (game, board) -> do_play_devcard(board, game.players, player, card)
         end
     elseif :ProposeTrade in actions
-        if rand() > player.propose_trade_willingness
+        if rand() < player.propose_trade_willingness
             sampled = random_sample_resources(player.player.resources, 1)
             rand_resource_from = [sampled...]
             

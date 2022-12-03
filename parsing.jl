@@ -13,20 +13,20 @@ macro safeparse(ex)
         end
     end
 end
-function parse_generic(descriptor, parsing_func, reminder = nothing)
+function parse_generic(io::IO, descriptor, parsing_func, reminder = nothing)
     x = nothing
     while x == nothing
         if reminder != nothing
             @info reminder
         end
-        x = @safeparse parsing_func(descriptor)
+        x = @safeparse parsing_func(io, descriptor)
     end
     return x
 end
 
-function input(prompt::AbstractString)
+function input(io::IO, prompt::AbstractString)
     println(prompt)
-    response = readline()
+    response = readline(io)
     if response == "quit"
         close(SAVEFILEIO)
         stop()
@@ -34,23 +34,23 @@ function input(prompt::AbstractString)
     return response
 end
 
-parse_team(desc)            = parse_generic(desc, _parse_symbol)
-parse_tile(desc)            = parse_generic(desc, _parse_tile)
-parse_yesno(desc)           = parse_generic(desc, _parse_yesno)
-parse_road_coord(desc)      = parse_generic(desc, _parse_road_coord)
-parse_resources_str(desc)   = parse_generic(desc, _parse_resources_str)
-parse_resources(desc)       = parse_generic(desc, _parse_resources)
-parse_devcard(desc)         = parse_generic(desc, _parse_devcard)
-parse_int(desc)             = parse_generic(desc, _parse_int)
-parse_ints(desc)            = parse_generic(desc, _parse_ints)
-parse_action(desc)          = parse_generic(desc, _parse_action)
+parse_team(io, desc)            = parse_generic(io, desc, _parse_symbol)
+parse_tile(io, desc)            = parse_generic(io, desc, _parse_tile)
+parse_yesno(io, desc)           = parse_generic(io, desc, _parse_yesno)
+parse_road_coord(io, desc)      = parse_generic(io, desc, _parse_road_coord)
+parse_resources_str(io, desc)   = parse_generic(io, desc, _parse_resources_str)
+parse_resources(io, desc)       = parse_generic(io, desc, _parse_resources)
+parse_devcard(io, desc)         = parse_generic(io, desc, _parse_devcard)
+parse_int(io, desc)             = parse_generic(io, desc, _parse_int)
+parse_ints(io, desc)            = parse_generic(io, desc, _parse_ints)
+parse_action(io, desc)          = parse_generic(io, desc, _parse_action)
 
 function _parse_symbol(desc)
     return Symbol(titlecase(desc))
 end
 
-function _parse_tile(desc)
-    tile = Symbol(titlecase(input(desc)))
+function _parse_tile(io, desc)
+    tile = Symbol(titlecase(input(io, desc)))
     if haskey(TILE_TO_COORDS, tile)
         return tile
     else
@@ -58,13 +58,13 @@ function _parse_tile(desc)
     end
 end
 
-function _parse_yesno(desc)
-    human_response = lowercase(input(desc))
+function _parse_yesno(io, desc)
+    human_response = lowercase(input(io, desc))
     return human_response[1] == 'y'
 end
 
-function _parse_action(descriptor)
-    human_response = lowercase(input(descriptor))
+function _parse_action(io, descriptor)
+    human_response = lowercase(input(io, descriptor))
     if (human_response[1] == 'e')
         return (:EndTurn)
     end
@@ -93,12 +93,12 @@ function _parse_action(descriptor)
     ArgumentError("\"$human_response\" was not a valid command.")
 end
 
-function _parse_teams(descriptor)
-    human_response = input(descriptor)
+function _parse_teams(io, descriptor)
+    human_response = input(io, descriptor)
     return Symbol(String(titlecase(human_response)))
 end
-function _parse_road_coord(descriptor)
-    human_response = input(descriptor)
+function _parse_road_coord(io, descriptor)
+    human_response = input(io, descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
     if all([x == nothing || x == nothing for x in asints])
         roadcoords = get_road_coords_from_human_tile_description(human_response)
@@ -109,13 +109,13 @@ function _parse_road_coord(descriptor)
     end
 end
 
-function _parse_int(descriptor)
-    ints = _parse_ints(descriptor)
+function _parse_int(io, descriptor)
+    ints = _parse_ints(io, descriptor)
     return ints[1]
 end
 
-function _parse_ints(descriptor)
-    human_response = input(descriptor)
+function _parse_ints(io, descriptor)
+    human_response = input(io, descriptor)
     asints = Tuple([tryparse(Int, x) for x in split(human_response, ' ')])
     if all([x == nothing || x == nothing for x in asints])
         return get_coord_from_human_tile_description(human_response)
@@ -126,17 +126,17 @@ end
 function _parse_devcard(descriptor)
     reminder = join(["$k: $v" for (k,v) in HUMAN_DEVCARD_TO_SYMBOL], " ")
     @info "($reminder)"
-    dc_response = input(descriptor)
+    dc_response = input(io, descriptor)
     if dc_response in ["", "n", "no"]
         return :nothing
     end
     return HUMAN_DEVCARD_TO_SYMBOL[uppercase(dc_response)]
 end
 
-function _parse_resources(descriptor)
+function _parse_resources(io::IO, descriptor::String)
     reminder = join(["$k: $v" for (k,v) in HUMAN_RESOURCE_TO_SYMBOL], " ")
     @info "($reminder)"
-    _parse_resources_str(input(descriptor))
+    _parse_resources_str(input(io, descriptor))
 end
 
 function _parse_resources_str(string_of_resources)

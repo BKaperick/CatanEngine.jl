@@ -313,6 +313,16 @@ function test_ports()
     @test player1.player.ports[:Brick] == 2
 end
 
+function test_human_player()
+    board = read_map("sample.csv")
+    player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
+    player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
+    players = Vector{PlayerType}([player1, player2])
+    game = Game(players)
+    reset_savefile("test_human_game")
+    initialize_game(game, "sample.csv")
+end
+
 function test_board_api()
 
     @test length(get_neighbors((3,8))) == 3

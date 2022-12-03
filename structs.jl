@@ -13,6 +13,7 @@ mutable struct Player
 end
 mutable struct HumanPlayer <: PlayerType
     player::Player
+    io::IO
 end
 abstract type RobotPlayer <: PlayerType
 end
@@ -32,7 +33,8 @@ function Player(team::Symbol)
     ])
     return Player(team, Dict(), 0, Dict(), Dict(), default_ports, false, nothing, false, false)
 end
-HumanPlayer(team::Symbol) = HumanPlayer(Player(team))
+HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
+HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
 DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
 
 

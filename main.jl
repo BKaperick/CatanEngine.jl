@@ -163,13 +163,15 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods)
             continue
         end
         if choose_accept_trade(board, player, from_player.player, from_goods, to_goods)
-            # We do this act the "choose" step to not leak information from player's hand
+            @info "$(player.player.team) accepts the trade proposal"
+            # We do this after the "choose" step to not leak information from player's hand
             if has_enough_resources(player.player, to_goods_dict) 
                 push!(accepted, player)
             end
         end
     end
     if length(accepted) == 0
+        @info "Noone accepted"
         return
     end
     to_player_team = choose_who_to_trade_with(board, from_player, accepted)
@@ -229,7 +231,7 @@ function handle_dice_roll(game, board::Board, players, player, value)
     else
         do_robber_move(board, players, player)
     end
-    game.rolled_dice_already = true
+    set_dice_true(game)
 end
 
 function do_devcard_action(board, players, player, card::Symbol)
@@ -413,7 +415,7 @@ function do_turn(game, board, player)
             next_action(game, board)
         end
     end
-    reset_dice(game)
+    set_dice_false(game)
 end
 
 function buy_devcard(game::Game, player::Player)
