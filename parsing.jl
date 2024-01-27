@@ -34,6 +34,7 @@ function input(io::IO, prompt::AbstractString)
     return response
 end
 
+parse_teams(io, desc)            = parse_generic(io, desc, _parse_teams)
 parse_team(io, desc)            = parse_generic(io, desc, _parse_symbol)
 parse_tile(io, desc)            = parse_generic(io, desc, _parse_tile)
 parse_yesno(io, desc)           = parse_generic(io, desc, _parse_yesno)
@@ -45,7 +46,8 @@ parse_int(io, desc)             = parse_generic(io, desc, _parse_int)
 parse_ints(io, desc)            = parse_generic(io, desc, _parse_ints)
 parse_action(io, desc)          = parse_generic(io, desc, _parse_action)
 
-function _parse_symbol(desc)
+_parse_symbol(desc) = _parse_symbol(stdin, desc)
+function _parse_symbol(io, desc)
     return Symbol(titlecase(desc))
 end
 

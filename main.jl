@@ -259,6 +259,7 @@ end
 function do_monopoly_action(board, players, player)
     res = choose_monopoly_resource(board, players, player)
     for victim in players
+        @info "$(victim.player.team) gives $(count_resource(victim.player, res)) $res to $(player.player.team)"
         for i in 1:count_resource(victim.player, res)
             take_resource(victim.player, res)
             give_resource(player.player, res)
@@ -416,6 +417,7 @@ function do_turn(game, board, player)
         end
     end
     set_dice_false(game)
+    finish_player_turn(game, player.player.team)
 end
 
 function buy_devcard(game::Game, player::Player)

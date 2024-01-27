@@ -1,0 +1,235 @@
+game ss 2
+board bs :Red (5,6)
+board br :Red (5,7) (5,6)
+game fp :Red 
+board bs :Green (3,5)
+board br :Green (3,5) (4,5)
+game fp :Green 
+board bs :Blue (4,8)
+board br :Blue (4,8) (4,7)
+game fp :Blue 
+board bs :Brown (1,3)
+board br :Brown (1,3) (1,4)
+game fp :Brown 
+game ft 
+board bs :Brown (2,8)
+board br :Brown (2,8) (1,7)
+:Brown gr :Wood
+:Brown gr :Brick
+board bs :Blue (2,6)
+board br :Blue (2,5) (2,6)
+:Blue gr :Pasture
+:Blue gr :Grain
+:Blue gr :Brick
+board bs :Green (3,9)
+board br :Green (3,9) (3,8)
+:Green gr :Wood
+:Green gr :Wood
+:Green gr :Wood
+board bs :Red (3,3)
+board br :Red (3,3) (4,3)
+:Red gr :Grain
+:Red gr :Wood
+:Red gr :Pasture
+game st 
+:Brown gr :Grain
+:Blue gr :Grain
+:Red gr :Brick
+game dt
+game st 
+game st 
+game st 
+game st 
+game st 
+:Red dc :Wood
+:Red dc :Brick
+board br :Red (5,7) (5,8)
+game df
+:Brown gr :Stone
+:Blue gr :Stone
+:Red gr :Stone
+game dt
+:Green tr :Wood
+:Blue gr :Wood
+:Blue tr :Pasture
+:Green gr :Pasture
+game df
+:Red gr :Pasture
+:Green gr :Stone
+game dt
+:Blue dc :Wood
+:Blue dc :Brick
+board br :Blue (3,7) (4,7)
+game df
+:Blue gr :Wood
+:Green gr :Wood
+:Red gr :Wood
+game dt
+:Brown dc :Wood
+:Brown dc :Brick
+board br :Brown (1,7) (1,6)
+game df
+game st 
+:Blue gr :Wood
+:Green gr :Wood
+:Red gr :Wood
+game dt
+game dd :Knight 
+:Red dc :Stone
+:Red dc :Grain
+:Red dc :Pasture
+:Red ad :Knight
+game df
+:Blue gr :Pasture
+:Red gr :Grain
+:Green gr :Grain
+game dt
+game dd :Monopoly 
+:Green dc :Stone
+:Green dc :Grain
+:Green dc :Pasture
+:Green ad :Monopoly
+:Red tr :Wood
+:Green gr :Wood
+:Red tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Green tr :Wood
+:Green gr :Wood
+:Blue tr :Wood
+:Green gr :Wood
+:Blue tr :Wood
+:Green gr :Wood
+:Green pd :Monopoly
+game df
+:Brown gr :Grain
+:Blue gr :Grain
+:Red gr :Brick
+game dt
+game dd :VictoryPoint 
+:Blue dc :Stone
+:Blue dc :Grain
+:Blue dc :Pasture
+:Blue ad :VictoryPoint
+game df
+board mr :E
+:Green tr :Wood
+:Brown gr :Wood
+game dt
+game df
+game st 
+game st 
+:Blue gr :Wood
+:Green gr :Wood
+:Red gr :Wood
+game dt 
+:Red dc :Wood
+:Red dc :Grain
+:Red dc :Brick
+:Red dc :Pasture
+:Red ap :All
+board bs :Red (5,8)
+game df 
+board mr :F
+:Green dc :Wood :Wood :Wood :Wood
+:Blue tr :Grain
+:Green gr :Grain
+game dt 
+game df 
+:Brown gr :Grain
+:Blue gr :Grain
+:Red gr :Brick
+game dt 
+:Blue pd :M
+game st 
+game st 
+:Red dc :Wood
+:Red dc :Brick
+board br :Red (4,2) (4,3)
+game df 
+:Blue gr :Pasture
+:Red gr :Pasture
+:Red gr :Grain
+:Green gr :Grain
+game dt 
+:Green tr :Wood
+:Brown gr :Wood
+:Brown tr :Grain
+:Green gr :Grain
+game df 
+:Red gr :Pasture
+:Red gr :Pasture
+:Green gr :Stone
+game dt 
+:Blue dc :Wood
+:Blue dc :Grain
+:Blue dc :Brick
+:Blue dc :Pasture
+board bs :Blue (3,7)
+game df 
+:Blue gr :Wood
+:Blue gr :Wood
+:Green gr :Wood
+:Red gr :Wood
+game dt 
+game df 
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+game st 
+board mr :K
+:Green tr :Wood
+:Red gr :Wood
+game dt 
+game df 
+:Red gr :Wood
+game dt 
+game df 
+:Blue gr :Pasture
+:Red gr :Pasture
+:Red gr :Grain
+:Green gr :Grain
+game dt 
+game df 
+:Brown gr :Stone
+:Blue gr :Stone
+:Red gr :Stone
+game dt 
+game df 
+game st 
+:Green gr :Wood
+game dt 
+game dd :Knight 
+:Red dc :Stone
+:Red dc :Grain
+:Red dc :Pasture
+:Red ad :Knight
+game df 
+board mr :H
+game st 
+game fp :Red 
+game st 
+:Red gr :Pasture
+:Red gr :Pasture
+:Green gr :Stone
+game dt 

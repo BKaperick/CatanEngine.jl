@@ -26,8 +26,6 @@ function choose_place_robber(board::Board, players::Vector{PlayerType}, player::
     parse_tile(player.io, "$(player.player.team) places the Robber:")
 end
 
-choose_robber_victim(board, player, potential_victim::Symbol) = potential_victim
-
 function choose_year_of_plenty_resources(board, players, player::HumanPlayer)
     parse_resources(player.io, "$(player.player.team) choose two resources for free:")
     return
@@ -37,10 +35,12 @@ function choose_monopoly_resource(board, players, player::HumanPlayer)
     parse_resources(player.io, "$(player.player.team) will steal all:")
 end
 function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
+    @info "$([p.player.team for p in potential_victims])"
     if length(potential_victims) == 1
         return potential_victims[1]
     end
-    parse_teams(player.io, "$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
+    team = parse_teams(player.io, "$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
+    return [p for p in potential_victims if p.player.team == team][1]
 end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
     parse_resources(player.io, "$(player.player.team) lost his:")[1]
