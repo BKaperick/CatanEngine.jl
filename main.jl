@@ -408,7 +408,10 @@ function do_turn(game, board, player)
     next_action = "tmp"
     while next_action != nothing
         actions = get_legal_actions(game, board, player.player)
+
+        @debug "actions for $player: $actions"
         if length(actions) == 0
+            @info "no legal actions"
             break
         end
         next_action = choose_next_action(game, board, game.players, player, actions)
@@ -416,7 +419,9 @@ function do_turn(game, board, player)
             next_action(game, board)
         end
     end
+    @debug "setting dice false"
     set_dice_false(game)
+    @debug "finishing player turn"
     finish_player_turn(game, player.player.team)
 end
 
@@ -442,6 +447,7 @@ function get_winner(game, board, players)::Union{Nothing,PlayerType}
     end
     return nothing
 end
+# TODO rename to `initialize_and_do_game`
 initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
 function initialize_game(game::Game, csvfile::String, logfile)
     board = read_map(csvfile)
@@ -535,11 +541,13 @@ function do_game(game::Game, board::Board)
     end
 
     while ~someone_has_won(game, board, game.players)
-        
         start_turn(game)
+
+        # We can't just use game.players since we need to handle re-loading from a game paused mid-turn
         for player in get_players_to_play(game)
             do_turn(game, board, player)
         end
+        finish_turn(game)
 
         if game.turn_num >= 100
             break
