@@ -66,7 +66,7 @@ function read_map(csvfile)::Board
     board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile, coord_to_port)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))
-    @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(sum(values(board.tile_to_dicevalue))) instead of 133"
+    @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(t) instead of 133"
     @assert length([r for r in values(board.tile_to_resource) if r == :Wood]) == RESOURCE_TO_COUNT[:Wood]
     @assert length([r for r in values(board.tile_to_resource) if r == :Stone]) == RESOURCE_TO_COUNT[:Stone]
     @assert length([r for r in values(board.tile_to_resource) if r == :Grain]) == RESOURCE_TO_COUNT[:Grain]
@@ -125,10 +125,11 @@ function read_action()
 end
 
 function execute_api_call(game::Game, board::Board, line::String)
+    # TODO initialize this globally somewhere?  Store in board?
     team_to_player = Dict([p.player.team => p.player for p in game.players])
+    @debug line
     values = split(line, " ")
     func_key = values[2]
-    @debug line
     api_call = API_DICTIONARY[func_key]
 
     other_args = [eval(Meta.parse(a)) for a in values[3:end]]

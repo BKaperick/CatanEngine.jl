@@ -60,6 +60,7 @@ Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, 
 mutable struct Game
     devcards::Dict{Symbol,Int}
     players::Vector{PlayerType}
+    # This field is needed in order to reload a game that was saved and quit in the middle of a turn
     already_played_this_turn::Set{Symbol}
     turn_num::Int
     turn_order_set::Bool
