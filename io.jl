@@ -24,7 +24,13 @@ function read_map(csvfile)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
     file_str = read(csvfile, String)
+    if length(file_str) == 0
+        error("Empty file: $file_str")
+    end
     board_state = get_parsed_file_lines(file_str)
+    if length(board_state) == 0
+        error("File contains no uncommented lines: $file_str")
+    end
     tile_to_dicevalue = Dict()
     tile_to_resource = Dict()
     desert_tile = :Null

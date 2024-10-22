@@ -3,22 +3,23 @@ include("constants.jl")
 include("main.jl")
 
 
-SAVEFILE = "_test_save_$(Dates.format(now(), "HHMMSS")).txt"
+SAVEFILE = "data/_test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
 SAVE_GAME_TO_FILE = true
+SAMPLE_MAP = "data/sample.csv"
 println(SAVEFILE)
 
 # Reset the one-off test log
-io = open("oneoff_test_log.txt", "w")
+io = open("data/oneoff_test_log.txt", "w")
 write(io,"")
 close(io)
 
-logger_io = open("oneoff_test_log.txt","w+")
+logger_io = open("data/oneoff_test_log.txt","w+")
 logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
 function reset_savefile(name)
-    global SAVEFILE = "_$(name)_$(Dates.format(now(), "HHMMSS")).txt"
+    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "HHMMSS")).txt"
     global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
 end
@@ -46,7 +47,7 @@ function test_set_starting_player()
     @test game.players[4].player.team == :Robo1
     
     flush(SAVEFILEIO)
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     @info "testing logfile $SAVEFILE"
     new_game = Game(players)
     new_game, board = load_gamestate(new_game, board, SAVEFILE)
@@ -73,7 +74,7 @@ function setup_robot_game()
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
     reset_savefile("test_robot_game")
-    initialize_game(game, "sample.csv")
+    initialize_game(game, SAMPLE_MAP)
     return game
 end
 
@@ -127,7 +128,7 @@ function test_log()
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = setup_robot_game()
     flush(SAVEFILEIO)
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     @info "testing savefile $SAVEFILE"
     new_game = Game(players)
     new_game, board = load_gamestate(new_game, board, SAVEFILE)
@@ -154,7 +155,7 @@ function test_log()
 end
 
 function test_do_turn()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -165,7 +166,7 @@ function test_do_turn()
 end
 
 function test_robber()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -190,7 +191,7 @@ function test_robber()
 end
 
 function test_max_construction()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
         build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
@@ -221,7 +222,7 @@ end
 
 # API Tests
 function test_devcards()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -248,7 +249,7 @@ function test_devcards()
     @test get_total_vp_count(board, player2.player) == 0
 end
 function test_largest_army()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -290,7 +291,7 @@ function test_largest_army()
 end
 
 function test_ports()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     @test all([v == 4 for v in values(player1.player.ports)])
@@ -314,13 +315,13 @@ function test_ports()
 end
 
 function test_human_player()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
     reset_savefile("test_human_game")
-    initialize_game(game, "sample.csv")
+    initialize_game(game, SAMPLE_MAP)
 end
 
 function test_board_api()
@@ -329,7 +330,7 @@ function test_board_api()
     @test length(get_neighbors((3,11))) == 2
     @test length(get_neighbors((4,1))) == 2
 
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     build_settlement(board, :Test1, (1,1))
     build_road(board, :Test1, (1,1),(1,2))
     @test is_valid_settlement_placement(board, :Test1, (1,2)) == false
@@ -354,7 +355,7 @@ function test_board_api()
 end
 
 function test_call_api()
-    board = read_map("sample.csv")
+    board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -417,7 +418,6 @@ function test_call_api()
 end
 
 function run_tests(neverend = false)
-    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -430,7 +430,6 @@ function run_tests(neverend = false)
     test_devcards()
     test_do_turn()
     test_call_api()
-    """
     if neverend
         while true
             setup_robot_game()
@@ -441,4 +440,4 @@ function run_tests(neverend = false)
     test_actions()
 end
 
-run_tests()
+run_tests(false)
