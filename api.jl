@@ -152,7 +152,7 @@ function is_valid_settlement_placement(board, team, coord, is_first_turn::Bool =
     if coord == nothing
         return false
     end
-    # 1. There cannot be another road at the same location
+    # 1. There cannot be another building at the same location
     if haskey(board.coord_to_building, coord)
         @debug "[Invalid settlement] 1. There cannot be another settlement at the same location"
         return false
@@ -221,6 +221,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
             end
         end
 
+        # (This condition is only needed on first turn)
         # 3. If no road neighboring, we at least need a building of this team to be adjacent
         if haskey(board.coord_to_building, coord) && board.coord_to_building[coord].team == team
             found_neighbor = true

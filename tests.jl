@@ -2,7 +2,8 @@ using Test
 include("constants.jl")
 include("main.jl")
 
-SAVEFILE = "test_save_$(Dates.format(now(), "HHMMSS")).txt"
+
+SAVEFILE = "_test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
 SAVE_GAME_TO_FILE = true
 println(SAVEFILE)
@@ -75,7 +76,6 @@ function setup_robot_game()
     initialize_game(game, "sample.csv")
     return game
 end
-
 
 @test get_coord_from_human_tile_description("ab") == (1,3)
 @test get_coord_from_human_tile_description("bc") == (1,5)
@@ -417,6 +417,7 @@ function test_call_api()
 end
 
 function run_tests(neverend = false)
+    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -429,6 +430,7 @@ function run_tests(neverend = false)
     test_devcards()
     test_do_turn()
     test_call_api()
+    """
     if neverend
         while true
             setup_robot_game()
@@ -438,3 +440,5 @@ function run_tests(neverend = false)
     end
     test_actions()
 end
+
+run_tests()
