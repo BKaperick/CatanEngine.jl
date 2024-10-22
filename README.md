@@ -12,7 +12,7 @@ For example,
 
 # Developer Notes
 ## Board representation
-
+```
         (7)      (6) 
        61-62-63-64-65-66-67
        |  Q  |  R  |  S  | (5)
@@ -26,7 +26,7 @@ For example,
        |  A  |  B  |  C  |(3)
        11-12-13-14-15-16-17
         (1)      (2) 
- 
+``` 
 
 Note: the numbers (x) are the ports
 
