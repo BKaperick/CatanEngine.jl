@@ -1,3 +1,4 @@
+module Catan
 include("main.jl")
 
 game = nothing
@@ -14,3 +15,4 @@ end
 SAVEFILEIO = open(SAVEFILE, "a")
 #initialize_game(game, "data/sample.csv", SAVEFILE)
 initialize_game(game, MAPFILE, SAVEFILE)
+end
