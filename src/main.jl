@@ -2,15 +2,14 @@ using StatsBase
 include("structs.jl")
 include("constants.jl")
 include("io.jl")
-include("api.jl")
-include("player_api.jl")
-include("robot_player.jl")
-include("test_robot_player.jl")
-include("game_api.jl")
+include("apis/api.jl")
+include("apis/player_api.jl")
+include("players/robot_player.jl")
+include("players/test_robot_player.jl")
+include("apis/game_api.jl")
 include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
-#include("action_interface.jl")
 
 API_DICTIONARY = Dict(
                       # Game commands

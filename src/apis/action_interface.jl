@@ -1,4 +1,4 @@
-include("structs.jl")
+include("../structs.jl")
 
 macro safeact(ex)
     quote
