@@ -1,0 +1,4 @@
+game ss 1
+board bs :Brown (3,1)
+board br :Brown (3,1) (3,2)
+game fp :Brown 

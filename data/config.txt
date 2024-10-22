@@ -1,4 +1,4 @@
 brown,DefaultRobotPlayer
 red,HumanPlayer
 green,TestRobotPlayer
-blue,HumanPlayer
+blue,DefaultRobotPlayer
