@@ -1,12 +1,12 @@
 using Test
-include("constants.jl")
-include("main.jl")
+include("../src/constants.jl")
+include("../src/main.jl")
 
 
 SAVEFILE = "data/_test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
 SAVE_GAME_TO_FILE = true
-SAMPLE_MAP = "data/sample.csv"
+SAMPLE_MAP = "../data/sample.csv"
 println(SAVEFILE)
 
 # Reset the one-off test log

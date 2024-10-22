@@ -1,10 +1,10 @@
 import Random
 
-include("constants.jl")
-include("structs.jl")
-include("random_helper.jl")
-include("human_player.jl")
-include("robot_player.jl")
+include("../constants.jl")
+include("../structs.jl")
+include("../random_helper.jl")
+include("../players/human_player.jl")
+include("../players/robot_player.jl")
 include("action_interface.jl")
 
 # Players API
