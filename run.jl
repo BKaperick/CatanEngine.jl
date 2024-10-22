@@ -12,5 +12,5 @@ if length(ARGS) >= 3
     SAVEFILE = ARGS[3]
 end
 SAVEFILEIO = open(SAVEFILE, "a")
-#initialize_game(game, "sample.csv", SAVEFILE)
+#initialize_game(game, "data/sample.csv", SAVEFILE)
 initialize_game(game, MAPFILE, SAVEFILE)

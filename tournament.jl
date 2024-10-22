@@ -18,7 +18,7 @@ N = 10
 winners = Dict()
 for i=1:N
     game = Game(copy(players))
-    winner = initialize_game(game, "sample.csv")
+    winner = initialize_game(game, "data/sample.csv")
 
     k = winner
     if winner != nothing
