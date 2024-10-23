@@ -1,6 +1,6 @@
 # Catan.jl
 
-An engine for adding AI players to a party of the extremely popular board game [Settlers of Catan](https://www.catan.com/)
+An engine for adding AI players to a party of the extremely popular board game [Settlers of Catan](https://www.catan.com/).  The AI players can be used to supplement a party of <4 human players.  New AI players can be defined by simply implementing the API via a struct that inherits from `RobotPlayer`.
 
 ## How to run the game
 To launch a new or existing game:
