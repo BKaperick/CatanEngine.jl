@@ -43,3 +43,8 @@ where:
 * `Dice` is a single integer 2-12 denoting the dice token placed on the hexagon (use 7 for the desert)
 * `Resource` is a single letter denoting the resource: w[ood],s[tone],g[rain],b[rick],p[asture]
 
+### Debugging
+
+For convenience, setting `PRINT_BOARD = true` in `src/constants.jl` will print a color representation of the final map state:
+![image](https://github.com/user-attachments/assets/17c5b8b6-1592-4c7d-9b84-6666e4334b7f)
+
