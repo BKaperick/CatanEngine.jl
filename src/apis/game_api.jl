@@ -1,8 +1,5 @@
 import Random
 
-include("../constants.jl")
-include("../structs.jl")
-
 function start_turn(game::Game)
     log_action("game st")
     _start_turn(game)
