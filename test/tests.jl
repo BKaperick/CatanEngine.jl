@@ -1,5 +1,8 @@
 using Test
-include("../src/constants.jl")
+#using Dates
+#using Logging
+#using Catan
+#include("../src/constants.jl")
 include("../src/main.jl")
 
 
@@ -30,10 +33,10 @@ end
 function test_set_starting_player()
     reset_savefile("test_set_starting_player")
     team_and_playertype = [
-                          (:Robo1, DefaultRobotPlayer),
-                          (:Sobo2, DefaultRobotPlayer),
-                          (:Tobo3, DefaultRobotPlayer),
-                          (:Uobo4, DefaultRobotPlayer)
+                          (:blue, DefaultRobotPlayer),
+                          (:cyan, DefaultRobotPlayer),
+                          (:green, DefaultRobotPlayer),
+                          (:red, DefaultRobotPlayer)
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
@@ -41,10 +44,10 @@ function test_set_starting_player()
     set_starting_player(game, 2)
 
     @test game.turn_order_set == true
-    @test game.players[1].player.team == :Sobo2
-    @test game.players[2].player.team == :Tobo3
-    @test game.players[3].player.team == :Uobo4
-    @test game.players[4].player.team == :Robo1
+    @test game.players[1].player.team == :cyan
+    @test game.players[2].player.team == :green
+    @test game.players[3].player.team == :red
+    @test game.players[4].player.team == :blue
     
     flush(SAVEFILEIO)
     board = read_map(SAMPLE_MAP)
@@ -55,21 +58,21 @@ function test_set_starting_player()
     flush(logger_io)
 
     @test new_game.turn_order_set == true
-    @test new_game.players[2].player.team == :Tobo3
-    @test new_game.players[3].player.team == :Uobo4
-    @test new_game.players[4].player.team == :Robo1
-    @test new_game.players[1].player.team == :Sobo2
+    @test new_game.players[2].player.team == :green
+    @test new_game.players[3].player.team == :red
+    @test new_game.players[4].player.team == :blue
+    @test new_game.players[1].player.team == :cyan
 
-    #players: Tobo3, Uobo4, 
+    #players: green, red, 
 end
 
 function setup_robot_game()
     # Configure players and table configuration
     team_and_playertype = [
-                          (:Robo1, DefaultRobotPlayer),
-                          (:Sobo2, DefaultRobotPlayer),
-                          (:Tobo3, DefaultRobotPlayer),
-                          (:Uobo4, DefaultRobotPlayer)
+                          (:blue, DefaultRobotPlayer),
+                          (:cyan, DefaultRobotPlayer),
+                          (:green, DefaultRobotPlayer),
+                          (:red, DefaultRobotPlayer)
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
@@ -120,10 +123,10 @@ end
 function test_log()
     reset_savefile("test_log")
     team_and_playertype = [
-                          (:Robo1, DefaultRobotPlayer),
-                          (:Sobo2, DefaultRobotPlayer),
-                          (:Tobo3, DefaultRobotPlayer),
-                          (:Uobo4, DefaultRobotPlayer)
+                          (:blue, DefaultRobotPlayer),
+                          (:cyan, DefaultRobotPlayer),
+                          (:green, DefaultRobotPlayer),
+                          (:red, DefaultRobotPlayer)
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = setup_robot_game()

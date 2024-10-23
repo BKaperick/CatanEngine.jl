@@ -1,3 +1,5 @@
+using Crayons
+
 function print_right_side(b,x,y)
     b[y][x] = "o"
     b[y+1][x-1] = "/"
@@ -161,3 +163,18 @@ function print_board(board::Board)
     end
     return b
 end
+
+function print_building(building)
+    name = string(string(building.team)[1])
+    if building.type == :Settlement
+        return lowercase(name)
+    else
+        return name
+    end
+end
+
+function print_road(road)
+    return lowercase(string(Crayon(foreground = road.team), string(road.team)[1]))
+end
+
+

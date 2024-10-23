@@ -83,21 +83,6 @@ function read_map(csvfile)::Board
 end
 
 
-function print_building(building)
-    name = string(string(building.team)[1])
-    if building.type == :Settlement
-        return lowercase(name)
-    else
-        return name
-    end
-end
-
-function print_road(road)
-    return lowercase(string(string(road.team)[1]))
-end
-
-
-
 function serialize_action(fname::String, args...)
     arg_strs = []
     for arg in args
@@ -134,6 +119,7 @@ end
 function execute_api_call(game::Game, board::Board, line::String)
     # TODO initialize this globally somewhere?  Store in board?
     team_to_player = Dict([p.player.team => p.player for p in game.players])
+    @debug team_to_player
     @debug line
     values = split(line, " ")
     func_key = values[2]
