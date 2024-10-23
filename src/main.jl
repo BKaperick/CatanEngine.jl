@@ -1,4 +1,4 @@
-using StatsBase
+using StatsBase, DocStringExtensions
 include("structs.jl")
 include("constants.jl")
 include("io.jl")
@@ -72,7 +72,6 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
-
 function team_with_two_adjacent_roads(roads, coord)::Union{Symbol,Nothing}
     roads = get_adjacent_roads(roads, coord)
     if length(roads) < 2
@@ -96,6 +95,11 @@ function get_adjacent_roads(roads, coord)
     return adjacent
 end
 
+"""
+    can_pay_price(player::Player, cost::Dict)::Bool
+
+Returns `Bool` for whether the inputted `player` has sufficient resources to pay `cost`.
+"""
 function can_pay_price(player::Player, cost::Dict)::Bool
     for resource in keys(cost)
         if player.resources[resource] < cost[resource]

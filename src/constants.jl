@@ -9,6 +9,7 @@ global_logger(logger)
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
 SAVE_GAME_TO_FILE = true
+PRINT_BOARD = false
 
 MAX_CITY = 4
 MAX_SETTLEMENT = 5
