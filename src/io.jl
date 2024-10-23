@@ -113,6 +113,7 @@ function serialize_action(fname::String, args...)
     end
     string("$fname ", join(arg_strs, " "))
 end
+
 function log_action(fname::String, args...)
     @debug "logging $fname in $SAVEFILE"
     serialized = serialize_action(fname, args...)
@@ -158,6 +159,7 @@ function execute_api_call(game::Game, board::Board, line::String)
     end
 end
 function load_gamestate(game, board, file)
+    @debug "Loading game from file $file"
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
