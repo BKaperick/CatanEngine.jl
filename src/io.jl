@@ -150,7 +150,7 @@ function load_gamestate(game, board, file)
         execute_api_call(game, board, line)
     end
     if PRINT_BOARD
-        @debug print_board(board)
+        print_board(board)
     end
     return game, board
 end

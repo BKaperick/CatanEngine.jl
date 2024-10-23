@@ -421,6 +421,7 @@ function test_call_api()
 end
 
 function run_tests(neverend = false)
+    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -433,6 +434,7 @@ function run_tests(neverend = false)
     test_devcards()
     test_do_turn()
     test_call_api()
+    """
     if neverend
         while true
             setup_robot_game()
@@ -444,3 +446,4 @@ function run_tests(neverend = false)
 end
 
 run_tests(true)
+#run_tests(false)

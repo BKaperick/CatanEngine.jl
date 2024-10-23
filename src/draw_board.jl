@@ -1,6 +1,9 @@
 using Crayons
 
 function print_right_side(b,x,y)
+    #b[y][x] = string(Crayon(foreground = :white), "o")
+    #b[y+1][x-1] = string(Crayon(foreground = :white), "/")
+    #b[y-1][x-1] = string(Crayon(foreground = :white), "\\")
     b[y][x] = "o"
     b[y+1][x-1] = "/"
     b[y-1][x-1] = "\\"
@@ -25,7 +28,7 @@ function hexagon(board, tile, b,x,y)
         b[y+2][x+3] = string(number[2])
 
     else
-        b[y+2][x+2] = number
+        b[y+2][x+2] = string(number)
     end
 
     # Add coordinate info
@@ -46,8 +49,13 @@ function hexagon(board, tile, b,x,y)
                 c2 = road.coord1 == c ? road.coord2 : road.coord1
                 if i < length(vertices_list)
                     if c2 == coords[i+1] # TODO: not the correct condition
-                        road_str = print_road(road)
+                        road_str = print_road(road, b[e[2]][e[1]])
                         b[e[2]][e[1]] = road_str
+                        if b[e[2]][e[1]-1] == "-"
+                            b[e[2]][e[1]-1] = road_str
+                        elseif b[e[2]][e[1]+1] == "-"
+                            b[e[2]][e[1]+1] = road_str
+                        end
                     end
                 end
             end
@@ -157,24 +165,30 @@ function print_board(board::Board)
     hexagon(board,:C,b,33,13) # (2,4),(2,5),(1,5),(1,4),(1,3),(2,3)
     hexagon(board,:B,b,28,15) # (2,4),(2,5),(1,5),(1,4),(1,3),(2,3)
     hexagon(board,:A,b,23,17) # (2,3),(2,4),(1,3),(1,2),(1,1),(2,2)
-
     for (i,r) in enumerate(b)
-        println(join(r))
+        for rr in r
+            print(rr)
+            # TODO: should somehow identify terminal color if this is possible
+            # Print empty white string to reset color
+            print(string(Crayon(foreground=:white)))
+        end
+        println()
     end
     return b
 end
 
-function print_building(building)
+function print_building(building)::String
     name = string(string(building.team)[1])
     if building.type == :Settlement
-        return lowercase(name)
+        return string(Crayon(foreground = building.team), lowercase(name))
     else
-        return name
+        return string(Crayon(foreground = building.team), name)
     end
 end
 
-function print_road(road)
-    return lowercase(string(Crayon(foreground = road.team), string(road.team)[1]))
+function print_road(road, road_char)::String
+    return lowercase(string(Crayon(foreground = road.team), road_char))
+    #return lowercase(string(Crayon(foreground = road.team), string(road.team)[1]))
 end
 
 
