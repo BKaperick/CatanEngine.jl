@@ -16,6 +16,8 @@
 # choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerType})::Symbol
 # choose_year_of_plenty_resources(board, players::Vector{PlayerType}, player::RobotPlayer)::Tuple{Symbol, Symbol}
 
+# choose_card_to_steal(player::RobotPlayer)::Symbol
+
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
 end
@@ -66,6 +68,16 @@ function choose_place_robber(board::Board, players::Vector{PlayerType}, player::
         end
     end
     return sampled_value
+end
+
+function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
+    stolen_good = choose_card_to_steal(from_player)
+    take_resource(from_player.player, stolen_good)
+    give_resource(to_player.player, stolen_good)
+end
+
+function choose_card_to_steal(player::RobotPlayer)::Symbol
+    random_sample_resources(player.player.resources, 1)[1]
 end
 
 function choose_monopoly_resource(board::Board, players::Vector{PlayerType}, player::RobotPlayer)::Symbol

@@ -22,7 +22,6 @@ mutable struct DefaultRobotPlayer <: RobotPlayer
     player::Player
 end
 
-
 function Player(team::Symbol)
     default_ports = Dict([
     :Wood => 4

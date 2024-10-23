@@ -440,4 +440,4 @@ function run_tests(neverend = false)
     test_actions()
 end
 
-run_tests(false)
+run_tests(true)

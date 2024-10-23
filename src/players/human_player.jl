@@ -45,9 +45,6 @@ end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
     parse_resources(player.io, "$(player.player.team) lost his:")[1]
 end
-function choose_card_to_steal(player::RobotPlayer)::Symbol
-    random_sample_resources(player.player.resources, 1)[1]
-end
 
 function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
     p = parse_devcard(player.io, "Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
@@ -85,11 +82,6 @@ end
 function steal_random_resource(from_player::HumanPlayer, to_player::HumanPlayer)
     stolen_good = choose_card_to_steal(from_player)
     @info "$(to_player.player.team) stole something from $(from_player.player.team)"
-    take_resource(from_player.player, stolen_good)
-    give_resource(to_player.player, stolen_good)
-end
-function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
-    stolen_good = choose_card_to_steal(from_player)
     take_resource(from_player.player, stolen_good)
     give_resource(to_player.player, stolen_good)
 end
