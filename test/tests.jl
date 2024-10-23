@@ -73,7 +73,7 @@ function setup_robot_game()
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
-    reset_savefile("test_robot_game")
+    reset_savefile("test_robot_game_savefile")
     initialize_game(game, SAMPLE_MAP)
     return game
 end
