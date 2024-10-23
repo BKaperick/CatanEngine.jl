@@ -2,7 +2,7 @@
 
 An engine for adding AI players to a party of the extremely popular board game [Settlers of Catan](https://www.catan.com/)
 
-# How to run the game
+## How to run the game
 To launch a new or existing game:
 `$julia Catan.jl [CONFIG FILE] [MAP FILE] [SAVE FILE]`
 
@@ -14,8 +14,8 @@ For example,
 * `data/sample.csv` sets the board layout
 * `save.txt` is a file to write the game history for saving and reloading previous games.  If the file already exists, it will be read and the game state will be initialized by executing the progress denoted in this file.
 
-# Developer Notes
-## Board representation
+## Developer Notes
+### Board representation
 ```
         (7)      (6) 
        61-62-63-64-65-66-67
@@ -34,7 +34,7 @@ For example,
 
 Note: the numbers (x) are the ports
 
-## Map file
+### Map file
 
 The map file (`data/sample.csv` in the above example) is a 3-column csv file with values `Tile,Dice,Resource`
 where:
