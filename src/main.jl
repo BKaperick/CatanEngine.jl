@@ -4,10 +4,10 @@ include("constants.jl")
 include("io.jl")
 include("apis/api.jl")
 include("apis/player_api.jl")
-include("players/robot_player.jl")
-include("players/test_robot_player.jl")
+include("players/robot_player.jl") #TODO needed ?
+include("players/test_robot_player.jl")#TODO needed ?
 include("apis/game_api.jl")
-include("board.jl")
+# include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
 
