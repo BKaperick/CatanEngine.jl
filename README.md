@@ -1,3 +1,7 @@
+# Catan.jl
+
+An engine for adding AI players to a party of the extremely popular board game [Settlers of Catan](https://www.catan.com/)
+
 # How to run the game
 To launch a new or existing game:
 `$julia Catan.jl [CONFIG FILE] [MAP FILE] [SAVE FILE]`
@@ -35,6 +39,7 @@ Note: the numbers (x) are the ports
 The map file (`data/sample.csv` in the above example) is a 3-column csv file with values `Tile,Dice,Resource`
 where:
 * `Tile` is a single capital letter A-S denoting the hexagon tile corresponding to the above board sketch.
+    **Warning** These are purely internal IDs and do not correspond to the letters on the physical Catan tokens.
 * `Dice` is a single integer 2-12 denoting the dice token placed on the hexagon (use 7 for the desert)
 * `Resource` is a single letter denoting the resource: w[ood],s[tone],g[rain],b[rick],p[asture]
 
