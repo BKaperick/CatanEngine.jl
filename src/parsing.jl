@@ -1,4 +1,4 @@
-include("board.jl")
+#include("board.jl")
 macro safeparse(ex)
     quote
         try
@@ -227,5 +227,4 @@ function get_coord_from_human_tile_description(desc)
     if length(desc) == 2
         return pop!(_intersect_tiles_string_edge_coords(desc))
     end
-
 end
