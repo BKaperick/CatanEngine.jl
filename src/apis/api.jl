@@ -1,5 +1,3 @@
-include("../board.jl")
-
 """
 This is the API for the board manipulation.  These are the supported functions to manipulate the board state, while leaving the player states untouched.
 

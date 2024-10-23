@@ -1,5 +1,3 @@
-include("board.jl")
-
 function print_right_side(b,x,y)
     b[y][x] = "o"
     b[y+1][x-1] = "/"

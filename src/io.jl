@@ -163,7 +163,9 @@ function load_gamestate(game, board, file)
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
-    #print_board(board)
+    if PRINT_BOARD
+        @debug print_board(board)
+    end
     return game, board
 end
 

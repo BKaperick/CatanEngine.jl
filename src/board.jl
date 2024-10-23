@@ -1,4 +1,3 @@
-
 function initialize_empty_board(dimensions)
     spaces = []
     for d in dimensions

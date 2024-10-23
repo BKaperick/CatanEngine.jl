@@ -1,4 +1,3 @@
-#include("board.jl")
 macro safeparse(ex)
     quote
         try
