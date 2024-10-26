@@ -1,6 +1,6 @@
 import Random
 
-function start_turn(game::Game)
+function start_turn(game::Game)::Nothing
     log_action("game st")
     _start_turn(game)
 end

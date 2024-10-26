@@ -4,10 +4,6 @@ include("main.jl")
 game = nothing
 println(ARGS)
 
-if length(ARGS) >= 2
-    run(ARGS)
-end
-
 function run(args)
     if length(ARGS) >= 2
         CONFIGFILE = ARGS[1]
@@ -17,10 +13,14 @@ function run(args)
     end
     if length(ARGS) >= 3
         SAVEFILE = ARGS[3]
+        global SAVEFILEIO = open(SAVEFILE, "a")
     end
-    SAVEFILEIO = open(SAVEFILE, "a")
     #initialize_game(game, "data/sample.csv", SAVEFILE)
     initialize_game(game, MAPFILE, SAVEFILE)
+end
+
+if length(ARGS) >= 2
+    run(ARGS)
 end
 
 end

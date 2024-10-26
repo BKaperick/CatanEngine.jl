@@ -1,26 +1,5 @@
-abstract type PlayerType end
-mutable struct Player
-    team::Symbol
-    resources::Dict{Symbol,Int}
-    vp_count::Int
-    dev_cards::Dict{Symbol,Int}
-    dev_cards_used::Dict{Symbol,Int}
-    ports::Dict{Symbol, Int}
-    played_dev_card_this_turn::Bool
-    bought_dev_card_this_turn::Union{Nothing,Symbol}
-    has_largest_army::Bool
-    has_longest_road::Bool
-end
-mutable struct HumanPlayer <: PlayerType
-    player::Player
-    io::IO
-end
-abstract type RobotPlayer <: PlayerType
-end
+include("players/structs.jl")
 
-mutable struct DefaultRobotPlayer <: RobotPlayer
-    player::Player
-end
 
 function Player(team::Symbol)
     default_ports = Dict([
@@ -32,10 +11,6 @@ function Player(team::Symbol)
     ])
     return Player(team, Dict(), 0, Dict(), Dict(), default_ports, false, nothing, false, false)
 end
-HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
-HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
-DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
-
 
 mutable struct Public_Info
     resource_count::Int
