@@ -1,10 +1,3 @@
-mutable struct TestRobotPlayer <: RobotPlayer
-    player::Player
-    accept_trade_willingness
-    propose_trade_willingness
-    resource_to_proba_weight::Dict{Symbol, Int}
-end
-
 TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team), .5, .5, Dict())
 
 function initialize_player(board::Board, player::TestRobotPlayer)

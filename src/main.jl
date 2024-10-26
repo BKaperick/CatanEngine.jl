@@ -450,9 +450,9 @@ function get_winner(game, board, players)::Union{Nothing,PlayerType}
 end
 # TODO rename to `initialize_and_do_game`
 initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
-function initialize_game(game::Game, csvfile::String, logfile)
+function initialize_game(game::Game, csvfile::String, in_progress_game_file)
     board = read_map(csvfile)
-    game, board = load_gamestate(game, board, logfile)
+    game, board = load_gamestate(game, board, in_progress_game_file)
     for p in game.players
         initialize_player(board, p)
     end

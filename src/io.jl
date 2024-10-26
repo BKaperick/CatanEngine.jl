@@ -1,6 +1,7 @@
 using Logging
 include("board.jl")
 include("parsing.jl")
+include("structs.jl")
 
 function get_parsed_file_lines(file_str)
     [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
@@ -119,8 +120,7 @@ end
 function execute_api_call(game::Game, board::Board, line::String)
     # TODO initialize this globally somewhere?  Store in board?
     team_to_player = Dict([p.player.team => p.player for p in game.players])
-    @debug team_to_player
-    @debug line
+    @debug line #DEBUG "df" here is normal ?  The line is supposed to be "game df"
     values = split(line, " ")
     func_key = values[2]
     api_call = API_DICTIONARY[func_key]
