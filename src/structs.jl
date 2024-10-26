@@ -1,35 +1,6 @@
 include("players/structs.jl")
 
 
-function Player(team::Symbol)
-    default_ports = Dict([
-    :Wood => 4
-    :Stone => 4
-    :Grain => 4
-    :Brick => 4
-    :Pasture => 4
-    ])
-    return Player(team, Dict(), 0, Dict(), Dict(), default_ports, false, nothing, false, false)
-end
-
-mutable struct Public_Info
-    resource_count::Int
-    dev_cards_count::Int
-    dev_cards_used::Dict{Symbol,Int}
-    vp_count::Int
-end
-Public_Info(player::Player) = Public_Info(
-    sum(values(player.resources)), 
-    sum(values(player.dev_cards)),
-    Dict(),
-    player.vp_count)
-
-mutable struct Private_Info
-    resources::Dict{Symbol,Int}
-    dev_cards::Dict{Symbol,Int}
-    private_vp_count::Int
-end
-Private_Info(player::Player) = Private_Info(player.resources, player.dev_cards, player.vp_count)
 
 mutable struct Game
     devcards::Dict{Symbol,Int}
