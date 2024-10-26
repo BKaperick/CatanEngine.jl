@@ -45,15 +45,26 @@ mutable struct PlayerPublicView
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
     dev_cards_count::Int
-    dev_cards_used::Dict{Symbol,Int}
-    vp_count::Int
+    visible_vp_count::Int
 end
 
 PlayerPublicView(player::Player) = PlayerPublicView(
+    player.team,
+    player.dev_cards_used,
+    player.ports,
+    player.played_dev_card_this_turn,
+    player.bought_dev_card_this_turn,
+    player.has_largest_army,
+    player.has_largest_road,
+
+    # Resource count
     sum(values(player.resources)), 
+    # Dev cards count
     sum(values(player.dev_cards)),
-    Dict(),
-    player.vp_count)
+    
+    # Total victory points minus the ones that are hidden from view (only case is a dev card awarding one)
+    sum([item.second for item in player.dev_cards if item.first == :VictoryPoint])
+   )
 
 
 mutable struct HumanPlayer <: PlayerType
