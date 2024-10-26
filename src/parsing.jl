@@ -33,7 +33,7 @@ function input(io::IO, prompt::AbstractString)
     return response
 end
 
-parse_teams(io, desc)            = parse_generic(io, desc, _parse_teams)
+parse_teams(io, desc)           = parse_generic(io, desc, _parse_teams)
 parse_team(io, desc)            = parse_generic(io, desc, _parse_symbol)
 parse_tile(io, desc)            = parse_generic(io, desc, _parse_tile)
 parse_yesno(io, desc)           = parse_generic(io, desc, _parse_yesno)
