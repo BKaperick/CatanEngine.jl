@@ -4,25 +4,25 @@
 #
 # Robot Player API.  Your RobotPlayer type must implement these methods.  If any are not implemented, it falls back to the existing implementation
 #
-# choose_accept_trade(board::Board, player::RobotPlayer, from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-# choose_building_location(board::Board, players::Vector{PlayerType}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
+# choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+# choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
 # choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
-# choose_monopoly_resource(board::Board, players::Vector{PlayerType}, player::RobotPlayer)::Symbol
-# choose_place_robber(board::Board, players::Vector{PlayerType}, player::RobotPlayer)::Symbol
-# choose_play_devcard(board::Board, players::Vector{PlayerType}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-# choose_next_action(game::Game, board::Board, players::Vector{PlayerType}, player::RobotPlayer, actions::Set{Symbol})
-# choose_road_location(board::Board, players::Vector{PlayerType}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
+# choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
+# choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
+# choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
+# choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
+# choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
 # choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
-# choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerType})::Symbol
-# choose_year_of_plenty_resources(board, players::Vector{PlayerType}, player::RobotPlayer)::Tuple{Symbol, Symbol}
+# choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
+# choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Tuple{Symbol, Symbol}
 
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
-function choose_accept_trade(board::Board, player::RobotPlayer, from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-    return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
+function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+    return rand() > .5 + (from_player.visible_vp_count / 20)
 end
 
-function choose_road_location(board::Board, players::Vector{PlayerType}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
     candidates = get_admissible_road_locations(board, player.player, is_first_turn)
     if length(candidates) > 0
         return sample(candidates)
@@ -30,7 +30,7 @@ function choose_road_location(board::Board, players::Vector{PlayerType}, player:
     @info "I didn't find any place to put my road"
     return nothing
 end
-function choose_building_location(board::Board, players::Vector{PlayerType}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
     if building_type == :Settlement
         candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
         if length(candidates) > 0
@@ -49,7 +49,7 @@ function choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbo
     return random_sample_resources(player.player.resources, amount)
 end
 
-function choose_place_robber(board::Board, players::Vector{PlayerType}, player::RobotPlayer)::Symbol
+function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
     validated = false
     sampled_value = nothing
     while ~validated
@@ -80,11 +80,11 @@ function choose_card_to_steal(player::RobotPlayer)::Symbol
     random_sample_resources(player.player.resources, 1)[1]
 end
 
-function choose_monopoly_resource(board::Board, players::Vector{PlayerType}, player::RobotPlayer)::Symbol
+function choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
     return get_random_resource()
 end
 
-function choose_year_of_plenty_resources(board, players::Vector{PlayerType}, player::RobotPlayer)::Tuple{Symbol, Symbol}
+function choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Tuple{Symbol, Symbol}
     return get_random_resource(),get_random_resource()
 end
 function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
@@ -95,7 +95,7 @@ function choose_robber_victim(board::Board, player::RobotPlayer, potential_victi
     @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player"
     return max_ind
 end
-function choose_play_devcard(board::Board, players::Vector{PlayerType}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
+function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
     if length(values(devcards)) > 0
         card = random_sample_resources(devcards, 1)[1]
         if card != :VictoryPoint
@@ -105,29 +105,30 @@ function choose_play_devcard(board::Board, players::Vector{PlayerType}, player::
     return nothing
 end
 
-function choose_next_action(game::Game, board::Board, players::Vector{PlayerType}, player::RobotPlayer, actions::Set{Symbol})
+# TODO we need to remove game from here, as it contains players
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
-        coord = choose_building_location(board, players::Vector{PlayerType}, player, :City)
-        return (game, board) -> construct_city(board, player.player, coord)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
+        return (g, b) -> construct_city(b, player.player, coord)
     end
     if :ConstructSettlement in actions
-        coord = choose_building_location(board, players::Vector{PlayerType}, player, :Settlement)
-        return (game, board) -> construct_settlement(board, player.player, coord)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
+        return (g, b) -> construct_settlement(b, player.player, coord)
     end
     if :ConstructRoad in actions
-        coord = choose_road_location(board, players::Vector{PlayerType}, player, false)
+        coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (game, board) -> construct_road(board, player.player, coord1, coord2)
+        return (g, b) -> construct_road(b, player.player, coord1, coord2)
     end
     if :BuyDevCard in actions
-        return (game, board) -> buy_devcard(game, player.player)
+        return (g, board) -> buy_devcard(g, player.player)
     end
     if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
-        card = choose_play_devcard(board, game.players, player, devcards)
+        card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (game, board) -> do_play_devcard(board, game.players, player, card)
+            return (g, b) -> do_play_devcard(b, g.players, player, card)
         end
     elseif :ProposeTrade in actions
         if rand() > .8
@@ -138,16 +139,16 @@ function choose_next_action(game::Game, board::Board, players::Vector{PlayerType
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
+            return (g, b) -> propose_trade_goods(b, g.players, player, rand_resource_from, rand_resource_to)
         end
     end
     return nothing
 end
 
-function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerType})::Symbol
+function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
     public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.player.team], players)
-    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player"
-    return max_ind.player.team
+    max_ind = argmax(v -> public_scores[v.team], players)
+    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.team) player"
+    return max_ind.team
 end
 

@@ -148,7 +148,7 @@ function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_pla
     to_goods = collect(resource_symbols[amount+1:end])
     return propose_trade_goods(board, players, from_player, from_goods, to_goods)
 end
-function propose_trade_goods(board, players, from_player, from_goods, to_goods)
+function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, from_goods, to_goods)
     to_goods_dict = Dict{Symbol,Int}()
     for g in to_goods
         if haskey(to_goods_dict,g)
@@ -157,17 +157,20 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods)
             to_goods_dict[g] = 1
         end
     end
-    accepted = Vector{PlayerType}()
+    accepted = Vector{Player}()
+    accepted_public = Vector{PlayerPublicView}()
+    from_player_public = PlayerPublicView(from_player.player)
     for player in players
         # Don't propose trade to yourself
         if player.player.team == from_player.player.team
             continue
         end
-        if choose_accept_trade(board, player, from_player.player, from_goods, to_goods)
+        if choose_accept_trade(board, player, from_player_public, from_goods, to_goods)
             @info "$(player.player.team) accepts the trade proposal"
             # We do this after the "choose" step to not leak information from player's hand
             if has_enough_resources(player.player, to_goods_dict) 
-                push!(accepted, player)
+                push!(accepted, player.player)
+                push!(accepted_public, PlayerPublicView(player.player))
             end
         end
     end
@@ -175,9 +178,9 @@ function propose_trade_goods(board, players, from_player, from_goods, to_goods)
         @info "Noone accepted"
         return
     end
-    to_player_team = choose_who_to_trade_with(board, from_player, accepted)
-    to_player = [p for p in accepted if p.player.team == to_player_team][1]
-    trade_goods(from_player.player, to_player.player, [from_goods...], [to_goods...])
+    to_player_team = choose_who_to_trade_with(board, from_player, accepted_public)
+    to_player = [p for p in accepted if p.team == to_player_team][1]
+    trade_goods(from_player.player, to_player, [from_goods...], [to_goods...])
 end
 
 
@@ -213,7 +216,7 @@ end
 
 buildings = Array{Building,1}()
 
-function handle_dice_roll(game, board::Board, players, player, value)
+function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
         for tile in board.dicevalue_to_tiles[value]
@@ -235,30 +238,32 @@ function handle_dice_roll(game, board::Board, players, player, value)
     set_dice_true(game)
 end
 
-function do_devcard_action(board, players, player, card::Symbol)
+function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+    players_public = [PlayerPublicView(p) for p in players]
     if card == :Knight
         do_knight_action(board, players, player)
     elseif card == :Monopoly
         do_monopoly_action(board, players, player)
     elseif card == :YearOfPlenty
-        do_year_of_plenty_action(board, players, player)
+        do_year_of_plenty_action(board, players_public, player)
     elseif card == :RoadBuilding
-        do_road_building_action(board, players, player)
+        do_road_building_action(board, players_public, player)
     end
 end
 
-function do_road_building_action(board, players, player)
+function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     choose_validate_build_road(board, players, player, false)
     choose_validate_build_road(board, players, player, false)
 end
-function do_year_of_plenty_action(board, players, player)
+function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
     give_resource(player.player, r1)
     give_resource(player.player, r2)
 end
 
 function do_monopoly_action(board, players, player)
-    res = choose_monopoly_resource(board, players, player)
+    players_public = [PlayerPublicView(p) for p in players]
+    res = choose_monopoly_resource(board, players_public, player)
     for victim in players
         @info "$(victim.player.team) gives $(count_resource(victim.player, res)) $res to $(player.player.team)"
         for i in 1:count_resource(victim.player, res)
@@ -269,7 +274,8 @@ function do_monopoly_action(board, players, player)
 end
 
 function do_knight_action(board, players, player)
-    new_tile = move_robber(board, choose_place_robber(board, players, player))
+    players_public = [PlayerPublicView(p) for p in players]
+    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
@@ -277,8 +283,9 @@ function do_knight_action(board, players, player)
     end
 end
 
-function do_robber_move(board, players, player)
-    new_tile = move_robber(board, choose_place_robber(board, players, player))
+function do_robber_move(board, players::Vector{PlayerType}, player)
+    players_public = [PlayerPublicView(p) for p in players]
+    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
@@ -397,7 +404,7 @@ end
 function do_turn(game, board, player)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
-        card = choose_play_devcard(board, game.players, player, devcards)
+        card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)
         
         do_play_devcard(board, game.players, player, card)
     end
@@ -415,7 +422,7 @@ function do_turn(game, board, player)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(game, board, game.players, player, actions)
+        next_action = choose_next_action(board, [PlayerPublicView(p) for p in game.players], player, actions)
         if next_action != nothing
             next_action(game, board)
         end
@@ -432,10 +439,10 @@ function buy_devcard(game::Game, player::Player)
     add_devcard(player, card)
 end
 
-function someone_has_won(game, board, players)::Bool
+function someone_has_won(game, board, players::Vector{PlayerType})::Bool
     return get_winner(game, board, players) != nothing
 end
-function get_winner(game, board, players)::Union{Nothing,PlayerType}
+function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
     board_points = count_victory_points_from_board(board) 
     for player in players
         player_points = get_total_vp_count(board, player.player)
@@ -466,22 +473,23 @@ function choose_validate_building(board, players, player, building_type, coord =
         validation_check = is_valid_city_placement
     end
     while (!validation_check(board, player.player.team, coord))
-        coord = choose_building_location(board, players, player, building_type, true)
+        players_public = [PlayerPublicView(p) for p in players]
+        coord = choose_building_location(board, players_public, player, building_type, true)
     end
     return coord
 end
 
-function choose_validate_build_settlement(board, players, player)
+function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     coord = choose_validate_building(board, players, player, :Settlement)
     build_settlement(board, player.player.team, coord)
 end
 
-function choose_validate_build_city(board, players, player)
+function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     coord = choose_validate_building(board, players, player, :City)
     build_city(board, player.player.team, coord)
 end
 
-function choose_validate_build_road(board, players, player, is_first_turn = false)
+function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     road_coord1 = nothing
     road_coord2 = nothing
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
@@ -496,7 +504,7 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
     build_road(board, player.player.team, road_coord1, road_coord2)
 end
 
-function do_first_turn(game, board, players)
+function do_first_turn(game, board::Board, players)
     if !game.first_turn_forward_finished
         do_first_turn_forward(game, board, players)
     end
@@ -504,16 +512,20 @@ function do_first_turn(game, board, players)
 end
 function do_first_turn_forward(game, board, players)
     for player in get_players_to_play(game)
-        choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player, true)
+        # TODO we really only need to re-calculate the player who just played,
+        # but we can optimize later if needed
+        players_public = [PlayerPublicView(p) for p in players]
+        choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_road(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
     end
     finish_turn(game)
 end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
-        settlement = choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player, true)
+        players_public = [PlayerPublicView(p) for p in players]
+        settlement = choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_road(board, players_public, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
