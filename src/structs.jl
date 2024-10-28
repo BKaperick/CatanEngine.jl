@@ -12,6 +12,7 @@ mutable struct Game
     first_turn_forward_finished::Bool
     rolled_dice_already::Bool
 end
+
 Game(players) = Game(copy(DEVCARD_COUNTS), players, Set(), 0, false, false, false)
 
 mutable struct Construction

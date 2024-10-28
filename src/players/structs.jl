@@ -49,6 +49,7 @@ mutable struct PlayerPublicView
 end
 
 PlayerPublicView(player::PlayerPublicView) = player;
+PlayerPublicView(player::PlayerType) = PlayerPublicView(player.player)
 PlayerPublicView(player::Player) = PlayerPublicView(
     player.team,
     player.dev_cards_used,
@@ -56,7 +57,7 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     player.played_dev_card_this_turn,
     player.bought_dev_card_this_turn,
     player.has_largest_army,
-    player.has_largest_road,
+    player.has_longest_road,
 
     # Resource count
     sum(values(player.resources)), 

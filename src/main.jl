@@ -216,7 +216,7 @@ end
 
 buildings = Array{Building,1}()
 
-function handle_dice_roll(game, board::Board, players, player, value)
+function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
         for tile in board.dicevalue_to_tiles[value]
@@ -251,8 +251,8 @@ function do_devcard_action(board, players, player, card::Symbol)
 end
 
 function do_road_building_action(board, players, player)
-    choose_validate_build_road(board, players, player, false)
-    choose_validate_build_road(board, players, player, false)
+    choose_validate_build_road(board, players_public, player, false)
+    choose_validate_build_road(board, players_public, player, false)
 end
 function do_year_of_plenty_action(board, players, player)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
@@ -272,7 +272,8 @@ function do_monopoly_action(board, players, player)
 end
 
 function do_knight_action(board, players, player)
-    new_tile = move_robber(board, choose_place_robber(board, players, player))
+    players_public = [PlayerPublicView(p) for p in players]
+    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
@@ -280,8 +281,9 @@ function do_knight_action(board, players, player)
     end
 end
 
-function do_robber_move(board, players, player)
-    new_tile = move_robber(board, choose_place_robber(board, players, player))
+function do_robber_move(board, players::Vector{PlayerType}, player)
+    players_public = [PlayerPublicView(p) for p in players]
+    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
@@ -418,7 +420,7 @@ function do_turn(game, board, player)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(game, board, game.players, player, actions)
+        next_action = choose_next_action(game, board, [PlayerPublicView(p) for p in game.players], player, actions)
         if next_action != nothing
             next_action(game, board)
         end
@@ -435,10 +437,10 @@ function buy_devcard(game::Game, player::Player)
     add_devcard(player, card)
 end
 
-function someone_has_won(game, board, players)::Bool
+function someone_has_won(game, board, players::Vector{PlayerType})::Bool
     return get_winner(game, board, players) != nothing
 end
-function get_winner(game, board, players)::Union{Nothing,PlayerType}
+function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
     board_points = count_victory_points_from_board(board) 
     for player in players
         player_points = get_total_vp_count(board, player.player)
@@ -469,22 +471,23 @@ function choose_validate_building(board, players, player, building_type, coord =
         validation_check = is_valid_city_placement
     end
     while (!validation_check(board, player.player.team, coord))
-        coord = choose_building_location(board, players, player, building_type, true)
+        players_public = [PlayerPublicView(p) for p in players]
+        coord = choose_building_location(board, players_public, player, building_type, true)
     end
     return coord
 end
 
-function choose_validate_build_settlement(board, players, player)
+function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     coord = choose_validate_building(board, players, player, :Settlement)
     build_settlement(board, player.player.team, coord)
 end
 
-function choose_validate_build_city(board, players, player)
+function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     coord = choose_validate_building(board, players, player, :City)
     build_city(board, player.player.team, coord)
 end
 
-function choose_validate_build_road(board, players, player, is_first_turn = false)
+function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     road_coord1 = nothing
     road_coord2 = nothing
     while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
@@ -499,7 +502,7 @@ function choose_validate_build_road(board, players, player, is_first_turn = fals
     build_road(board, player.player.team, road_coord1, road_coord2)
 end
 
-function do_first_turn(game, board, players)
+function do_first_turn(game, board::Board, players)
     if !game.first_turn_forward_finished
         do_first_turn_forward(game, board, players)
     end
@@ -507,16 +510,20 @@ function do_first_turn(game, board, players)
 end
 function do_first_turn_forward(game, board, players)
     for player in get_players_to_play(game)
-        choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player, true)
+        # TODO we really only need to re-calculate the player who just played,
+        # but we can optimize later if needed
+        players_public = [PlayerPublicView(p) for p in players]
+        choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_road(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
     end
     finish_turn(game)
 end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
-        settlement = choose_validate_build_settlement(board, players, player)
-        choose_validate_build_road(board, players, player, true)
+        players_public = [PlayerPublicView(p) for p in players]
+        settlement = choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_road(board, players_public, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
