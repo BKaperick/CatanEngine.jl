@@ -148,7 +148,7 @@ function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_pla
     to_goods = collect(resource_symbols[amount+1:end])
     return propose_trade_goods(board, players, from_player, from_goods, to_goods)
 end
-function propose_trade_goods(board::Board, players, from_player, from_goods, to_goods)
+function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, from_goods, to_goods)
     to_goods_dict = Dict{Symbol,Int}()
     for g in to_goods
         if haskey(to_goods_dict,g)
@@ -157,17 +157,20 @@ function propose_trade_goods(board::Board, players, from_player, from_goods, to_
             to_goods_dict[g] = 1
         end
     end
-    accepted = Vector{PlayerType}()
+    accepted = Vector{Player}()
+    accepted_public = Vector{PlayerPublicView}()
+    from_player_public = PlayerPublicView(from_player.player)
     for player in players
         # Don't propose trade to yourself
         if player.player.team == from_player.player.team
             continue
         end
-        if choose_accept_trade(board, player, PlayerPublicView(from_player.player), from_goods, to_goods)
+        if choose_accept_trade(board, player, from_player_public, from_goods, to_goods)
             @info "$(player.player.team) accepts the trade proposal"
             # We do this after the "choose" step to not leak information from player's hand
             if has_enough_resources(player.player, to_goods_dict) 
-                push!(accepted, player)
+                push!(accepted, player.player)
+                push!(accepted_public, PlayerPublicView(player.player))
             end
         end
     end
@@ -175,9 +178,9 @@ function propose_trade_goods(board::Board, players, from_player, from_goods, to_
         @info "Noone accepted"
         return
     end
-    to_player_team = choose_who_to_trade_with(board, from_player, accepted)
-    to_player = [p for p in accepted if p.player.team == to_player_team][1]
-    trade_goods(from_player.player, to_player.player, [from_goods...], [to_goods...])
+    to_player_team = choose_who_to_trade_with(board, from_player, accepted_public)
+    to_player = [p for p in accepted if p.team == to_player_team][1]
+    trade_goods(from_player.player, to_player, [from_goods...], [to_goods...])
 end
 
 

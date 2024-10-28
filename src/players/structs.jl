@@ -48,6 +48,7 @@ mutable struct PlayerPublicView
     visible_vp_count::Int
 end
 
+PlayerPublicView(player::PlayerPublicView) = player;
 PlayerPublicView(player::Player) = PlayerPublicView(
     player.team,
     player.dev_cards_used,
