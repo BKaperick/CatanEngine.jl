@@ -179,15 +179,17 @@ end
 
 function print_building(building)::String
     name = string(string(building.team)[1])
+    team_color = Symbol(lowercase(string(building.team)))
     if building.type == :Settlement
-        return string(Crayon(foreground = building.team), lowercase(name))
+        return string(Crayon(foreground = team_color), lowercase(name))
     else
-        return string(Crayon(foreground = building.team), name)
+        return string(Crayon(foreground = team_color), name)
     end
 end
 
 function print_road(road, road_char)::String
-    return lowercase(string(Crayon(foreground = road.team), road_char))
+    team_color = Symbol(lowercase(string(road.team)))
+    return lowercase(string(Crayon(foreground = team_color), road_char))
     #return lowercase(string(Crayon(foreground = road.team), string(road.team)[1]))
 end
 

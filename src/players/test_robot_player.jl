@@ -61,11 +61,11 @@ DICEVALUE_TO_PROBA_WEIGHT = Dict(
                                  7 => 0
                                 )
 
-function choose_accept_trade(board::Board, player::TestRobotPlayer, from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+function choose_accept_trade(board::Board, player::TestRobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     return rand() > player.accept_trade_willingness + (get_public_vp_count(board, from_player) / 20)
 end
 
-function choose_building_location(board::Board, players::Vector{PlayerType}, player::TestRobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
     admissible = []
     if building_type == :Settlement
         admissible = get_admissible_settlement_locations(board, player.player, is_first_turn)
@@ -75,17 +75,17 @@ function choose_building_location(board::Board, players::Vector{PlayerType}, pla
     return _get_optimal_building_placement(board, players, player, is_first_turn, admissible)
 end
 
-function choose_next_action(game::Game, board::Board, players::Vector{PlayerType}, player::TestRobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
-        coord = choose_building_location(board, players::Vector{PlayerType}, player, :City)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
         return (game, board) -> construct_city(board, player.player, coord)
     end
     if :ConstructSettlement in actions
-        coord = choose_building_location(board, players::Vector{PlayerType}, player, :Settlement)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
         return (game, board) -> construct_settlement(board, player.player, coord)
     end
     if :ConstructRoad in actions
-        coord = choose_road_location(board, players::Vector{PlayerType}, player, false)
+        coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
         coord1 = coord[1]
         coord2 = coord[2]
         return (game, board) -> construct_road(board, player.player, coord1, coord2)
@@ -97,7 +97,7 @@ function choose_next_action(game::Game, board::Board, players::Vector{PlayerType
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
         if card != nothing
-            return (game, board) -> do_play_devcard(board, game.players, player, card)
+            return (game, board) -> do_play_devcard(board, players, player, card)
         end
     elseif :ProposeTrade in actions
         if rand() < player.propose_trade_willingness

@@ -53,7 +53,7 @@ function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict
     end
 end
 
-function choose_next_action(game, board, players, player::HumanPlayer, actions)
+function choose_next_action(board, players, player::HumanPlayer, actions)
     header = "What does $(player.player.team) do next?\n"
     full_options = string(header, [ACTION_TO_DESCRIPTION[a] for a in actions]..., "\n[E]nd turn")
     action_and_args = parse_action(player.io, full_options)
@@ -64,11 +64,6 @@ function choose_next_action(game, board, players, player::HumanPlayer, actions)
     func = PLAYER_ACTIONS[action_and_args[1]]
     return (game, board) -> func(game, board, player, action_and_args[2:end]...)
 end
-
-#function choose_next_action(game, board, players, player::RobotPlayer)
-#    actions = values(PLAYER_ACTIONS)
-#    for act in actions
-#end
 
 function steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
