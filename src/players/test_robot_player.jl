@@ -75,7 +75,7 @@ function choose_building_location(board::Board, players::Vector{PlayerType}, pla
     return _get_optimal_building_placement(board, players, player, is_first_turn, admissible)
 end
 
-function choose_next_action(game::Game, board::Board, players::Vector{PlayerType}, player::TestRobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerType}, player, :City)
         return (game, board) -> construct_city(board, player.player, coord)
@@ -97,7 +97,7 @@ function choose_next_action(game::Game, board::Board, players::Vector{PlayerType
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
         if card != nothing
-            return (game, board) -> do_play_devcard(board, game.players, player, card)
+            return (game, board) -> do_play_devcard(board, players, player, card)
         end
     elseif :ProposeTrade in actions
         if rand() < player.propose_trade_willingness

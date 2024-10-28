@@ -238,30 +238,32 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
     set_dice_true(game)
 end
 
-function do_devcard_action(board, players, player, card::Symbol)
+function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+    players_public = [PlayerPublicView(p) for p in players]
     if card == :Knight
         do_knight_action(board, players, player)
     elseif card == :Monopoly
         do_monopoly_action(board, players, player)
     elseif card == :YearOfPlenty
-        do_year_of_plenty_action(board, players, player)
+        do_year_of_plenty_action(board, players_public, player)
     elseif card == :RoadBuilding
-        do_road_building_action(board, players, player)
+        do_road_building_action(board, players_public, player)
     end
 end
 
-function do_road_building_action(board, players, player)
-    choose_validate_build_road(board, players_public, player, false)
-    choose_validate_build_road(board, players_public, player, false)
+function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
+    choose_validate_build_road(board, players, player, false)
+    choose_validate_build_road(board, players, player, false)
 end
-function do_year_of_plenty_action(board, players, player)
+function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
     give_resource(player.player, r1)
     give_resource(player.player, r2)
 end
 
 function do_monopoly_action(board, players, player)
-    res = choose_monopoly_resource(board, players, player)
+    players_public = [PlayerPublicView(p) for p in players]
+    res = choose_monopoly_resource(board, players_public, player)
     for victim in players
         @info "$(victim.player.team) gives $(count_resource(victim.player, res)) $res to $(player.player.team)"
         for i in 1:count_resource(victim.player, res)
@@ -402,7 +404,7 @@ end
 function do_turn(game, board, player)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
-        card = choose_play_devcard(board, game.players, player, devcards)
+        card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)
         
         do_play_devcard(board, game.players, player, card)
     end
@@ -420,7 +422,7 @@ function do_turn(game, board, player)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(game, board, [PlayerPublicView(p) for p in game.players], player, actions)
+        next_action = choose_next_action(board, [PlayerPublicView(p) for p in game.players], player, actions)
         if next_action != nothing
             next_action(game, board)
         end

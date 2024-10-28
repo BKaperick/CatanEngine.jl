@@ -10,7 +10,7 @@
 # choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
 # choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
 # choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-# choose_next_action(game::Game, board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
+# choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
 # choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
 # choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
 # choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
@@ -106,29 +106,29 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
 end
 
 # TODO we need to remove game from here, as it contains players
-function choose_next_action(game::Game, board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
-        return (game, board) -> construct_city(board, player.player, coord)
+        return (g, b) -> construct_city(b, player.player, coord)
     end
     if :ConstructSettlement in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
-        return (game, board) -> construct_settlement(board, player.player, coord)
+        return (g, b) -> construct_settlement(b, player.player, coord)
     end
     if :ConstructRoad in actions
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (game, board) -> construct_road(board, player.player, coord1, coord2)
+        return (g, b) -> construct_road(b, player.player, coord1, coord2)
     end
     if :BuyDevCard in actions
-        return (game, board) -> buy_devcard(game, player.player)
+        return (g, board) -> buy_devcard(g, player.player)
     end
     if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
-        card = choose_play_devcard(board, game.players, player, devcards)
+        card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (game, board) -> do_play_devcard(board, game.players, player, card)
+            return (g, b) -> do_play_devcard(b, g.players, player, card)
         end
     elseif :ProposeTrade in actions
         if rand() > .8
@@ -139,7 +139,7 @@ function choose_next_action(game::Game, board::Board, players::Vector{PlayerPubl
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
+            return (g, b) -> propose_trade_goods(b, g.players, player, rand_resource_from, rand_resource_to)
         end
     end
     return nothing
@@ -147,8 +147,8 @@ end
 
 function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
     public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.player.team], players)
-    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.player.team) player"
-    return max_ind.player.team
+    max_ind = argmax(v -> public_scores[v.team], players)
+    @info "$(player.player.team) decided it is wisest to do business with $(max_ind.team) player"
+    return max_ind.team
 end
 
