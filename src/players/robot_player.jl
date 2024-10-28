@@ -19,7 +19,7 @@
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-    return rand() > .5 + (get_public_vp_count(board, from_player) / 20)
+    return rand() > .5 + (from_player.visible_vp_count / 20)
 end
 
 function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
@@ -105,6 +105,7 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
     return nothing
 end
 
+# TODO we need to remove game from here, as it contains players
 function choose_next_action(game::Game, board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
