@@ -261,7 +261,7 @@ function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, play
     give_resource(player.player, r2)
 end
 
-function do_monopoly_action(board, players, player)
+function do_monopoly_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
     res = choose_monopoly_resource(board, players_public, player)
     for victim in players
@@ -273,7 +273,7 @@ function do_monopoly_action(board, players, player)
     end
 end
 
-function do_knight_action(board, players, player)
+function do_knight_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
     new_tile = move_robber(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
@@ -388,7 +388,7 @@ function get_admissible_road_locations(board, player::Player, is_first_turn = fa
     return road_coords
 end
 
-function get_potential_theft_victims(board, players, thief, new_tile)
+function get_potential_theft_victims(board, players::Vector{PlayerType}, thief, new_tile)
     potential_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
