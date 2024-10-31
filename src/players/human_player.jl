@@ -8,10 +8,10 @@ function choose_cards_to_discard(player::HumanPlayer, amount)
     return parse_resources(player.io, "$(player.player.team) discards: ")
 end
 
-function choose_building_location(board, players, player::HumanPlayer, building_type, is_first_turn = false)::Tuple{Int, Int}
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, building_type, is_first_turn = false)::Tuple{Int, Int}
     parse_ints(player.io, "$(player.player.team) places a $(building_type):")
 end
-function choose_road_location(board, players, player::HumanPlayer, is_first_turn = false)::Vector{Tuple{Int,Int}}
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, is_first_turn = false)::Vector{Tuple{Int,Int}}
     coords = parse_road_coord(player.io, "$(player.player.team) places a Road:")
     if length(coords) == 4
         out = [Tuple(coords[1:2]);Tuple(coords[3:4])]

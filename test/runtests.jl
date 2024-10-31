@@ -21,8 +21,16 @@ logger_io = open("data/oneoff_test_log.txt","w+")
 logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
-function reset_savefile(name)
-    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "HHMMSS")).txt"
+global counter = 1
+
+function reset_savefile(file_name)
+    global SAVEFILE = file_name
+    global SAVEFILEIO = open(SAVEFILE, "a")
+    return SAVEFILE, SAVEFILEIO
+end
+function reset_savefile_with_timestamp(name)
+    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "HHMMSS"))_$counter.txt"
+    global counter += 1
     global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
 end
@@ -31,7 +39,7 @@ function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
 end
 function test_set_starting_player()
-    reset_savefile("test_set_starting_player")
+    reset_savefile_with_timestamp("test_set_starting_player")
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -66,7 +74,7 @@ function test_set_starting_player()
     #players: green, red, 
 end
 
-function setup_robot_game()
+function setup_robot_game(savefile = nothing)
     # Configure players and table configuration
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -76,7 +84,11 @@ function setup_robot_game()
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
-    reset_savefile("test_robot_game_savefile")
+    if (savefile == nothing)
+        reset_savefile_with_timestamp("test_robot_game_savefile")
+    else
+        reset_savefile(savefile)
+    end
     initialize_game(game, SAMPLE_MAP)
     return game
 end
@@ -121,7 +133,7 @@ function test_misc()
 end
 
 function test_log()
-    reset_savefile("test_log")
+    reset_savefile_with_timestamp("test_log")
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -239,13 +251,17 @@ function test_devcards()
     do_monopoly_action(board, players, player2)
     @test count_resources(player1.player) == 4
     
-    do_year_of_plenty_action(board, players, player1)
+    players_public = [PlayerPublicView(p) for p in players]
+    do_year_of_plenty_action(board, players_public, player1)
     @test count_resources(player1.player) == 6
 
     build_settlement(board, player1.player.team, (2,5))
-    do_road_building_action(board, players, player1)
+    players_public = [PlayerPublicView(p) for p in players]
+    do_road_building_action(board, players_public, player1)
     @test count_roads(board, player1.player.team) == 2
-    do_road_building_action(board, players, player1)
+    
+    players_public = [PlayerPublicView(p) for p in players]
+    do_road_building_action(board, players_public, player1)
     @test count_roads(board, player1.player.team) == 4
     
     @test get_total_vp_count(board, player1.player) == 1
@@ -323,7 +339,7 @@ function test_human_player()
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
-    reset_savefile("test_human_game")
+    reset_savefile_with_timestamp("test_human_game")
     initialize_game(game, SAMPLE_MAP)
 end
 
@@ -373,28 +389,33 @@ function test_call_api()
     @test roll_dice(player1) <= 12
     @test roll_dice(player2) >= 2
     
+    players_public = [PlayerPublicView(p) for p in players]
+    
     # Build first settlement
-    loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
+    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
     @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
     
     # Upgrade it to a city
-    loc_city = choose_building_location(board, players, player1, :City)
+    players_public = [PlayerPublicView(p) for p in players]
+    loc_city = choose_building_location(board, players_public, player1, :City)
     build_city(board, player1.player.team, loc_city)
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
+    players_public = [PlayerPublicView(p) for p in players]
     admissible_roads = get_admissible_road_locations(board, player1.player)
-    road_coords = choose_road_location(board, players, player1)
+    road_coords = choose_road_location(board, players_public, player1)
     build_road(board, player1.player.team, road_coords[1], road_coords[2])
     @test length(admissible_roads) == length(get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
     @test length(get_road_locations(board, player1.player.team)) == 2
 
     # Build second settlement
-    loc_settlement = choose_building_location(board, players, player1, :Settlement, true)
+    players_public = [PlayerPublicView(p) for p in players]
+    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
     @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
@@ -402,7 +423,8 @@ function test_call_api()
     
     # Build a road attached to second settlement
     admissible_roads = get_admissible_road_locations(board, player1.player, true)
-    road_coords = choose_road_location(board, players, player1, true)
+    players_public = [PlayerPublicView(p) for p in players]
+    road_coords = choose_road_location(board, players_public, player1, true)
     if road_coords == nothing
         print_board(board)
     end
@@ -437,7 +459,10 @@ function run_tests(neverend = false)
     """
     if neverend
         while true
+            println("starting game")
             setup_robot_game()
+            println("replaying game from $SAVEFILE")
+            setup_robot_game(SAVEFILE)
         end
     else
         setup_robot_game()
@@ -445,5 +470,9 @@ function run_tests(neverend = false)
     test_actions()
 end
 
-run_tests(true)
+if (length(ARGS) > 0)
+    setup_robot_game(ARGS[1])
+else
+    run_tests(true)
+end
 #run_tests(false)

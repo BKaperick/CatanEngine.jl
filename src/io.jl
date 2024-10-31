@@ -85,6 +85,7 @@ end
 
 
 function serialize_action(fname::String, args...)
+    #println("serializing $fname and $args")
     arg_strs = []
     for arg in args
         if typeof(arg) == Symbol
@@ -104,7 +105,7 @@ function log_action(fname::String, args...)
     @debug "logging $fname in $SAVEFILE"
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
-    @debug outstring
+    @debug "outstring = $outstring"
     if SAVE_GAME_TO_FILE
         write(SAVEFILEIO, outstring)
     end
@@ -120,7 +121,7 @@ end
 function execute_api_call(game::Game, board::Board, line::String)
     # TODO initialize this globally somewhere?  Store in board?
     team_to_player = Dict([p.player.team => p.player for p in game.players])
-    @debug line #DEBUG "df" here is normal ?  The line is supposed to be "game df"
+    @debug "line = $line"
     values = split(line, " ")
     func_key = values[2]
     api_call = API_DICTIONARY[func_key]
@@ -139,8 +140,9 @@ function execute_api_call(game::Game, board::Board, line::String)
             api_call(game)
         end
     else
+        @debug "values[1] = $(values[1])"
         player = team_to_player[eval(Meta.parse(values[1]))]
-        @debug "API: $api_call($player, $(other_args...))"
+        @debug "API: $api_call(player $(values[1]), $(other_args...))" 
         api_call(player, other_args...)
     end
 end
