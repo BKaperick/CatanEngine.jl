@@ -196,7 +196,6 @@ function print_building(building)::String
 end
 
 function print_road(road, road_char)::String
-    println("\t\tWriting road ($(road.coord1), $(road.coord2)) color $(road.team)")
     team_color = Symbol(lowercase(string(road.team)))
     return lowercase(string(Crayon(foreground = team_color), road_char))
     #return lowercase(string(Crayon(foreground = road.team), string(road.team)[1]))

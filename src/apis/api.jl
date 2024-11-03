@@ -122,8 +122,9 @@ function _award_longest_road(board)
         len_left = _recursive_roads(roads_seen, current, current.coord1, coord_to_team_roads, board.coord_to_building)
         # coord_to_team_roads value is updated in first call, so we won't revisit the existing ones
         len_right = _recursive_roads(roads_seen, current, current.coord2, coord_to_team_roads, board.coord_to_building)
-
-        total_length = len_left + 1 + len_right
+        
+        # -1 since both left and right count the current road
+        total_length = len_left + len_right - 1
         team_to_length[team] = total_length
         max_length = total_length > max_length ? total_length : max_length
     end
@@ -139,6 +140,7 @@ function _award_longest_road(board)
             if board.longest_road != nothing && len == team_to_length[board.longest_road]
                 return
             else
+                println("Awarding longest road to $team since they've got a road of length $len (beating current best $(board.longest_road)")
                 board.longest_road = team
                 return
             end

@@ -312,9 +312,9 @@ end
 
 function test_longest_road()
     board = read_map(SAMPLE_MAP)
-    player1 = DefaultRobotPlayer(:Blue)
-    player2 = DefaultRobotPlayer(:Green)
-    players = Vector{PlayerType}([player1, player2])
+    player_blue = DefaultRobotPlayer(:Blue)
+    player_green = DefaultRobotPlayer(:Green)
+    players = Vector{PlayerType}([player_blue, player_green])
 
 
     # 31-32-33-34-35-36-37-38-39-3!-3@
@@ -328,9 +328,6 @@ function test_longest_road()
     build_road(board, :Blue, (2,1), (2,2))
     build_road(board, :Blue, (2,1), (3,2))
 
-    print_board(board)
-    print(board.roads)
-    print(board.coord_to_roads)
     @test board.longest_road == nothing
     
     build_road(board, :Blue, (2,5), (2,4))
@@ -351,10 +348,10 @@ function test_longest_road()
     build_road(board, :Green, (2,9), (2,8))
     build_road(board, :Green, (2,8), (2,7))
     
-    # Player 2 built 6 roads connected, but branched, so still player 1 has longest road
+    # Player green built 6 roads connected, but branched, so still player 1 has longest road
     @test board.longest_road == :Blue
     
-    # Now player 2 makes a loop, allowing 6 roads continuous
+    # Now player green makes a loop, allowing 6 roads continuous
     build_road(board, :Green, (3,8), (2,7))
     @test board.longest_road == :Green
 
@@ -363,12 +360,12 @@ function test_longest_road()
     build_road(board, :Blue, (5,3), (5,2))
     build_road(board, :Blue, (5,3), (5,4))
     
-    # Player 1 added more roads, but not contiguous, so they don't beat player 2
+    # Player blue added more roads, but not contiguous, so they don't beat player green
     @test board.longest_road == :Green
 
 
-    @test get_total_vp_count(board, player1.player) == 0
-    @test get_total_vp_count(board, player2.player) == 2
+    @test get_total_vp_count(board, player_blue.player) == 0
+    @test get_total_vp_count(board, player_green.player) == 2
 end
 
 function test_ports()
