@@ -363,9 +363,11 @@ function test_longest_road()
     # Player blue added more roads, but not contiguous, so they don't beat player green
     @test board.longest_road == :Green
 
-
-    @test get_total_vp_count(board, player_blue.player) == 0
-    @test get_total_vp_count(board, player_green.player) == 2
+    
+    # Two settlements
+    @test get_total_vp_count(board, player_blue.player) == 2
+    # Two settlements + Longest road
+    @test get_total_vp_count(board, player_green.player) == 4
 end
 
 function test_ports()
