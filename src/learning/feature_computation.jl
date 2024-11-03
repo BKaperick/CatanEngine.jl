@@ -34,7 +34,7 @@ end
 function compute_settlement_count(game, board, player) => get_building_count(board, :Settlement, player.team)
 function compute_city_count(game, board, player) => get_building_count(board, :City, player.team)
 function compute_road_count(game, board, player) => get_road_count(board, player.team)
-function compute_max_road_length(game, board, player) => get_road_count(board, player.team)
+function compute_max_road_length(game, board, player) => get_max_road_length(board, player.team)
 
 function get_building_count(board, building_type, team)
     out = 0
