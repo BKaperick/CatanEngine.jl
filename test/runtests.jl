@@ -505,6 +505,7 @@ end
 
 function run_tests(neverend = false)
     """
+    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -517,7 +518,6 @@ function run_tests(neverend = false)
     test_devcards()
     test_do_turn()
     test_call_api()
-    """
     test_longest_road()
     if neverend
         while true
@@ -527,7 +527,7 @@ function run_tests(neverend = false)
             setup_robot_game(SAVEFILE)
         end
     else
-        #setup_robot_game()
+        setup_robot_game()
     end
 end
 
