@@ -151,40 +151,13 @@ function _award_longest_road(board)
 end
 
 """
-    _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads)
-
-"""
-function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads, coord_to_buildings::Dict{Tuple, Building})
-
-    # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
-    coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
-    push!(roads_seen, current)
-    
-    #path = [root_coord, coord_to_explore]
-
-    # setdiff needed to handle loops
-    roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
-
-    # Base case - count only the current road
-    if (length(roads_to_explore) == 0)
-        return path
-    end
-    
-    max_val = 0
-    for road in roads_to_explore
-        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads, coord_to_buildings)
-        max_val = branch > max_val ? branch : max_val
-    end
-    return 1 + max_val
-end
-"""
     _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
 
 Returns the length of the longest unexplored branch starting from `root_coord`. 
 The length includes the current road, so minimum value is 1.
 We stop exploring if we reach a coord in `skip_coords`, which is used to stop counting in the case of intersecting opponent constructions.
 """
-function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
+function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
 
     # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
