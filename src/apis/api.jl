@@ -100,13 +100,57 @@ function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple
             board.coord_to_roads[coord] = Set([road])
         end
     end
-    _award_longest_road(board.roads)
+    _award_longest_road(board.roads, board.coord_to_roads, board.coord_to_building)
     return road
 end
 _build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
 
-function _award_longest_road(roads::Array{Road, 1})
-    # TODO implement
+function _award_longest_road(roads::Array{Road, 1}, coord_to_roads::Dict{Tuple, Set{Road}}, coord_to_building::Dict{Tuple,Building})
+    teams = [Set([r.team for r in roads])...]
+    team_to_length = Dict{Symbol, Int}()
+    max_team = nothing
+    max_length = 4
+    for team in teams
+        roads_seen = Set{Road}()
+        team_roads = [r for f in roads if r.team == team]
+        if length(team_roads) == 0
+            continue
+        end
+        current = team_roads[1]
+        coord_to_team_roads = Dict([c => r for (c,r) in coord_to_roads if r.team == team])
+
+        len_left = _recursive_roads(Set{Road}(), current, current.coord1, coord_to_team_roads)
+        # coord_to_team_roads value is updated in first call, so we won't revisit the existing ones
+        len_right = _recursive_roads(Set{Road}(), current, current.coord2, coord_to_team_roads)
+        team_to_length[team] = len_left + 1 + len_right
+    end
+
+end
+
+"""
+    _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads)
+
+Returns the length of the longest unexplored branch starting from `root_coord`. 
+The length includes the current road, so minimum value is 1.
+"""
+function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads)
+    coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
+    push!(roads_seen, current)
+
+    # setdiff needed to handle loops
+    roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
+
+    # Base case - count only the current road
+    if length(roads_to_explore) == 0
+        return 1
+    end
+    
+    max_val = 0
+    for road in roads_to_explore
+        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads)
+        max_val = branch > max_val ? branch : max_val
+    end
+    return 1 + max_val
 end
 
 function count_victory_points_from_board(board, team)
