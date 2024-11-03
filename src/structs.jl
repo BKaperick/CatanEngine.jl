@@ -43,7 +43,9 @@ mutable struct Board
     roads::Array{Road,1}
     robber_tile::Symbol
     spaces::Vector
+    # Team of player with the longest road card (is nothing if no player has a road at least 5 length)
+    longest_road::Union{Nothing, Symbol}
 end
 
-Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS))
+Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS), nothing)
 

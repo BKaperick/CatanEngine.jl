@@ -12,7 +12,6 @@ mutable struct Player
     played_dev_card_this_turn::Bool
     bought_dev_card_this_turn::Union{Nothing,Symbol}
     has_largest_army::Bool
-    has_longest_road::Bool
 end
 
 function Player(team::Symbol)
@@ -40,7 +39,6 @@ mutable struct PlayerPublicView
     played_dev_card_this_turn::Bool
     bought_dev_card_this_turn::Union{Nothing,Symbol}
     has_largest_army::Bool
-    has_longest_road::Bool
     
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
@@ -57,7 +55,6 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     player.played_dev_card_this_turn,
     player.bought_dev_card_this_turn,
     player.has_largest_army,
-    player.has_longest_road,
 
     # Resource count
     sum(values(player.resources)), 
@@ -65,7 +62,7 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     sum(values(player.dev_cards)),
     
     # Total victory points minus the ones that are hidden from view (only case is a dev card awarding one)
-    sum([item.second for item in player.dev_cards if item.first == :VictoryPoint])
+    player.vp_count - sum([item.second for item in player.dev_cards if item.first == :VictoryPoint])
    )
 
 
