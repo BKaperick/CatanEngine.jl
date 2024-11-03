@@ -114,18 +114,21 @@ function _award_longest_road(board)
         if length(team_roads) == 0
             continue
         end
+
+        coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
         for current in team_roads
-            coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
 
             skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])
-            
             roads_seen = Set{Road}()
+
+            # Note that `roads_seen` value updates within the recursived function are preserved so we won't revisit the existing ones
             len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
-            # roads_seen value is updated in first call, so we won't revisit the existing ones
             len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
             
-            # -1 since both left and right count the current road
+            # Subtract one since both left and right branch count the current road
             total_length = len_left + len_right - 1
+
+            # Take the max of all road segments calculated for this team
             prev = haskey(team_to_length, team) ? team_to_length[team] : 0
             team_to_length[team] = total_length > prev ? total_length : prev
             max_length = team_to_length[team] > max_length ? team_to_length[team] : max_length
