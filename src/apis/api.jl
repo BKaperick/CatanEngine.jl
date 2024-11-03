@@ -111,16 +111,17 @@ function _award_longest_road(board)
     max_length = 4
     for team in teams
         roads_seen = Set{Road}()
-        team_roads = [r for f in board.roads if r.team == team]
+        team_roads = [r for r in board.roads if r.team == team]
         if length(team_roads) == 0
             continue
         end
         current = team_roads[1]
-        coord_to_team_roads = Dict([c => r for (c,r) in coord_to_roads if r.team == team])
-
-        len_left = _recursive_roads(Set{Road}(), current, current.coord1, coord_to_team_roads, board.coord_to_buildings)
+        coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
+        
+        roads_seen = Set{Road}()
+        len_left = _recursive_roads(roads_seen, current, current.coord1, coord_to_team_roads, board.coord_to_building)
         # coord_to_team_roads value is updated in first call, so we won't revisit the existing ones
-        len_right = _recursive_roads(Set{Road}(), current, current.coord2, coord_to_team_roads, board.coord_to_buildings)
+        len_right = _recursive_roads(roads_seen, current, current.coord2, coord_to_team_roads, board.coord_to_building)
 
         total_length = len_left + 1 + len_right
         team_to_length[team] = total_length
@@ -151,8 +152,8 @@ end
 Returns the length of the longest unexplored branch starting from `root_coord`. 
 The length includes the current road, so minimum value is 1.
 """
-function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads, coord_to_buildings)
-    # TODO handle coord_to_buildings
+function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads, coord_to_buildings::Dict{Tuple, Building})
+    # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
     push!(roads_seen, current)
 
@@ -166,7 +167,7 @@ function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tupl
     
     max_val = 0
     for road in roads_to_explore
-        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads)
+        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads, coord_to_buildings)
         max_val = branch > max_val ? branch : max_val
     end
     return 1 + max_val
@@ -182,6 +183,9 @@ function count_victory_points_from_board(board, team)
                 count += 2
             end
         end
+    end
+    if board.longest_road == team
+        count += 2
     end
     return count
 end

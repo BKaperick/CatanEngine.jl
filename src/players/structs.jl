@@ -22,7 +22,7 @@ function Player(team::Symbol)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing, false, false)
+    return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing, false)
 end
 
 """
