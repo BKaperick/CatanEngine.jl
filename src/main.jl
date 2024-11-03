@@ -579,7 +579,7 @@ function print_player_stats(game, board, player::Player)
     if player.has_largest_army
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
-    if player.has_longest_road
+    if board.longest_road == player.team
         @info "Longest road"
     end
     if get_vp_count_from_dev_cards(player) > 0
