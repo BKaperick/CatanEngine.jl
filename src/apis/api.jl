@@ -100,12 +100,12 @@ function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple
             board.coord_to_roads[coord] = Set([road])
         end
     end
-    _award_longest_road(board.roads)
+    _award_longest_road(board)
     return road
 end
 _build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
 
-function _award_longest_road(roads::Array{Road, 1})
+function _award_longest_road(roads::Array{Road, 1}, coord_to_building::Dict{Tuple,Building})
     # TODO implement
 end
 

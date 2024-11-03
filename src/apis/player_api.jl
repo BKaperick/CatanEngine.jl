@@ -6,11 +6,27 @@ include("action_interface.jl")
 # Players API
 
 
-# Player API
+# Meta-game Player API: for initializing and storing results for purposes of algorithm training
+#
+"""
+    initialize_player(board::Board, player::PlayerType)
 
-# This function is useful to do any one-time computations of the player as soon as the board is generated.
+This function is useful to do any one-time computations of the player as soon 
+as the board is generated.
+"""
 function initialize_player(board::Board, player::PlayerType)
 end
+
+"""
+    save_parameters_after_game_end(board::Board, player::PlayerType)
+
+After the game, store or update parameters based on the end state
+"""
+function save_parameters_after_game_end(game::Game, board::Board, players::Vector{PlayerType}, player::PlayerType)
+end
+
+
+# Player API
 
 # Since we don't know which card the human took, we just give them the option to play anything
 function get_admissible_devcards(player::HumanPlayer)
