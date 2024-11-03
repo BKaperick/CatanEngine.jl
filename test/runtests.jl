@@ -323,6 +323,7 @@ function test_longest_road()
     
     build_settlement(board, :Green, (2,4))
     build_settlement(board, :Blue, (2,3))
+
     build_road(board, :Blue, (2,3), (2,4))
     build_road(board, :Blue, (2,2), (2,3))
     build_road(board, :Blue, (2,1), (2,2))
@@ -330,11 +331,10 @@ function test_longest_road()
 
     @test board.longest_road == nothing
     
-    build_road(board, :Blue, (2,5), (2,4))
     
     # Length 5 road, but it's intersected by :Green settlement
-    #@test board.longest_road == nothing
-    @test board.longest_road == :Blue #TODO implement intersection logic
+    build_road(board, :Blue, (2,5), (2,4))
+    @test board.longest_road == nothing
 
     # Now player one builds a 5-length road without intersection
     build_road(board, :Blue, (3,3), (3,2))

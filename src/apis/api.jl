@@ -110,23 +110,26 @@ function _award_longest_road(board)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
     for team in teams
-        roads_seen = Set{Road}()
         team_roads = [r for r in board.roads if r.team == team]
         if length(team_roads) == 0
             continue
         end
-        current = team_roads[1]
-        coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
-        
-        roads_seen = Set{Road}()
-        len_left = _recursive_roads(roads_seen, current, current.coord1, coord_to_team_roads, board.coord_to_building)
-        # coord_to_team_roads value is updated in first call, so we won't revisit the existing ones
-        len_right = _recursive_roads(roads_seen, current, current.coord2, coord_to_team_roads, board.coord_to_building)
-        
-        # -1 since both left and right count the current road
-        total_length = len_left + len_right - 1
-        team_to_length[team] = total_length
-        max_length = total_length > max_length ? total_length : max_length
+        for current in team_roads
+            coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
+
+            skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])
+            
+            roads_seen = Set{Road}()
+            len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
+            # roads_seen value is updated in first call, so we won't revisit the existing ones
+            len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
+            
+            # -1 since both left and right count the current road
+            total_length = len_left + len_right - 1
+            prev = haskey(team_to_length, team) ? team_to_length[team] : 0
+            team_to_length[team] = total_length > prev ? total_length : prev
+            max_length = team_to_length[team] > max_length ? team_to_length[team] : max_length
+        end
     end
     
     # Do nothing if max road length is <= 4
@@ -140,7 +143,6 @@ function _award_longest_road(board)
             if board.longest_road != nothing && len == team_to_length[board.longest_road]
                 return
             else
-                println("Awarding longest road to $team since they've got a road of length $len (beating current best $(board.longest_road)")
                 board.longest_road = team
                 return
             end
@@ -151,13 +153,48 @@ end
 """
     _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads)
 
-Returns the length of the longest unexplored branch starting from `root_coord`. 
-The length includes the current road, so minimum value is 1.
 """
 function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tuple, coord_to_roads, coord_to_buildings::Dict{Tuple, Building})
+
     # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
     push!(roads_seen, current)
+    
+    #path = [root_coord, coord_to_explore]
+
+    # setdiff needed to handle loops
+    roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
+
+    # Base case - count only the current road
+    if (length(roads_to_explore) == 0)
+        return path
+    end
+    
+    max_val = 0
+    for road in roads_to_explore
+        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads, coord_to_buildings)
+        max_val = branch > max_val ? branch : max_val
+    end
+    return 1 + max_val
+end
+"""
+    _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
+
+Returns the length of the longest unexplored branch starting from `root_coord`. 
+The length includes the current road, so minimum value is 1.
+We stop exploring if we reach a coord in `skip_coords`, which is used to stop counting in the case of intersecting opponent constructions.
+"""
+function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
+
+    # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
+    coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
+    push!(roads_seen, current)
+
+    if coord_to_explore in skip_coords
+        return 1
+    end
+    
+    #path = [root_coord, coord_to_explore]
 
     # setdiff needed to handle loops
     roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
@@ -169,7 +206,7 @@ function _recursive_roads(roads_seen::Set{Road}, current::Road, root_coord::Tupl
     
     max_val = 0
     for road in roads_to_explore
-        branch = _recursive_roads(roads_seen, road, coord_to_explore, coord_to_roads, coord_to_buildings)
+        branch = _recursive_roads_skip_coord(roads_seen, road, coord_to_explore, skip_coords, coord_to_roads)
         max_val = branch > max_val ? branch : max_val
     end
     return 1 + max_val
