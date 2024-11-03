@@ -42,20 +42,28 @@ function hexagon(board, tile, b,x,y)
     
     # Add edge info
     vertices_list = vertices(x,y)
+
+    """
+    e - 2-tuple of physical coordinates for hexagon edges
+    c - 2-tuple of logical coordinates for hexagon vertices
+
+    We iterate through coords, and see if any roads have *both* endpoints on the current hexagon
+    """
     for (i,(e,c)) in enumerate(zip(edges(x,y),coords))
         if haskey(board.coord_to_roads, c)
             roads = board.coord_to_roads[c]
             for road in roads
                 c2 = road.coord1 == c ? road.coord2 : road.coord1
-                if i < length(vertices_list)
-                    if c2 == coords[i+1] # TODO: not the correct condition
-                        road_str = print_road(road, b[e[2]][e[1]])
-                        b[e[2]][e[1]] = road_str
-                        if b[e[2]][e[1]-1] == "-"
-                            b[e[2]][e[1]-1] = road_str
-                        elseif b[e[2]][e[1]+1] == "-"
-                            b[e[2]][e[1]+1] = road_str
-                        end
+                
+                # We check that this road lies on the current edge.  We rely on the correct ordering of vertices_list
+                # so we can simply check that c2 is the next element in coords (with wraparound to coords[1] if needed
+                if (i < length(vertices_list) && c2 == coords[i+1]) || (i == length(vertices_list) && c2 == coords[1])
+                    road_str = print_road(road, b[e[2]][e[1]])
+                    b[e[2]][e[1]] = road_str
+                    if b[e[2]][e[1]-1] == "-"
+                        b[e[2]][e[1]-1] = road_str
+                    elseif b[e[2]][e[1]+1] == "-"
+                        b[e[2]][e[1]+1] = road_str
                     end
                 end
             end

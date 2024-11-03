@@ -47,9 +47,6 @@ function get_public_vp_count(board, player::Player)
     if player.has_largest_army
         points += 2
     end
-    if player.has_longest_road
-        points += 2
-    end
     return points
 end
 
