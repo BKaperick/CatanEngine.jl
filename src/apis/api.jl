@@ -158,22 +158,15 @@ The length includes the current road, so minimum value is 1.
 We stop exploring if we reach a coord in `skip_coords`, which is used to stop counting in the case of intersecting opponent constructions.
 """
 function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
-
-    # TODO handle coord_to_buildings - we need to return the path and then do a check afterwards
+    
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
     push!(roads_seen, current)
 
-    if coord_to_explore in skip_coords
-        return 1
-    end
-    
-    #path = [root_coord, coord_to_explore]
-
-    # setdiff needed to handle loops
+    # setdiff is used handle infinite counting in case of loops 
     roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
-
-    # Base case - count only the current road
-    if (length(roads_to_explore) == 0)
+    
+    # Base case - road ends on an opponent's building, or it's a deadend -- count only the current road
+    if (coord_to_explore in skip_coords) || (length(roads_to_explore) == 0)
         return 1
     end
     
