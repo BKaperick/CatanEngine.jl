@@ -47,20 +47,6 @@ function _get_total_resource_probabilities(board)
     return resource_to_proba_weight
 end
 
-DICEVALUE_TO_PROBA_WEIGHT = Dict(
-                                 2 => 1,
-                                 12 => 1,
-                                 3 => 2,
-                                 11 => 2,
-                                 4 => 3,
-                                 10 => 3,
-                                 5 => 4,
-                                 9 => 4,
-                                 6 => 5,
-                                 8 => 5,
-                                 7 => 0
-                                )
-
 function choose_accept_trade(board::Board, player::TestRobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     return rand() > player.accept_trade_willingness + (get_public_vp_count(board, from_player) / 20)
 end
