@@ -31,10 +31,67 @@ end
 # Helper functions start with `get_`, and feature computers take (game, board, player) and start with `compute_`.
 
 @feature :SettlementCount
-function compute_settlement_count(game, board, player) => get_building_count(board, :Settlement, player.team)
-function compute_city_count(game, board, player) => get_building_count(board, :City, player.team)
-function compute_road_count(game, board, player) => get_road_count(board, player.team)
+function compute_count_settlement(game, board, player) => get_building_count(board, :Settlement, player.team)
+function compute_count_city(game, board, player) => get_building_count(board, :City, player.team)
+function compute_count_road(game, board, player) => get_road_count(board, player.team)
 function compute_max_road_length(game, board, player) => get_max_road_length(board, player.team)
+
+function compute_sum_wood_dice_weight(game, board, player) => get_sum_resource_dice_weight(board, player.team, :Wood)
+function compute_sum_brick_dice_weight(game, board, player) => get_sum_resource_dice_weight(board, player.team, :Brick)
+function compute_sum_pasture_dice_weight(game, board, player) => get_sum_resource_dice_weight(board, player.team, :Pasture)
+function compute_sum_stone_dice_weight(game, board, player) => get_sum_resource_dice_weight(board, player.team, :Stone)
+function compute_sum_grain_dice_weight(game, board, player) => get_sum_resource_dice_weight(board, player.team, :Grain)
+
+function compute_count_port_wood(game, board, player) => get_resource_port_count(board, player.team, :Wood)
+function compute_count_port_brick(game, board, player) => get_resource_port_count(board, player.team, :Brick)
+function compute_count_port_pasture(game, board, player) => get_resource_port_count(board, player.team, :Pasture)
+function compute_count_port_stone(game, board, player) => get_resource_port_count(board, player.team, :Stone)
+function compute_count_port_grain(game, board, player) => get_resource_port_count(board, player.team, :Grain)
+
+function compute_count_hand_wood(game, board, player) => get_resource_hand_count(player, :Wood)
+function compute_count_hand_brick(game, board, player) => get_resource_hand_count(player, :Brick)
+function compute_count_hand_pasture(game, board, player) => get_resource_hand_count(player, :Pasture)
+function compute_count_hand_stone(game, board, player) => get_resource_hand_count(player, :Stone)
+function compute_count_hand_grain(game, board, player) => get_resource_hand_count(player, :Grain)
+
+function compute_count_dev_cards_owned_knight(game, board, player) => get_dev_cards_owned_count(player, :Knight)
+function compute_count_dev_cards_owned_monopoly(game, board, player) => get_dev_cards_owned_count(player, :Monopoly)
+function compute_count_dev_cards_owned_year_of_plenty(game, board, player) => get_dev_cards_owned_count(player, :YearOfPlenty)
+function compute_count_dev_cards_owned_road_building(game, board, player) => get_dev_cards_owned_count(player, :RoadBuilding)
+function compute_count_dev_cards_owned_victory_point(game, board, player) => get_dev_cards_owned_count(player, :VictoryPoint)
+
+function compute_count_victory_points(game, board, player) => player.vp_count
+
+function compute_features(game, board, player)
+    return [
+        :CountSettlement => compute_count_settlement(game, board, player),
+        :CountCity => compute_count_city(game, board, player),
+        :CountRoad => compute_count_road(game, board, player),
+
+        :SumWoodDiceWeight => compute_sum_wood_dice_weight(game, board, player),
+        :SumBrickDiceWeight => compute_sum_brick_dice_weight(game, board, player),
+        :SumPastureDiceWeight => compute_sum_pasture_dice_weight(game, board, player),
+        :SumStoneDiceWeight => compute_sum_stone_dice_weight(game, board, player),
+        :SumGrainDiceWeight => compute_sum_grain_dice_weight(game, board, player),
+        :CountPortWood => compute_count_port_wood(game, board, player),
+        :CountPortBrick => compute_count_port_brick(game, board, player),
+        :CountPortPasture => compute_count_port_pasture(game, board, player),
+        :CountPortStone => compute_count_port_stone(game, board, player),
+        :CountPortGrain => compute_count_port_grain(game, board, player),
+
+        :CountHandWood => compute_count_hand_wood(game, board, player),
+        :CountHandBrick => compute_count_hand_brick(game, board, player),
+        :CountHandPasture => compute_count_hand_pasture(game, board, player),
+        :CountHandStone => compute_count_hand_stone(game, board, player),
+        :CountHandGrain => compute_count_hand_grain(game, board, player),
+        :CountDevCardsKnight => compute_count_dev_cards_owned_knight(game, board, player),
+        :CountDevCardsMonopoly => compute_count_dev_cards_owned_monopoly(game, board, player),
+        :CountDevCardsYearOfPlenty => compute_count_dev_cards_owned_year_of_plenty(game, board, player),
+        :CountDevCardsRoadBuilding => compute_count_dev_cards_owned_road_building(game, board, player),
+        :CountDevCardsVictoryPoint => compute_count_dev_cards_owned_victory_point(game, board, player)
+        :CountVictoryPoints => compute_count_victory_points(game, board, player)
+       ]
+end
 
 function get_building_count(board, building_type, team)
     out = 0
@@ -54,4 +111,54 @@ function get_road_count(board, team)
         end
     end
     return out
+end
+
+"""
+    get_sum_resource_dice_weight(board, player.team, resource)
+
+The sum of dice weight (
+"""
+function get_sum_resource_dice_weight(board, team, resource)
+    total_weight = 0
+    for (c,b) in board.coord_to_building
+        if b.team == team
+            for tile in COORD_TO_TILES[c]
+                if board.tile_to_resource[tile] == resource
+                    weight = DICEVALUE_TO_PROBA_WEIGHT[board.tile_to_dicevalue[tile]]
+                    if b.type == :City
+                        weight *= 2
+                    end
+
+                    total_weight += weight
+                end
+            end
+        end
+    end
+end
+function get_resource_hand_count(player, resource)
+    return player.resources[resource]
+end
+
+function get_resource_port_count(board, team, resource)
+    count = 0
+    for (c,p) in board.coord_to_port
+        if p == resource && board.coord_to_building[c].team == team
+            count += 1
+        end
+    end
+end
+
+function get_dev_cards_owned_count(player, dev_card)
+    count = 0
+    for (card,cnt) in player.dev_cards
+        if card == dev_card
+            count += cnt
+        end
+    end
+    for (card,cnt) in player.dev_cards_used
+        if card == dev_card
+            count += cnt
+        end
+    end
+    return count
 end

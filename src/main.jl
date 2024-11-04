@@ -444,14 +444,22 @@ function someone_has_won(game, board, players::Vector{PlayerType})::Bool
 end
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
     board_points = count_victory_points_from_board(board) 
+    winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
             @info "WINNER $player_points ($player)"
             print_board(board)
             print_player_stats(game, board, player.player)
-            return player
+            winner = player
         end
+    end
+    if winner != nothing
+        file = open("data_game.csv", "a")
+        for player in players
+            save_parameters_after_game_end(file, game, board, players, player)
+        end
+        close(file)
     end
     return nothing
 end
