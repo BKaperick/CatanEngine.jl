@@ -454,15 +454,9 @@ function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,Pla
             winner = player
         end
     end
-    if winner != nothing
-        file = open("data_game.csv", "a")
-        for player in players
-            save_parameters_after_game_end(file, game, board, players, player)
-        end
-        close(file)
-    end
-    return nothing
+    return winner
 end
+
 # TODO rename to `initialize_and_do_game`
 initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
 function initialize_game(game::Game, csvfile::String, in_progress_game_file)
@@ -570,11 +564,16 @@ function do_game(game::Game, board::Board)
         end
         finish_turn(game)
 
-        if game.turn_num >= 100
+        if game.turn_num >= 500
             break
         end
     end
-    return get_winner(game, board, game.players)
+    winner = get_winner(game, board, game.players)
+
+    # Post game steps (writing features, updating models, etc)
+    if winner != nothing && WRITE_FEATURES
+        write_features_file(game, board, winner)
+    end
 end
 
 function print_player_stats(game, board, player::Player)

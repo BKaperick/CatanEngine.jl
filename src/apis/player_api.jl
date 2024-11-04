@@ -1,13 +1,15 @@
 import Random
 include("../players/human_player.jl")
 include("../players/robot_player.jl")
+include("../players/empath_robot_player.jl")
 include("action_interface.jl")
 
 # Players API
 
-
+#
 # Meta-game Player API: for initializing and storing results for purposes of algorithm training
 #
+
 """
     initialize_player(board::Board, player::PlayerType)
 
@@ -22,11 +24,12 @@ end
 
 After the game, store or update parameters based on the end state
 """
-function save_parameters_after_game_end(game::Game, board::Board, players::Vector{PlayerType}, player::PlayerType)
+function save_parameters_after_game_end(file::IO, game::Game, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
 end
 
 
 # Player API
+
 
 # Since we don't know which card the human took, we just give them the option to play anything
 function get_admissible_devcards(player::HumanPlayer)
