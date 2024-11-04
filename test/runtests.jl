@@ -534,5 +534,5 @@ end
 if (length(ARGS) > 0)
     setup_robot_game(ARGS[1])
 else
-    run_tests(true)
+    run_tests(false)
 end
