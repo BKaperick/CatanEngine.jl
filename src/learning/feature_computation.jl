@@ -118,7 +118,7 @@ end
 
 The sum of dice weight (
 """
-function get_sum_resource_dice_weight(board, team, resource)
+function get_sum_resource_dice_weight(board, team, resource)::Int
     total_weight = 0
     for (c,b) in board.coord_to_building
         if b.team == team
@@ -134,21 +134,23 @@ function get_sum_resource_dice_weight(board, team, resource)
             end
         end
     end
+    return total_weight
 end
-function get_resource_hand_count(player, resource)
+function get_resource_hand_count(player, resource)::Int
     return haskey(player.resources, resource) ? player.resources[resource] : 0
 end
 
-function get_resource_port_count(board, team, resource)
+function get_resource_port_count(board, team, resource)::Int
     count = 0
     for (c,p) in board.coord_to_port
         if p == resource && haskey(board.coord_to_building, c) && board.coord_to_building[c].team == team
             count += 1
         end
     end
+    return count
 end
 
-function get_dev_cards_owned_count(player, dev_card)
+function get_dev_cards_owned_count(player, dev_card)::Int
     count = 0
     for (card,cnt) in player.dev_cards
         if card == dev_card
