@@ -1,11 +1,13 @@
 include("main.jl")
-include("player_api.jl")
+include("apis/player_api.jl")
 
 SAVEFILEIO = open(SAVEFILE, "a")
 
 team_and_playertype = [
-                      (:Default, DefaultRobotPlayer),
-                      (:Test, TestRobotPlayer),
+                      (:Blue, EmpathRobotPlayer),
+                      (:Green, EmpathRobotPlayer),
+                      (:Cyan, EmpathRobotPlayer),
+                      (:Yellow, EmpathRobotPlayer),
         ]
 players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
 
@@ -14,7 +16,7 @@ logger = ConsoleLogger(stderr, Logging.Warn)
 global_logger(logger)
 SAVE_GAME_TO_FILE = false
 
-N = 10
+N = 1
 winners = Dict()
 for i=1:N
     game = Game(copy(players))
