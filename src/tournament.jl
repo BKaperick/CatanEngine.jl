@@ -16,7 +16,7 @@ logger = ConsoleLogger(stderr, Logging.Warn)
 global_logger(logger)
 SAVE_GAME_TO_FILE = false
 
-N = 1
+N = 9
 winners = Dict()
 for i=1:N
     game = Game(copy(players))
