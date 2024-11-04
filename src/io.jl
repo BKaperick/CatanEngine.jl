@@ -1,4 +1,5 @@
 using Logging
+using Random
 include("board.jl")
 include("parsing.jl")
 include("structs.jl")
@@ -81,6 +82,37 @@ function read_map(csvfile)::Board
     @assert length([r for r in values(board.tile_to_resource) if r == :Pasture]) == RESOURCE_TO_COUNT[:Pasture]
     @assert length([r for r in values(board.tile_to_resource) if r == :Desert]) == RESOURCE_TO_COUNT[:Desert]
     return board
+end
+
+"""
+Generate a random board conforming to the following constraints:
+* RESOURCE_TO_COUNT[resource_symbol] of each
+
+"""
+function generate_random_map(fname::String)
+    io = open(fname, "w")
+    vcat([repeat([string(s)], 5) for s in "abc"]...)
+    resource_bag = shuffle!(vcat([repeat([lowercase(string(r)[1])], c) for (r,c) in RESOURCE_TO_COUNT]...))
+    dicevalue_bag = shuffle!(vcat([repeat([r], c) for (r,c) in DICEVALUE_TO_COUNT]...))
+
+    for (l,r,d) in zip("ABCDEFGHIJKLMNOPQRS", resource_bag, dicevalue_bag)
+        write(io, "$l,$d,$r\n")
+    end
+    
+    ports = shuffle(1:9)[1:5]
+    resources = ["p","s","g","w","b"]
+    for (p,r) in zip(ports,resources)
+        write(io, "$(string(p)),$r\n")
+    end
+
+    """
+3,p
+5,s
+6,g
+8,w
+9,b
+   """ 
+   close(io)
 end
 
 

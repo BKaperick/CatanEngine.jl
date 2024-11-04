@@ -111,6 +111,19 @@ RESOURCE_TO_COUNT = Dict([
     :Pasture => 4
     :Desert => 1
    ]) 
+DICEVALUE_TO_COUNT = Dict([
+    2 => 1
+    3 => 2
+    4 => 2
+    5 => 2
+    6 => 2
+    7 => 1
+    8 => 2
+    9 => 2
+    10 => 2
+    11 => 2
+    12 => 1
+   ]) 
 
 COORD_TO_PORTNUM = Dict([
                          (1,1) => 1,
