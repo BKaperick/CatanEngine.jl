@@ -215,3 +215,16 @@ for elem in TILE_TO_COORDS
 end
 DIMS = [7,9,11,11,9,7]
 
+DICEVALUE_TO_PROBA_WEIGHT = Dict(
+                                 2 => 1,
+                                 12 => 1,
+                                 3 => 2,
+                                 11 => 2,
+                                 4 => 3,
+                                 10 => 3,
+                                 5 => 4,
+                                 9 => 4,
+                                 6 => 5,
+                                 8 => 5,
+                                 7 => 0
+                                )
