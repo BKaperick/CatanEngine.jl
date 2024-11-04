@@ -146,7 +146,7 @@ function test_log()
     board = read_map(SAMPLE_MAP)
     @info "testing savefile $SAVEFILE"
     new_game = Game(players)
-    new_game, board = load_gamestate(new_game, board, SAVEFILE)
+    new_game, new_board = load_gamestate(new_game, board, SAVEFILE)
     @test game.devcards == new_game.devcards
     @test game.already_played_this_turn == new_game.already_played_this_turn
     @test game.turn_num == new_game.turn_num
@@ -164,7 +164,7 @@ function test_log()
         @test player.played_dev_card_this_turn == new_player.played_dev_card_this_turn
         @test player.bought_dev_card_this_turn == new_player.bought_dev_card_this_turn
         @test player.has_largest_army == new_player.has_largest_army
-        @test player.has_longest_road == new_player.has_longest_road
+        @test new_board.longest_road == board.longest_road
     end
     rm(SAVEFILE)
 end
@@ -267,6 +267,7 @@ function test_devcards()
     @test get_total_vp_count(board, player1.player) == 1
     @test get_total_vp_count(board, player2.player) == 0
 end
+
 function test_largest_army()
     board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
@@ -307,6 +308,66 @@ function test_largest_army()
     assign_largest_army(players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
+end
+
+function test_longest_road()
+    board = read_map(SAMPLE_MAP)
+    player_blue = DefaultRobotPlayer(:Blue)
+    player_green = DefaultRobotPlayer(:Green)
+    players = Vector{PlayerType}([player_blue, player_green])
+
+
+    # 31-32-33-34-35-36-37-38-39-3!-3@
+    # (9)|  D  |  E  |  F  |  G  |
+    #    21-22-23-24-25-26-27-28-29
+    
+    build_settlement(board, :Green, (2,4))
+    build_settlement(board, :Blue, (2,3))
+
+    build_road(board, :Blue, (2,3), (2,4))
+    build_road(board, :Blue, (2,2), (2,3))
+    build_road(board, :Blue, (2,1), (2,2))
+    build_road(board, :Blue, (2,1), (3,2))
+
+    @test board.longest_road == nothing
+    
+    
+    # Length 5 road, but it's intersected by :Green settlement
+    build_road(board, :Blue, (2,5), (2,4))
+    @test board.longest_road == nothing
+
+    # Now player one builds a 5-length road without intersection
+    build_road(board, :Blue, (3,3), (3,2))
+    @test board.longest_road == :Blue
+
+    build_settlement(board, :Green, (3,10))
+    build_road(board, :Green, (3,10), (3,11))
+    build_road(board, :Green, (3,10), (3,9))
+    build_road(board, :Green, (3,8), (3,9))
+    build_road(board, :Green, (3,10), (2,9))
+    build_road(board, :Green, (2,9), (2,8))
+    build_road(board, :Green, (2,8), (2,7))
+    
+    # Player green built 6 roads connected, but branched, so still player 1 has longest road
+    @test board.longest_road == :Blue
+    
+    # Now player green makes a loop, allowing 6 roads continuous
+    build_road(board, :Green, (3,8), (2,7))
+    @test board.longest_road == :Green
+
+    build_settlement(board, :Blue, (5,1))
+    build_road(board, :Blue, (5,1), (5,2))
+    build_road(board, :Blue, (5,3), (5,2))
+    build_road(board, :Blue, (5,3), (5,4))
+    
+    # Player blue added more roads, but not contiguous, so they don't beat player green
+    @test board.longest_road == :Green
+
+    
+    # Two settlements
+    @test get_total_vp_count(board, player_blue.player) == 2
+    # Two settlements + Longest road
+    @test get_total_vp_count(board, player_green.player) == 4
 end
 
 function test_ports()
@@ -444,6 +505,7 @@ end
 
 function run_tests(neverend = false)
     """
+    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -456,7 +518,7 @@ function run_tests(neverend = false)
     test_devcards()
     test_do_turn()
     test_call_api()
-    """
+    test_longest_road()
     if neverend
         while true
             println("starting game")
@@ -467,12 +529,10 @@ function run_tests(neverend = false)
     else
         setup_robot_game()
     end
-    test_actions()
 end
 
 if (length(ARGS) > 0)
     setup_robot_game(ARGS[1])
 else
-    run_tests(true)
+    run_tests(false)
 end
-#run_tests(false)

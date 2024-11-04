@@ -6,6 +6,14 @@ logger = ConsoleLogger(stderr, Logging.Debug)
 #logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
 global_logger(logger)
 
+
+"""
+In tournament play, we want to write a set of game-state features to a common csv file for training,
+assigned here.
+"""
+FEATURES_FILE = "features.csv"
+WRITE_FEATURES = true
+
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
 SAVE_GAME_TO_FILE = true
@@ -215,3 +223,16 @@ for elem in TILE_TO_COORDS
 end
 DIMS = [7,9,11,11,9,7]
 
+DICEVALUE_TO_PROBA_WEIGHT = Dict(
+                                 2 => 1,
+                                 12 => 1,
+                                 3 => 2,
+                                 11 => 2,
+                                 4 => 3,
+                                 10 => 3,
+                                 5 => 4,
+                                 9 => 4,
+                                 6 => 5,
+                                 8 => 5,
+                                 7 => 0
+                                )

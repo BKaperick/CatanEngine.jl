@@ -168,3 +168,34 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
         showerror(io, ex.S)
     end
 end
+
+#
+# Feature writing utils
+#
+
+function _write_feature_file_header(file::IO, game::Game, board::Board, player::PlayerType)
+    features = compute_features(game, board, player.player)
+    header = join([get_csv_friendly(f[1]) for f in features], ",")
+    label = get_csv_friendly("WonGame")
+    if filesize(FEATURES_FILE) == 0
+        write(file, "$header,$label\n")
+    end
+end
+
+function write_features_file(game::Game, board::Board, winner::PlayerType) 
+    file = open(FEATURES_FILE, "a")
+    _write_feature_file_header(file, game, board, winner)
+
+    for player in game.players
+        save_parameters_after_game_end(file, game, board, game.players, player, winner.player.team)
+    end
+    close(file)
+
+end
+
+get_csv_friendly(value::Nothing) = "\"\""
+get_csv_friendly(value::AbstractString) = "\"$value\""
+get_csv_friendly(value::Int) = string(value)
+get_csv_friendly(value::Bool) = string(Int(value))
+get_csv_friendly(value::Symbol) = "\"$value\""
+get_csv_friendly(value) = "\"$value\""

@@ -105,7 +105,6 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
     return nothing
 end
 
-# TODO we need to remove game from here, as it contains players
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)

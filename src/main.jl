@@ -444,17 +444,19 @@ function someone_has_won(game, board, players::Vector{PlayerType})::Bool
 end
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
     board_points = count_victory_points_from_board(board) 
+    winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
             @info "WINNER $player_points ($player)"
             print_board(board)
             print_player_stats(game, board, player.player)
-            return player
+            winner = player
         end
     end
-    return nothing
+    return winner
 end
+
 # TODO rename to `initialize_and_do_game`
 initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
 function initialize_game(game::Game, csvfile::String, in_progress_game_file)
@@ -562,11 +564,16 @@ function do_game(game::Game, board::Board)
         end
         finish_turn(game)
 
-        if game.turn_num >= 100
+        if game.turn_num >= 500
             break
         end
     end
-    return get_winner(game, board, game.players)
+    winner = get_winner(game, board, game.players)
+
+    # Post game steps (writing features, updating models, etc)
+    if winner != nothing && WRITE_FEATURES
+        write_features_file(game, board, winner)
+    end
 end
 
 function print_player_stats(game, board, player::Player)
@@ -579,7 +586,7 @@ function print_player_stats(game, board, player::Player)
     if player.has_largest_army
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
-    if player.has_longest_road
+    if board.longest_road == player.team
         @info "Longest road"
     end
     if get_vp_count_from_dev_cards(player) > 0
