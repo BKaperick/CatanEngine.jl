@@ -84,6 +84,11 @@ mutable struct TestRobotPlayer <: RobotPlayer
     resource_to_proba_weight::Dict{Symbol, Int}
 end
 
+mutable struct EmpathRobotPlayer <: RobotPlayer
+    player::Player
+end
+
+EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(Player(team))
 HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
 HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
 
