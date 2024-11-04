@@ -1,16 +1,35 @@
 import Random
 include("../players/human_player.jl")
 include("../players/robot_player.jl")
+include("../players/empath_robot_player.jl")
 include("action_interface.jl")
 
 # Players API
 
+#
+# Meta-game Player API: for initializing and storing results for purposes of algorithm training
+#
+
+"""
+    initialize_player(board::Board, player::PlayerType)
+
+This function is useful to do any one-time computations of the player as soon 
+as the board is generated.
+"""
+function initialize_player(board::Board, player::PlayerType)
+end
+
+"""
+    save_parameters_after_game_end(board::Board, player::PlayerType)
+
+After the game, store or update parameters based on the end state
+"""
+function save_parameters_after_game_end(file::IO, game::Game, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
+end
+
 
 # Player API
 
-# This function is useful to do any one-time computations of the player as soon as the board is generated.
-function initialize_player(board::Board, player::PlayerType)
-end
 
 # Since we don't know which card the human took, we just give them the option to play anything
 function get_admissible_devcards(player::HumanPlayer)

@@ -110,29 +110,9 @@ function _award_longest_road(board)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
     for team in teams
-        team_roads = [r for r in board.roads if r.team == team]
-        if length(team_roads) == 0
-            continue
-        end
-
-        coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
-        for current in team_roads
-
-            skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])
-            roads_seen = Set{Road}()
-
-            # Note that `roads_seen` value updates within the recursived function are preserved so we won't revisit the existing ones
-            len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
-            len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
-            
-            # Subtract one since both left and right branch count the current road
-            total_length = len_left + len_right - 1
-
-            # Take the max of all road segments calculated for this team
-            prev = haskey(team_to_length, team) ? team_to_length[team] : 0
-            team_to_length[team] = total_length > prev ? total_length : prev
-            max_length = team_to_length[team] > max_length ? team_to_length[team] : max_length
-        end
+        current_len = get_max_road_length(board, team)
+        max_length = current_len > max_length ? current_len : max_length
+        team_to_length[team] = current_len 
     end
     
     # Do nothing if max road length is <= 4
@@ -151,6 +131,33 @@ function _award_longest_road(board)
             end
         end
     end
+end
+
+function get_max_road_length(board, team)
+    team_roads = [r for r in board.roads if r.team == team]
+    if length(team_roads) == 0
+        return 0
+    end
+
+    max_length = 0
+
+    coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
+    for current in team_roads
+
+        skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])
+        roads_seen = Set{Road}()
+
+        # Note that `roads_seen` value updates within the recursived function are preserved so we won't revisit the existing ones
+        len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
+        len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
+        
+        # Subtract one since both left and right branch count the current road
+        total_length = len_left + len_right - 1
+
+        # Take the max of all road segments calculated for this team
+        max_length = total_length > max_length ? total_length : max_length
+    end
+    return max_length
 end
 
 """
