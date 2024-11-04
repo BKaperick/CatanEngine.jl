@@ -9,7 +9,7 @@ team_and_playertype = [
                       (:Cyan, EmpathRobotPlayer),
                       (:Yellow, EmpathRobotPlayer),
         ]
-players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+generate_players() = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
 
 # Surpress all normal logs
 logger = ConsoleLogger(stderr, Logging.Warn)
@@ -17,16 +17,16 @@ global_logger(logger)
 SAVE_GAME_TO_FILE = false
 
 # Number of games to play per map
-N = 10
+N = 1000
 # Number of maps to generate
-M = 2
+M = 100
 winners = Dict()
 
 map_file = "_temp_map_file.csv"
 for j=1:M
     map = generate_random_map(map_file)
     for i=1:N
-        game = Game(copy(players))
+        game = Game(generate_players())
         winner = initialize_game(game, map_file)
 
         k = winner
