@@ -6,6 +6,8 @@ end
 function get_probability_of_victory_estimate(board::Board, players::Vector{PlayerPublicView}, player::PlayerPublicView)::Float
 end
 
+
+
 function save_parameters_after_game_end(file::IO, game::Game, board::Board, players::Vector{PlayerType}, player::EmpathRobotPlayer, winner_team::Symbol)
     features = compute_features(game, board, player.player)
 
