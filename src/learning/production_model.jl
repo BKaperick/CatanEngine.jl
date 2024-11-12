@@ -5,6 +5,9 @@ using DataFrames
 import DataFramesMeta as DFM
 using DelimitedFiles
 
+function load_tree_model()
+    @load DecisionTreeClassifier pkg=BetaML
+end
 """
 
 """
@@ -26,6 +29,13 @@ function train_model_from_csv(tree, csv_name="../../features.csv")
 end
 
 function predict_model(machine, board, player)
-    features = [x[1] for x in compute_features(board, player)]
-    return predict(machine, features)
+    features = [x for x in compute_features(board, player.player)]
+    feature_vals = [x[2] for x in features]
+    data = reshape(feature_vals, 1, length(feature_vals))
+    header = [get_csv_friendly(f[1]) for f in features]
+    println(data)
+    println(header)
+    df = DataFrame(data, vec(header))
+    return predict(machine, df)
+    #return MLJ.predict(machine, df)
 end
