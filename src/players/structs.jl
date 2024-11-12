@@ -1,3 +1,5 @@
+include("../learning/production_model.jl")
+
 abstract type PlayerType end
 mutable struct Player
     # Private fields (can't be directly accessed by other players)
@@ -89,9 +91,9 @@ mutable struct EmpathRobotPlayer <: RobotPlayer
     machine
 end
 
-function EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
+EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
 function EmpathRobotPlayer(team::Symbol, features_file_name::String)
-    Tree = @load DecisionTreeClassifier pkg=BetaML
+    Tree = load_tree_model()
     tree = Tree(
         max_depth = 6,
         min_gain = 0.0,
