@@ -422,7 +422,7 @@ function do_turn(game, board, player)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(board, [PlayerPublicView(p) for p in game.players], player, actions)
+        next_action = choose_next_action(game, board, [PlayerPublicView(p) for p in game.players], player, actions)
         if next_action != nothing
             next_action(game, board)
         end

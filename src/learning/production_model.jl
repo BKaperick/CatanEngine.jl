@@ -25,7 +25,7 @@ function train_model_from_csv(tree, csv_name="../../features.csv")
     return mach
 end
 
-function predict_model(machine, game, board, player)
-    features = [x[1] for x in compute_features(game, board, player)]
+function predict_model(machine, board, player)
+    features = [x[1] for x in compute_features(board, player)]
     return predict(machine, features)
 end
