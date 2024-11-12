@@ -205,8 +205,8 @@ end
 # Feature writing utils
 #
 
-function _write_feature_file_header(file::IO, game::Game, board::Board, player::PlayerType)
-    features = compute_features(game, board, player.player)
+function _write_feature_file_header(file::IO, board::Board, player::PlayerType)
+    features = compute_features(board, player.player)
     header = join([get_csv_friendly(f[1]) for f in features], ",")
     label = get_csv_friendly("WonGame")
     if filesize(FEATURES_FILE) == 0
@@ -214,12 +214,12 @@ function _write_feature_file_header(file::IO, game::Game, board::Board, player::
     end
 end
 
-function write_features_file(game::Game, board::Board, winner::PlayerType) 
+function write_features_file(board::Board, winner::PlayerType) 
     file = open(FEATURES_FILE, "a")
-    _write_feature_file_header(file, game, board, winner)
+    _write_feature_file_header(file, board, winner)
 
     for player in game.players
-        save_parameters_after_game_end(file, game, board, game.players, player, winner.player.team)
+        save_parameters_after_game_end(file, board, game.players, player, winner.player.team)
     end
     close(file)
 
