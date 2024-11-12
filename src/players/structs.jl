@@ -86,9 +86,21 @@ end
 
 mutable struct EmpathRobotPlayer <: RobotPlayer
     player::Player
+    machine
 end
 
-EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(Player(team))
+function EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
+function EmpathRobotPlayer(team::Symbol, features_file_name::String)
+    Tree = @load DecisionTreeClassifier pkg=BetaML
+    tree = Tree(
+        max_depth = 6,
+        min_gain = 0.0,
+        min_records = 2,
+        max_features = 0,
+        splitting_criterion = BetaML.Utils.gini)
+    EmpathRobotPlayer(Player(team), train_model_from_csv(tree, features_file_name))
+end
+
 HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
 HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
 
