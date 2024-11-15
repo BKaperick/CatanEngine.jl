@@ -214,12 +214,12 @@ function _write_feature_file_header(file::IO, board::Board, player::PlayerType)
     end
 end
 
-function write_features_file(board::Board, winner::PlayerType) 
+function write_features_file(board::Board, players::Vector{PlayerType}, winner::PlayerType) 
     file = open(FEATURES_FILE, "a")
     _write_feature_file_header(file, board, winner)
 
-    for player in game.players
-        save_parameters_after_game_end(file, board, game.players, player, winner.player.team)
+    for player in players
+        save_parameters_after_game_end(file, board, players, player, winner.player.team)
     end
     close(file)
 

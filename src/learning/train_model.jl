@@ -31,7 +31,7 @@ splitting_criterion = BetaML.Utils.gini)
 tuned_tree = TunedModel(
     tree,
     tuning = Grid(),
-    range=range(tree, :max_depth, lower=1, upper=6),
+    range=range(tree, :max_depth, lower=1, upper=2),
     measure = accuracy,
     resampling=Holdout(fraction_train=0.7),
 )
@@ -42,6 +42,7 @@ function fit_machine(tree, X, y)
 end
 
 function analyze_acc(mach, X, y)
+    println(typeof(mach), typeof(X))
     p = predict(mach, X)
     yhat = mode.(p)
     acc = accuracy(yhat, y)

@@ -9,10 +9,10 @@ end
 
 # get_legal_actions(board, player)
 
-function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::EmpathRobotPlayer, actions::Set{Symbol})
     #legal_actions = get_legal_actions(game, board, player) # ::Set{Symbol}
     current_features = compute_features(board, player.player)
-    current_win_proba = predict_model(machine, board, player)
+    current_win_proba = predict_model(player.machine, board, player)
     @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
     for action in actions
     end
