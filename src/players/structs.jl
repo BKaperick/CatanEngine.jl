@@ -1,4 +1,5 @@
-include("../learning/production_model.jl")
+#include("../learning/production_model.jl")
+using MLJ
 
 abstract type PlayerType end
 mutable struct Player
@@ -88,7 +89,7 @@ end
 
 mutable struct EmpathRobotPlayer <: RobotPlayer
     player::Player
-    machine
+    machine::Machine
 end
 
 EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")

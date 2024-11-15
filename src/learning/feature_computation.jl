@@ -1,3 +1,11 @@
+using Random
+using CSV
+using MLJ
+using DataFrames
+import DataFramesMeta as DFM
+using DelimitedFiles
+
+
 """
 :SettlementCount => 0.0,
 :CityCount => 0.0,
@@ -163,4 +171,17 @@ function get_dev_cards_owned_count(player, dev_card)::Int
         end
     end
     return count
+end
+
+function predict_model(machine::typeof(machine), board::Board, player::PlayerType)
+    features = [x for x in compute_features(board, player.player)]
+    feature_vals = [x[2] for x in features]
+    data = reshape(feature_vals, 1, length(feature_vals))
+    header = [get_csv_friendly(f[1]) for f in features]
+    println(data)
+    println(header)
+    df = DataFrame(data, vec(header))
+    #return 0.5
+    return MLJ.predict(machine, df)
+    #return predict(machine, df)
 end

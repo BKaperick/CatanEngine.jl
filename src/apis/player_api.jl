@@ -24,7 +24,7 @@ end
 
 After the game, store or update parameters based on the end state
 """
-function save_parameters_after_game_end(file::IO, game::Game, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
+function save_parameters_after_game_end(file::IO, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
 end
 
 

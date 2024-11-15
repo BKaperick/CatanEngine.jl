@@ -572,7 +572,7 @@ function do_game(game::Game, board::Board)
 
     # Post game steps (writing features, updating models, etc)
     if winner != nothing && WRITE_FEATURES
-        write_features_file(game, board, winner)
+        write_features_file(board, game.players, winner)
     end
 end
 
