@@ -142,6 +142,7 @@ function get_max_road_length(board, team)
     max_length = 0
 
     coord_to_team_roads = Dict([c => Set([rr for rr in r if rr.team == team]) for (c,r) in board.coord_to_roads])
+    @debug coord_to_team_roads
     for current in team_roads
 
         skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])

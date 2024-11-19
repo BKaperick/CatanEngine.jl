@@ -24,7 +24,7 @@ function train_model_from_csv(tree, csv_name="../../features.csv")
     # Fit model machine to data
     y, X = unpack(df, ==(:WonGame));
     mach = machine(tree, X, y)
-    fit!(mach)
+    Base.invokelatest(fit!, mach)
 
     return mach
 end

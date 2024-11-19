@@ -13,7 +13,7 @@ mutable struct Game
     rolled_dice_already::Bool
 end
 
-Game(players) = Game(copy(DEVCARD_COUNTS), players, Set(), 0, false, false, false)
+Game(players) = Game(deepcopy(DEVCARD_COUNTS), players, Set(), 0, false, false, false)
 
 mutable struct Construction
 end
@@ -48,4 +48,21 @@ mutable struct Board
 end
 
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS), nothing)
+
+function Base.deepcopy(board::Board)
+    return Board(
+                 deepcopy(board.tile_to_dicevalue),
+                 deepcopy(board.dicevalue_to_tiles),
+                 deepcopy(board.tile_to_resource),
+                 deepcopy(board.coord_to_building),
+                 deepcopy(board.coord_to_roads),
+                 deepcopy(board.coord_to_port),
+                 deepcopy(board.empty_spaces),
+                 deepcopy(board.buildings),
+                 deepcopy(board.roads),
+                 board.robber_tile,
+                 deepcopy(board.spaces),
+                 board.longest_road
+                    )
+end
 
