@@ -1,5 +1,11 @@
 #include("../learning/production_model.jl")
+using Random
+using CSV
 using MLJ
+using DataFrames
+import DataFramesMeta as DFM
+import Base: deepcopy
+using DelimitedFiles
 
 abstract type PlayerType end
 mutable struct Player
@@ -26,6 +32,20 @@ function Player(team::Symbol)
     :Pasture => 4
     ])
     return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing, false)
+end
+
+function deepcopy(player::Player)
+    return Player(
+                  deepcopy(player.resources),
+                  player.vp_count,
+                  deepcopy(player.dev_cards),
+                  player.team,
+                  deepcopy(player.dev_cards_used),
+                  deepcopy(player.ports),
+                  player.played_dev_card_this_turn,
+                  player.bought_dev_card_this_turn,
+                  player.has_largest_army
+                 )
 end
 
 """
@@ -95,7 +115,7 @@ end
 EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
 function EmpathRobotPlayer(team::Symbol, features_file_name::String)
     Tree = load_tree_model()
-    tree = Tree(
+    tree = Base.invokelatest(Tree,
         max_depth = 6,
         min_gain = 0.0,
         min_records = 2,
@@ -111,3 +131,10 @@ DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
 TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team))
 TestRobotPlayer(player::Player) = TestRobotPlayer(player, 5, 5, Dict(:Wood => 1, :Grain => 1, :Pasture => 1, :Brick => 1, :Stone => 1))
 
+
+function Base.deepcopy(player::DefaultRobotPlayer)
+    return DefaultRobotPlayer(deepcopy(player.player))
+end
+function Base.deepcopy(player::EmpathRobotPlayer)
+    return EmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
+end

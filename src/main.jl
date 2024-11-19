@@ -359,7 +359,7 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     end
     return valid
 end
-function get_admissible_road_locations(board, player::Player, is_first_turn = false)
+function get_admissible_road_locations(board::Board, player::Player, is_first_turn = false)
     if count_roads(board, player.team) >= MAX_ROAD
         return []
     end
@@ -388,7 +388,7 @@ function get_admissible_road_locations(board, player::Player, is_first_turn = fa
     return road_coords
 end
 
-function get_potential_theft_victims(board, players::Vector{PlayerType}, thief, new_tile)
+function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, thief::PlayerType, new_tile)
     potential_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
@@ -401,7 +401,7 @@ function get_potential_theft_victims(board, players::Vector{PlayerType}, thief, 
     return potential_victims
 end
 
-function do_turn(game, board, player)
+function do_turn(game::Game, board::Board, player::PlayerType)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
         card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)

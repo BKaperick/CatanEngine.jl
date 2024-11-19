@@ -33,14 +33,14 @@ end
 
 # Since we don't know which card the human took, we just give them the option to play anything
 function get_admissible_devcards(player::HumanPlayer)
-    return copy(DEVCARD_COUNTS)
+    return deepcopy(DEVCARD_COUNTS)
 end
 get_admissible_devcards(player::RobotPlayer) = get_admissible_devcards(player.player)
 function get_admissible_devcards(player::Player)
     if ~can_play_dev_card(player)
         return 
     end
-    out = copy(player.dev_cards)
+    out = deepcopy(player.dev_cards)
     if player.bought_dev_card_this_turn != nothing
         out[player.bought_dev_card_this_turn] -= 1
     end

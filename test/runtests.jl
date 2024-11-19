@@ -38,13 +38,22 @@ end
 function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
 end
+
+
+function empath_player()
+    player = EmpathRobotPlayer(:red)
+    board = read_map(SAMPLE_MAP)
+    p = mode.(predict_model(player.machine, board, player))
+    return player, board, p
+end
+
 function test_set_starting_player()
     reset_savefile_with_timestamp("test_set_starting_player")
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
-                          (:red, DefaultRobotPlayer)
+                          (:red, EmpathRobotPlayer)
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
@@ -80,7 +89,7 @@ function setup_robot_game(savefile = nothing)
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
-                          (:red, DefaultRobotPlayer)
+                          (:red, EmpathRobotPlayer)
             ]
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
@@ -534,5 +543,5 @@ end
 if (length(ARGS) > 0)
     setup_robot_game(ARGS[1])
 else
-    run_tests(true)
+    run_tests(false)
 end

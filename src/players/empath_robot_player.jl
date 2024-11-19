@@ -10,29 +10,48 @@ end
 # get_legal_actions(board, player)
 
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::EmpathRobotPlayer, actions::Set{Symbol})
+    action_functions = get_legal_action_functions(board, players, player, actions)
+    best_action_index = 0
+    best_action_proba = -1
+    for (i,action_func!) in enumerate(action_functions)
+        hypoth_board = deepcopy(board)
+        hypoth_player = deepcopy(player)
+        # TODO are there any weird side effects on board if we pass a fresh Game here?
+        action_func!(Game(Vector{PlayerType}()), hypoth_board)
+        p_cat = mode.(predict_model(player.machine, board, player))
+        p = convert(Float64, p_cat[1])
+        if p > best_action_proba
+            best_action_proba = p
+            best_action_index = i
+        end
+    end
+    @info "And his chance of winning will go to $(best_action_proba) with this next move"
+    return action_functions[best_action_index]
+
+end
+
+function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::EmpathRobotPlayer, actions::Set{Symbol})
     #legal_actions = get_legal_actions(game, board, player) # ::Set{Symbol}
     current_features = compute_features(board, player.player)
     current_win_proba = predict_model(player.machine, board, player)
     @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
-    for action in actions
-    end
     
     action_functions = []
 
     if :ConstructCity in actions
-        candidates = get_admissible_city_locations(board, player.player, is_first_turn=false)
+        candidates = get_admissible_city_locations(board, player.player)
         for coord in candidates
             push!(action_functions, (g, b) -> construct_city(b, player.player, coord))
         end
     end
     if :ConstructSettlement in actions
-        candidates = get_admissible_settlement_locations(board, player.player, is_first_turn=false)
+        candidates = get_admissible_settlement_locations(board, player.player)
         for coord in candidates
             push!(action_functions, (g, b) -> construct_settlement(b, player.player, coord))
         end
     end
     if :ConstructRoad in actions
-        candidates = get_admissible_road_locations(board, players, player.player, is_first_turn=false)
+        candidates = get_admissible_road_locations(board, player.player)
         for coord in candidates
             push!(action_functions, (g, b) -> construct_road(b, player.player, coord[1], coord[2]))
         end
@@ -43,7 +62,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     end
     if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
-        for card in devcards
+        for (card,cnt) in devcards
             # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
             if card != :VictoryPoint
                 push!(action_functions, (g, b) -> do_play_devcard(b, g.players, player, card))
