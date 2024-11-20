@@ -50,12 +50,12 @@ function get_road_locations(board, team::Symbol)
     [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
 end
 
-function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
+function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
     log_action("board bc", team, coord)
     @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_city(board, team, coord)
 end
-function _build_city(board, team, coord::Tuple{Int, Int})
+function _build_city(board, team, coord::Tuple{Int, Int})::Building
     
     # Remove current settlement
     current_settlement = nothing
@@ -73,24 +73,24 @@ function _build_city(board, team, coord::Tuple{Int, Int})
     return city
 end
 
-function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})
+function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
     log_action("board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement(board, team, coord)
 end
-function _build_settlement(board, team, coord::Tuple{Int,Int})
+function _build_settlement(board, team, coord::Tuple{Int,Int})::Building
     building = Building(coord, :Settlement, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
     return building
 end
 
-function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})
+function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
     log_action("board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road(board, team, coord1, coord2)
 end
-function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
+function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
     road = Road(coord1, coord2, team)
     push!(board.roads, road)
     for coord in [coord1, coord2]

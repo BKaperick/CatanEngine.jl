@@ -43,7 +43,7 @@ end
 function empath_player()
     player = EmpathRobotPlayer(:red)
     board = read_map(SAMPLE_MAP)
-    p = mode.(predict_model(player.machine, board, player))
+    p = predict_model(player.machine, board, player)
     return player, board, p
 end
 
@@ -514,7 +514,6 @@ end
 
 function run_tests(neverend = false)
     """
-    """
     test_actions()
     test_set_starting_player()
     test_log()
@@ -528,6 +527,7 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
+    """
     if neverend
         while true
             println("starting game")
@@ -536,6 +536,7 @@ function run_tests(neverend = false)
             setup_robot_game(SAVEFILE)
         end
     else
+        println("starting game")
         setup_robot_game()
     end
 end

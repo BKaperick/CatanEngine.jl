@@ -13,29 +13,32 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     action_functions = get_legal_action_functions(board, players, player, actions)
     best_action_index = 0
     best_action_proba = -1
+
+    current_features = compute_features(board, player.player)
+    current_win_proba = predict_model(player.machine, board, player)
+    @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
+    
     for (i,action_func!) in enumerate(action_functions)
         hypoth_board = deepcopy(board)
         hypoth_player = deepcopy(player)
         # TODO are there any weird side effects on board if we pass a fresh Game here?
         action_func!(Game(Vector{PlayerType}()), hypoth_board)
-        p_cat = mode.(predict_model(player.machine, board, player))
-        p = convert(Float64, p_cat[1])
+        p = predict_model(player.machine, board, player)
         if p > best_action_proba
             best_action_proba = p
             best_action_index = i
         end
     end
-    @info "And his chance of winning will go to $(best_action_proba) with this next move"
-    return action_functions[best_action_index]
+    if best_action_proba > current_win_proba
+        @info "And his chance of winning will go to $(best_action_proba) with this next move"
+        return action_functions[best_action_index]
+    end
+    return nothing
 
 end
 
 function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::EmpathRobotPlayer, actions::Set{Symbol})
     #legal_actions = get_legal_actions(game, board, player) # ::Set{Symbol}
-    current_features = compute_features(board, player.player)
-    current_win_proba = predict_model(player.machine, board, player)
-    @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
-    
     action_functions = []
 
     if :ConstructCity in actions
