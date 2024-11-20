@@ -218,7 +218,10 @@ function assign_largest_army(players)
     
     if length(max_p) > 1
         winners = [p for p in max_p if p.player.has_largest_army]
-        @assert length(winners) == 1
+        if length(winners) > 1
+            @debug "Multiple players with largest army: $([p.player.team for p in winners])"
+        end
+        #@assert length(winners) == 1
         winner = winners[1]
     else
         winner = max_p[1]

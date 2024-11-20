@@ -103,7 +103,9 @@ function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple
     _award_longest_road(board)
     return road
 end
-_build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
+
+#TODO is this a bug?
+#_build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
 
 function _award_longest_road(board) 
     teams = [Set([r.team for r in board.roads])...]

@@ -3,6 +3,7 @@ using Test
 #using Logging
 #using Catan
 #include("../src/constants.jl")
+using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
 include("../src/main.jl")
 
 
@@ -39,6 +40,21 @@ function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
 end
 
+function test_deepcopy()
+    team_and_playertype = [
+                          (:blue, DefaultRobotPlayer),
+                          (:cyan, DefaultRobotPlayer),
+                          (:green, DefaultRobotPlayer),
+                          (:red, EmpathRobotPlayer)
+            ]
+    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+    game = Game(players)
+    game2 = deepcopy(game)
+    game.players[1].player.team = :newcolor
+    @test game2.players[1].player.team == :blue
+    game.players[1].player.resources[:Wood] = 50
+    @test !haskey(game2.players[1].player.resources, :Wood)
+end
 
 function empath_player()
     player = EmpathRobotPlayer(:red)
@@ -83,7 +99,7 @@ function test_set_starting_player()
     #players: green, red, 
 end
 
-function setup_robot_game(savefile = nothing)
+function setup_robot_game(savefile::Union{Nothing, String} = nothing)
     # Configure players and table configuration
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -91,6 +107,10 @@ function setup_robot_game(savefile = nothing)
                           (:green, DefaultRobotPlayer),
                           (:red, EmpathRobotPlayer)
             ]
+    setup_robot_game(team_and_playertype, savefile)
+end
+
+function setup_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, String} = nothing)
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
     game = Game(players)
     if (savefile == nothing)
@@ -98,8 +118,8 @@ function setup_robot_game(savefile = nothing)
     else
         reset_savefile(savefile)
     end
-    initialize_game(game, SAMPLE_MAP)
-    return game
+    board = initialize_game(game, SAMPLE_MAP)
+    return board, game
 end
 
 @test get_coord_from_human_tile_description("ab") == (1,3)
@@ -148,14 +168,18 @@ function test_log()
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
                           (:red, DefaultRobotPlayer)
-            ]
-    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
-    game = setup_robot_game()
+                         ]
+    board, game = setup_robot_game(team_and_playertype)
     flush(SAVEFILEIO)
-    board = read_map(SAMPLE_MAP)
+    #board = read_map(SAMPLE_MAP)
     @info "testing savefile $SAVEFILE"
-    new_game = Game(players)
-    new_game, new_board = load_gamestate(new_game, board, SAVEFILE)
+    
+    # initialize fresh objects
+    new_players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+    new_game = Game(new_players)
+    new_board = read_map(SAMPLE_MAP)
+
+    new_game, new_board = load_gamestate(new_game, new_board, SAVEFILE)
     @test game.devcards == new_game.devcards
     @test game.already_played_this_turn == new_game.already_played_this_turn
     @test game.turn_num == new_game.turn_num
@@ -513,7 +537,7 @@ function test_call_api()
 end
 
 function run_tests(neverend = false)
-    """
+    test_deepcopy()
     test_actions()
     test_set_starting_player()
     test_log()
@@ -527,7 +551,6 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
-    """
     if neverend
         while true
             println("starting game")
@@ -539,6 +562,8 @@ function run_tests(neverend = false)
         println("starting game")
         setup_robot_game()
     end
+    """
+    """
 end
 
 if (length(ARGS) > 0)
@@ -546,3 +571,7 @@ if (length(ARGS) > 0)
 else
     run_tests(false)
 end
+
+#statprofilehtml(from_c=true)
+#Profile.print()
+
