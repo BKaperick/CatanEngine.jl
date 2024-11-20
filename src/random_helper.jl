@@ -4,7 +4,9 @@ end
 function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)::Union{Nothing,Vector{Symbol}}
     items = Vector{Symbol}()
     for (r,c) in resources
-        append!(items, repeat([r], c))
+        if c > 0
+            append!(items, repeat([r], c))
+        end
     end
     @debug resources
     if length(items) == 0

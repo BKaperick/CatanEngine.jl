@@ -392,7 +392,8 @@ function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, 
     potential_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
-        @info players
+        @info [p.player.team for p in players]
+        @info team
         victim = [p for p in players if p.player.team == team][1]
         if has_any_resources(victim.player) && (team != thief.player.team)
             @debug "vr: $(victim.player.resources)"
@@ -467,6 +468,7 @@ function initialize_game(game::Game, csvfile::String, in_progress_game_file)
         initialize_player(board, p)
     end
     do_game(game, board)
+    return board
 end
 
 function choose_validate_building(board, players, player, building_type, coord = nothing)

@@ -12,6 +12,7 @@ In tournament play, we want to write a set of game-state features to a common cs
 assigned here.
 """
 FEATURES_FILE = "features.csv"
+DATA_DIR = "/home/bryan/Projects/Catan/data"
 WRITE_FEATURES = true
 
 BOARD_API = Set(["bs","br","bc"])

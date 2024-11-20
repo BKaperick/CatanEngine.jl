@@ -121,7 +121,7 @@ function EmpathRobotPlayer(team::Symbol, features_file_name::String)
         min_records = 2,
         max_features = 0,
         splitting_criterion = BetaML.Utils.gini)
-    EmpathRobotPlayer(Player(team), train_model_from_csv(tree, features_file_name))
+    EmpathRobotPlayer(Player(team), try_load_model_from_csv(tree, "$(DATA_DIR)/model.jls", "$(DATA_DIR)/features.csv"))
 end
 
 HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)

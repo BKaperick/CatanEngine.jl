@@ -19,10 +19,10 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
     
     for (i,action_func!) in enumerate(action_functions)
+        # TODO are there any weird side effects on board if we pass a fresh Game here?
         hypoth_board = deepcopy(board)
         hypoth_player = deepcopy(player)
-        # TODO are there any weird side effects on board if we pass a fresh Game here?
-        action_func!(Game(Vector{PlayerType}()), hypoth_board)
+        action_func!(Game([DefaultRobotPlayer(p.team) for p in players]), hypoth_board)
         p = predict_model(player.machine, board, player)
         if p > best_action_proba
             best_action_proba = p
