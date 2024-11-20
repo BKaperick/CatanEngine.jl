@@ -6,13 +6,13 @@ import DataFramesMeta as DFM
 using DelimitedFiles
 
 function load_tree_model()
-    @load DecisionTreeClassifier pkg=BetaML
+    @load RandomForestClassifier pkg=BetaML
 end
 
 """
 
 """
-function train_model_from_csv(tree, csv_name="../../features.csv")
+function train_model_from_csv(tree, csv_name="$(@__DIR__)../../features.csv")
 
     # Load data
     data, header = readdlm(csv_name, ',', header=true)

@@ -175,11 +175,16 @@ end
 
 function predict_model(machine::Machine, board::Board, player::PlayerType)
     features = [x for x in compute_features(board, player.player)]
-    feature_vals = [x[2] for x in features]
+    feature_vals = last.(features)
+    pred = _predict_model_feature_vec(machine, feature_vals)
+
+    # Returns the win probability (proba weight on category for label `1.0` indicating win)
+    return pdf(pred[1], 1.0)
+end
+
+function _predict_model_feature_vec(machine::Machine, feature_vals::Vector{T}) where T <: Number
     data = reshape(feature_vals, 1, length(feature_vals))
-    header = [get_csv_friendly(f[1]) for f in features]
-    df = DataFrame(data, vec(header))
-    #return 0.5
+    header = names(machine.data[1])
+    df = DataFrame(data, vec(header), makeunique=true)
     return Base.invokelatest(MLJ.predict, machine, df)
-    #return predict(machine, df)
 end
