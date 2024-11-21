@@ -6,9 +6,9 @@ An engine for adding AI players to a party of the extremely popular board game [
 To launch a new or existing game:
 `$julia Catan.jl [CONFIG FILE] [MAP FILE] [SAVE FILE]`
 
-For example,
+For example, from the repository root directory, run
 
-`$julia src/Catan.jl data/config.txt data/sample.csv save.txt`
+`$julia --project src/Catan.jl data/config.txt data/sample.csv save.txt`
 
 * `data/config.txt` sets the label (e.g. a color) and player class (e.g. `HumanPlayer` or `DefaultRobotPlayer`) for each player.
 * `data/sample.csv` sets the board layout
@@ -56,7 +56,7 @@ For convenience, setting `PRINT_BOARD = true` in `src/constants.jl` will print a
 Define a new player called `NewRobotPlayer` requires the definition in [./src/players/structs.jl](https://github.com/BKaperick/Catan.jl/blob/master/src/players/structs.jl) inheriting from `RobotPlayer`:
 
 ```julia
-mutable struct DefaultRobotPlayer <: RobotPlayer
+mutable struct NewRobotPlayer <: RobotPlayer
     player::Player
 
     # Here, Insert any other fields to store intermediary data or parameters between turns
