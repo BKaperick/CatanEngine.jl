@@ -333,26 +333,26 @@ function test_largest_army()
     # < 3 knights played, so no largest army assigned
     play_devcard(player1.player, :Knight)
     play_devcard(player1.player, :Knight)
-    assign_largest_army(players)
+    assign_largest_army!(players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player1.player) == 0
     
     # Player1 has 3 knights, so he gets 2 points
     play_devcard(player1.player, :Knight)
-    assign_largest_army(players)
+    assign_largest_army!(players)
     @test get_total_vp_count(board, player1.player) == 2
     
     # Player1 has largest army, and Player2 plays 3 knights, so Player 1 keeps LA
     play_devcard(player2.player, :Knight)
     play_devcard(player2.player, :Knight)
     play_devcard(player2.player, :Knight)
-    assign_largest_army(players)
+    assign_largest_army!(players)
     @test get_total_vp_count(board, player1.player) == 2
     @test get_total_vp_count(board, player2.player) == 0
     
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
     play_devcard(player2.player, :Knight)
-    assign_largest_army(players)
+    assign_largest_army!(players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
 end
@@ -557,57 +557,49 @@ function test_assign_largest_army()
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
 
-    
-    build_settlement(board, :Green, (2,4))
-    build_settlement(board, :Blue, (2,3))
+    @test player_blue.player.has_largest_army == false
+    @test player_green.player.has_largest_army == false
 
-    build_road(board, :Blue, (2,3), (2,4))
-    build_road(board, :Blue, (2,2), (2,3))
-    build_road(board, :Blue, (2,1), (2,2))
-    build_road(board, :Blue, (2,1), (3,2))
+    _add_devcard(player_blue.player, :Knight)
+    _add_devcard(player_blue.player, :Knight)
+    _add_devcard(player_blue.player, :Knight)
+    _play_devcard(player_blue.player, :Knight)
+    _play_devcard(player_blue.player, :Knight)
+    assign_largest_army!(players)
 
-    @test board.longest_road == nothing
-    
-    
-    # Length 5 road, but it's intersected by :Green settlement
-    build_road(board, :Blue, (2,5), (2,4))
-    @test board.longest_road == nothing
+    @test player_blue.player.has_largest_army == false
+    @test player_green.player.has_largest_army == false
 
-    # Now player one builds a 5-length road without intersection
-    build_road(board, :Blue, (3,3), (3,2))
-    @test board.longest_road == :Blue
+    _play_devcard(player_blue.player, :Knight)
+    assign_largest_army!(players)
+    
+    @test player_blue.player.has_largest_army == true
+    @test player_green.player.has_largest_army == false
+    
+    _add_devcard(player_green.player, :Knight)
+    _add_devcard(player_green.player, :Knight)
+    _add_devcard(player_green.player, :Knight)
+    _play_devcard(player_green.player, :Knight)
+    _play_devcard(player_green.player, :Knight)
+    _play_devcard(player_green.player, :Knight)
+    assign_largest_army!(players)
 
-    build_settlement(board, :Green, (3,10))
-    build_road(board, :Green, (3,10), (3,11))
-    build_road(board, :Green, (3,10), (3,9))
-    build_road(board, :Green, (3,8), (3,9))
-    build_road(board, :Green, (3,10), (2,9))
-    build_road(board, :Green, (2,9), (2,8))
-    build_road(board, :Green, (2,8), (2,7))
-    
-    # Player green built 6 roads connected, but branched, so still player 1 has longest road
-    @test board.longest_road == :Blue
-    
-    # Now player green makes a loop, allowing 6 roads continuous
-    build_road(board, :Green, (3,8), (2,7))
-    @test board.longest_road == :Green
+    @test player_blue.player.has_largest_army == true
+    @test player_green.player.has_largest_army == false
 
-    build_settlement(board, :Blue, (5,1))
-    build_road(board, :Blue, (5,1), (5,2))
-    build_road(board, :Blue, (5,3), (5,2))
-    build_road(board, :Blue, (5,3), (5,4))
+    _add_devcard(player_green.player, :Knight)
+    _play_devcard(player_green.player, :Knight)
+    assign_largest_army!(players)
     
-    # Player blue added more roads, but not contiguous, so they don't beat player green
-    @test board.longest_road == :Green
-
-    
-    # Two settlements
-    @test get_total_vp_count(board, player_blue.player) == 2
-    # Two settlements + Longest road
-    @test get_total_vp_count(board, player_green.player) == 4
+    # TODO fails
+    println(player_blue.player)
+    println(player_green.player)
+    @test player_blue.player.has_largest_army == false
+    @test player_green.player.has_largest_army == true
 end
 
 function run_tests(neverend = false)
+    test_assign_largest_army()
     test_deepcopy()
     test_actions()
     test_set_starting_player()
