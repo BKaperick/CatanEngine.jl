@@ -118,7 +118,7 @@ function setup_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, 
     else
         reset_savefile(savefile)
     end
-    board, winner = initialize_game(game, SAMPLE_MAP)
+    board, winner = initialize_and_do_game!(game, SAMPLE_MAP)
     return board, game
 end
 
@@ -434,7 +434,7 @@ function test_human_player()
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
     reset_savefile_with_timestamp("test_human_game")
-    initialize_game(game, SAMPLE_MAP)
+    initialize_and_do_game!(game, SAMPLE_MAP)
 end
 
 function test_board_api()
