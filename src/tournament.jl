@@ -22,7 +22,7 @@ N = 100
 M = 10
 winners = Dict()
 
-map_file = "_temp_map_file.csv"
+map_file = "$(DATA_DIR)/_temp_map_file.csv"
 for j=1:M
     map = generate_random_map(map_file)
     for i=1:N
