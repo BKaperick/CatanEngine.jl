@@ -198,48 +198,64 @@ function roll_dice(player::RobotPlayer)::Int
     return value
 end
 
-function assign_largest_army(players)
+function assign_largest_army!(players::Vector{PlayerType})::Nothing
+    
+    # Gather all players who've played at least three Knights
     max_ct = 3
-    max_p = Vector{PlayerType}()
+    player_and_count = Vector{Tuple{PlayerType, Int}}()
     for p in players
         if haskey(p.player.dev_cards_used, :Knight)
             ct = p.player.dev_cards_used[:Knight]
+            if ct >= 3
+                push!(player_and_count, (p, ct))
+            end
             if ct > max_ct
                 max_ct = ct
-                max_p = Vector{PlayerType}([p])
-            elseif ct == max_ct
-                push!(max_p, p)
             end
         end
     end
-    if length(max_p) == 0
+
+    # If noone has crossed threshold, then exit
+    if length(player_and_count) == 0
         return nothing
     end
     
-    if length(max_p) > 1
-        winners = [p for p in max_p if p.player.has_largest_army]
-        if length(winners) > 1
-            @debug "Multiple players with largest army: $([p.player.team for p in winners])"
-        end
-        #@assert length(winners) == 1
-        winner = winners[1]
+    # Gather those with the max number of knights, as well as the current LargestArmy holder
+    admissible = [(p,c) for (p,c) in player_and_count if c == max_ct]
+    current_winners = [p for p in players if p.player.has_largest_army]
+    @assert length(current_winners) <= 1
+    if length(current_winners) > 0
+        current_winner = current_winners[1]
     else
-        winner = max_p[1]
+        current_winner = nothing
+    end
+    
+    # Most often there is only one admissible person
+    if length(admissible) == 1
+        winner = admissible[1][1]
+    
+    # If noone dethrones current winner
+    elseif length(admissible) > 1 && current_winner != nothing
+        return nothing
     end
 
-    old_winner = [p for p in players if p.player.has_largest_army]
-    if length(old_winner) > 0
-        log_action(":$(old_winner[1].player.team) rl")
-        _remove_largest_army(old_winner[1].player)
+    # Don't fill up log with removing and re-adding LargestArmy to same player
+    if current_winner != nothing && winner.player.team == current_winner.player.team
+        return nothing
+    end
+
+    if current_winner != nothing
+        log_action(":$(current_winner.player.team) rl")
+        _remove_largest_army(current_winner.player)
     end
 
     log_action(":$(winner.player.team) la")
     return _assign_largest_army(winner.player)
 end
+
 function _assign_largest_army(player::Player)
     player.has_largest_army = true
 end
 function _remove_largest_army(player::Player)
     player.has_largest_army = false
 end
-
