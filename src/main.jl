@@ -2,7 +2,7 @@ using StatsBase, DocStringExtensions
 include("structs.jl")
 include("constants.jl")
 include("io.jl")
-include("apis/api.jl")
+include("apis/board_api.jl")
 include("apis/player_api.jl")
 include("apis/game_api.jl")
 # include("board.jl")

@@ -552,7 +552,59 @@ end
 
 
 function test_assign_largest_army()
+    board = read_map(SAMPLE_MAP)
+    player_blue = DefaultRobotPlayer(:Blue)
+    player_green = DefaultRobotPlayer(:Green)
+    players = Vector{PlayerType}([player_blue, player_green])
 
+    
+    build_settlement(board, :Green, (2,4))
+    build_settlement(board, :Blue, (2,3))
+
+    build_road(board, :Blue, (2,3), (2,4))
+    build_road(board, :Blue, (2,2), (2,3))
+    build_road(board, :Blue, (2,1), (2,2))
+    build_road(board, :Blue, (2,1), (3,2))
+
+    @test board.longest_road == nothing
+    
+    
+    # Length 5 road, but it's intersected by :Green settlement
+    build_road(board, :Blue, (2,5), (2,4))
+    @test board.longest_road == nothing
+
+    # Now player one builds a 5-length road without intersection
+    build_road(board, :Blue, (3,3), (3,2))
+    @test board.longest_road == :Blue
+
+    build_settlement(board, :Green, (3,10))
+    build_road(board, :Green, (3,10), (3,11))
+    build_road(board, :Green, (3,10), (3,9))
+    build_road(board, :Green, (3,8), (3,9))
+    build_road(board, :Green, (3,10), (2,9))
+    build_road(board, :Green, (2,9), (2,8))
+    build_road(board, :Green, (2,8), (2,7))
+    
+    # Player green built 6 roads connected, but branched, so still player 1 has longest road
+    @test board.longest_road == :Blue
+    
+    # Now player green makes a loop, allowing 6 roads continuous
+    build_road(board, :Green, (3,8), (2,7))
+    @test board.longest_road == :Green
+
+    build_settlement(board, :Blue, (5,1))
+    build_road(board, :Blue, (5,1), (5,2))
+    build_road(board, :Blue, (5,3), (5,2))
+    build_road(board, :Blue, (5,3), (5,4))
+    
+    # Player blue added more roads, but not contiguous, so they don't beat player green
+    @test board.longest_road == :Green
+
+    
+    # Two settlements
+    @test get_total_vp_count(board, player_blue.player) == 2
+    # Two settlements + Longest road
+    @test get_total_vp_count(board, player_green.player) == 4
 end
 
 function run_tests(neverend = false)
