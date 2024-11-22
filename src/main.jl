@@ -461,14 +461,14 @@ end
 
 # TODO rename to `initialize_and_do_game`
 initialize_game(game::Game, csvfile::String) = initialize_game(game, csvfile, SAVEFILE)
-function initialize_game(game::Game, csvfile::String, in_progress_game_file)
+function initialize_game(game::Game, csvfile::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}
     board = read_map(csvfile)
-    game, board = load_gamestate(game, board, in_progress_game_file)
+    load_gamestate!(game, board, in_progress_game_file)
     for p in game.players
         initialize_player(board, p)
     end
-    do_game(game, board)
-    return board
+    winner = do_game(game, board)
+    return board, winner
 end
 
 function choose_validate_building(board, players, player, building_type, coord = nothing)
@@ -551,7 +551,7 @@ function do_set_turn_order(game)
     end
 end
 
-function do_game(game::Game, board::Board)
+function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     if game.turn_num == 0
         # Here we need to pass the whole game so we can modify the players list order in-place
         do_set_turn_order(game) 
@@ -577,6 +577,7 @@ function do_game(game::Game, board::Board)
     if winner != nothing && WRITE_FEATURES
         write_features_file(board, game.players, winner)
     end
+    return winner
 end
 
 function print_player_stats(game, board, player::Player)
