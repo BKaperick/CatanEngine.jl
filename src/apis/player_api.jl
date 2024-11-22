@@ -198,7 +198,7 @@ function roll_dice(player::RobotPlayer)::Int
     return value
 end
 
-function assign_largest_army!(players::Vector{PlayerType})::Nothing
+function assign_largest_army!(players::Vector{PlayerType})
     
     # Gather all players who've played at least three Knights
     max_ct = 3
@@ -222,35 +222,50 @@ function assign_largest_army!(players::Vector{PlayerType})::Nothing
     
     # Gather those with the max number of knights, as well as the current LargestArmy holder
     admissible = [(p,c) for (p,c) in player_and_count if c == max_ct]
-    current_winners = [p for p in players if p.player.has_largest_army]
-    @assert length(current_winners) <= 1
-    if length(current_winners) > 0
-        current_winner = current_winners[1]
+    old_winners = [p for p in players if p.player.has_largest_army]
+    @assert length(old_winners) <= 1
+    if length(old_winners) > 0
+        old_winner = old_winners[1]
     else
-        current_winner = nothing
+        old_winner = nothing
     end
     
     # Most often there is only one admissible person
-    if length(admissible) == 1
+    if length(admissible) == 1 
         winner = admissible[1][1]
+        _transfer_largest_army(old_winner, winner)
+        return nothing
     
     # If noone dethrones current winner
-    elseif length(admissible) > 1 && current_winner != nothing
-        return nothing
+    elseif length(admissible) > 1 
+        if old_winner != nothing
+            return nothing
+        else
+            println(player_and_count)
+            println(admissible)
+            println(old_winners)
+            @assert false
+        end
     end
 
+    _transfer_largest_army(old_winner, winner)
+end
+
+function _transfer_largest_army(old_winner::Union{PlayerType, Nothing}, new_winner::Union{PlayerType, Nothing})
     # Don't fill up log with removing and re-adding LargestArmy to same player
-    if current_winner != nothing && winner.player.team == current_winner.player.team
-        return nothing
+    if old_winner != nothing && new_winner != nothing && new_winner.player.team == old_winner.player.team
+        return
     end
 
-    if current_winner != nothing
-        log_action(":$(current_winner.player.team) rl")
-        _remove_largest_army(current_winner.player)
+    if old_winner != nothing
+        log_action(":$(old_winner.player.team) rl")
+        _remove_largest_army(old_winner.player)
     end
 
-    log_action(":$(winner.player.team) la")
-    return _assign_largest_army(winner.player)
+    if new_winner != nothing
+        log_action(":$(new_winner.player.team) la")
+        _assign_largest_army(new_winner.player)
+    end
 end
 
 function _assign_largest_army(player::Player)

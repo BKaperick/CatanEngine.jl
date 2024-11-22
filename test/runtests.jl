@@ -628,11 +628,12 @@ function run_tests(neverend = false)
     """
     """
 end
-
-if (length(ARGS) > 0)
-    setup_and_do_robot_game(ARGS[1])
-else
-    run_tests(false)
+if abspath(PROGRAM_FILE) == @__FILE__
+    if (length(ARGS) > 0)
+        setup_and_do_robot_game(ARGS[1])
+    else
+        run_tests(true)
+    end
 end
 
 #statprofilehtml(from_c=true)
