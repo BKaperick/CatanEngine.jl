@@ -178,7 +178,7 @@ function execute_api_call(game::Game, board::Board, line::String)
         api_call(player, other_args...)
     end
 end
-function load_gamestate(game, board, file)
+function load_gamestate!(game, board, file)
     @debug "Loading game from file $file"
     for line in readlines(file)
         execute_api_call(game, board, line)
@@ -186,7 +186,6 @@ function load_gamestate(game, board, file)
     if PRINT_BOARD
         print_board(board)
     end
-    return game, board
 end
 
 stop(text="Stop.") = throw(StopException(text))

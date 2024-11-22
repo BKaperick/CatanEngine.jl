@@ -86,7 +86,7 @@ function test_set_starting_player()
     board = read_map(SAMPLE_MAP)
     @info "testing logfile $SAVEFILE"
     new_game = Game(players)
-    new_game, board = load_gamestate(new_game, board, SAVEFILE)
+    load_gamestate!(new_game, board, SAVEFILE)
     
     flush(logger_io)
 
@@ -118,7 +118,7 @@ function setup_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, 
     else
         reset_savefile(savefile)
     end
-    board = initialize_game(game, SAMPLE_MAP)
+    board, winner = initialize_game(game, SAMPLE_MAP)
     return board, game
 end
 
@@ -171,7 +171,7 @@ function test_log()
                          ]
     board, game = setup_robot_game(team_and_playertype)
     flush(SAVEFILEIO)
-    #board = read_map(SAMPLE_MAP)
+    
     @info "testing savefile $SAVEFILE"
     
     # initialize fresh objects
@@ -179,7 +179,7 @@ function test_log()
     new_game = Game(new_players)
     new_board = read_map(SAMPLE_MAP)
 
-    new_game, new_board = load_gamestate(new_game, new_board, SAVEFILE)
+    load_gamestate!(new_game, new_board, SAVEFILE)
     @test game.devcards == new_game.devcards
     @test game.already_played_this_turn == new_game.already_played_this_turn
     @test game.turn_num == new_game.turn_num

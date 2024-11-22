@@ -29,6 +29,8 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
             best_action_index = i
         end
     end
+
+    # Only do an action if it will improve his estimated chances of winning
     if best_action_proba > current_win_proba
         @info "And his chance of winning will go to $(best_action_proba) with this next move"
         return action_functions[best_action_index]
