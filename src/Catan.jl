@@ -20,7 +20,7 @@ function run(args)
         global SAVEFILEIO = open(SAVEFILE, "a")
     end
     #initialize_game(game, "data/sample.csv", SAVEFILE)
-    initialize_game(game, MAPFILE, SAVEFILE)
+    initialize_and_do_game!(game, MAPFILE, SAVEFILE)
 end
 
 if length(ARGS) >= 2

@@ -27,7 +27,7 @@ for j=1:M
     map = generate_random_map(map_file)
     for i=1:N
         game = Game(generate_players())
-        _,winner = initialize_game(game, map_file)
+        _,winner = initialize_and_do_game!(game, map_file)
 
         k = winner
         if winner != nothing
