@@ -99,19 +99,33 @@ function test_set_starting_player()
     #players: green, red, 
 end
 
-function setup_robot_game(savefile::Union{Nothing, String} = nothing)
+function setup_players()
     # Configure players and table configuration
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
                           (:red, EmpathRobotPlayer)
-            ]
-    setup_robot_game(team_and_playertype, savefile)
+    ]
+    setup_players(team_and_playertype)
 end
 
-function setup_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, String} = nothing)
+function setup_players(team_and_playertype::Vector)
     players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+    return players
+end
+
+function setup_and_do_robot_game(savefile::Union{Nothing, String} = nothing)
+    players = setup_players()
+    setup_and_do_robot_game(players, savefile)
+end
+
+function setup_and_do_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, String} = nothing)
+    players = setup_players(team_and_playertype)
+    return setup_and_do_robot_game(players, savefile)
+end
+
+function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
     game = Game(players)
     if (savefile == nothing)
         reset_savefile_with_timestamp("test_robot_game_savefile")
@@ -169,7 +183,7 @@ function test_log()
                           (:green, DefaultRobotPlayer),
                           (:red, DefaultRobotPlayer)
                          ]
-    board, game = setup_robot_game(team_and_playertype)
+    board, game = setup_and_do_robot_game(team_and_playertype)
     flush(SAVEFILEIO)
     
     @info "testing savefile $SAVEFILE"
@@ -536,6 +550,11 @@ function test_call_api()
     
 end
 
+
+function test_assign_largest_army()
+
+end
+
 function run_tests(neverend = false)
     test_deepcopy()
     test_actions()
@@ -554,20 +573,20 @@ function run_tests(neverend = false)
     if neverend
         while true
             println("starting game")
-            setup_robot_game()
+            setup_and_do_robot_game()
             println("replaying game from $SAVEFILE")
-            setup_robot_game(SAVEFILE)
+            setup_and_do_robot_game(SAVEFILE)
         end
     else
         println("starting game")
-        setup_robot_game()
+        setup_and_do_robot_game()
     end
     """
     """
 end
 
 if (length(ARGS) > 0)
-    setup_robot_game(ARGS[1])
+    setup_and_do_robot_game(ARGS[1])
 else
     run_tests(false)
 end
