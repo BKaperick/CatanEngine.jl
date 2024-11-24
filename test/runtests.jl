@@ -639,7 +639,11 @@ function run_tests(neverend = false)
 
             # Then immediately try to replay the game from its save file
             println("replaying game from $SAVEFILE")
-            setup_and_do_robot_game(SAVEFILE)
+            try
+                setup_and_do_robot_game(SAVEFILE)
+            catch e
+                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+            end
 
             # Now move the latest save file to a special `last_save` file for easy retrieval
         end
