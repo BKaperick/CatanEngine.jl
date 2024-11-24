@@ -612,7 +612,6 @@ function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
     end
-    """
     test_assign_largest_army()
     test_deepcopy()
     test_actions()
@@ -628,7 +627,6 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
-    """
     if neverend
         while true
             # Play the game once
