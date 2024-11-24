@@ -459,9 +459,9 @@ function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,Pla
     return winner
 end
 
-initialize_and_do_game!(game::Game, csvfile::String) = initialize_and_do_game!(game, csvfile, SAVEFILE)
-function initialize_and_do_game!(game::Game, csvfile::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}
-    board = read_map(csvfile)
+initialize_and_do_game!(game::Game, map_file::String) = initialize_and_do_game!(game, map_file, SAVEFILE)
+function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}
+    board = read_map(map_file)
     load_gamestate!(game, board, in_progress_game_file)
     for p in game.players
         initialize_player(board, p)

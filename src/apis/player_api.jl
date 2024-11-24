@@ -92,6 +92,8 @@ function play_devcard(player::Player, devcard::Symbol)
     _play_devcard(player, devcard)
 end
 function _play_devcard(player::Player, devcard::Symbol)
+
+    # TODO these checks should never need to happen
     if haskey(player.dev_cards, devcard)
         player.dev_cards[devcard] -= 1
     end
