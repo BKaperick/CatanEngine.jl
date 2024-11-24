@@ -3,7 +3,7 @@ using Test
 #using Logging
 #using Catan
 #include("../src/constants.jl")
-using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
+#using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
 include("../src/main.jl")
 
 
@@ -29,8 +29,9 @@ function reset_savefile(file_name)
     global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
 end
+
 function reset_savefile_with_timestamp(name)
-    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "HHMMSS"))_$counter.txt"
+    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
     global counter += 1
     global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
@@ -47,7 +48,8 @@ function test_deepcopy()
                           (:green, DefaultRobotPlayer),
                           (:red, EmpathRobotPlayer)
             ]
-    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+
+    players = setup_players(team_and_playertype)
     game = Game(players)
     game2 = deepcopy(game)
     game.players[1].player.team = :newcolor
@@ -71,7 +73,7 @@ function test_set_starting_player()
                           (:green, DefaultRobotPlayer),
                           (:red, EmpathRobotPlayer)
             ]
-    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+    players = setup_players(team_and_playertype)
     game = Game(players)
 
     set_starting_player(game, 2)
@@ -105,6 +107,7 @@ function setup_players()
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
+                          #(:red, DefaultRobotPlayer)
                           (:red, EmpathRobotPlayer)
     ]
     setup_players(team_and_playertype)
@@ -125,6 +128,13 @@ function setup_and_do_robot_game(team_and_playertype::Vector, savefile::Union{No
     return setup_and_do_robot_game(players, savefile)
 end
 
+"""
+    setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
+
+If no savefile is passed, we use the standard format "test_robot_game_savefile_yyyyMMdd_HHmmss.txt".
+If a savefile is passed, we use it to save the game state.  If the file is nonempty, the game will replay
+up until the end of the save file and then continue to write ongoing game states to the file.
+"""
 function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
     game = Game(players)
     if (savefile == nothing)
@@ -189,7 +199,7 @@ function test_log()
     @info "testing savefile $SAVEFILE"
     
     # initialize fresh objects
-    new_players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+    new_players = setup_players(team_and_playertype)
     new_game = Game(new_players)
     new_board = read_map(SAMPLE_MAP)
 
@@ -599,6 +609,10 @@ function test_assign_largest_army()
 end
 
 function run_tests(neverend = false)
+    for file in Base.Filesystem.readdir("data")
+        Base.Filesystem.rm("data/$file")
+    end
+    """
     test_assign_largest_army()
     test_deepcopy()
     test_actions()
@@ -614,12 +628,22 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
+    """
     if neverend
         while true
+            # Play the game once
             println("starting game")
-            setup_and_do_robot_game()
+            try
+                setup_and_do_robot_game()
+            catch e
+                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+            end
+
+            # Then immediately try to replay the game from its save file
             println("replaying game from $SAVEFILE")
             setup_and_do_robot_game(SAVEFILE)
+
+            # Now move the latest save file to a special `last_save` file for easy retrieval
         end
     else
         println("starting game")
