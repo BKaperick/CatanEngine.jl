@@ -112,6 +112,24 @@ mutable struct EmpathRobotPlayer <: RobotPlayer
     machine::Machine
 end
 
+mutable struct MutatedEmpathRobotPlayer <: EmpathRobotPlayer 
+    player::Player
+    machine::Machine
+    mutation::Dictionary{Symbol, AbstractFloat}
+end
+
+
+"""
+ACTION_TO_DESCRIPTION = Dict(
+    :ProposeTrade => "[pt] Propose trade (e.g. \"pt 2 w w g g\")",
+    :ConstructCity => "[bc] Build city",
+    :ConstructSettlement => "[bs] Build settlement",
+    :ConstructRoad => "[br] Build road",
+    :BuyDevCard => "[bd] Buy development card",
+    :PlayDevCard => "[pd] Play development card"
+   )
+"""
+
 EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
 function EmpathRobotPlayer(team::Symbol, features_file_name::String)
     Tree = load_tree_model()
@@ -122,6 +140,21 @@ function EmpathRobotPlayer(team::Symbol, features_file_name::String)
         max_features = 0,
         splitting_criterion = BetaML.Utils.gini)
     EmpathRobotPlayer(Player(team), try_load_model_from_csv(tree, "$(DATA_DIR)/model.jls", "$(DATA_DIR)/features.csv"))
+end
+
+
+MutatedEmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv", Dict())
+MutatedEmpathRobotPlayer(player::MutatedEmpathRobotPlayer) = MutatedEmpathRobotPlayer(player.player, player.machine, generate_mutation(player.mutation))
+
+function MutatedEmpathRobotPlayer(team::Symbol, features_file_name::String, mutation::Dict)
+    Tree = load_tree_model()
+    tree = Base.invokelatest(Tree,
+        max_depth = 6,
+        min_gain = 0.0,
+        min_records = 2,
+        max_features = 0,
+        splitting_criterion = BetaML.Utils.gini)
+    MutatedEmpathRobotPlayer(Player(team), try_load_model_from_csv(tree, "$(DATA_DIR)/model.jls", "$(DATA_DIR)/features.csv"), mutation)
 end
 
 HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)

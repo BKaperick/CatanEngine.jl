@@ -4,10 +4,10 @@ include("apis/player_api.jl")
 SAVEFILEIO = open(SAVEFILE, "a")
 
 team_and_playertype = [
-                      (:Blue, EmpathRobotPlayer),
-                      (:Green, DefaultRobotPlayer),
-                      (:Cyan, DefaultRobotPlayer),
-                      (:Yellow, DefaultRobotPlayer),
+                      (:Blue, MutatedEmpathRobotPlayer),
+                      (:Green, MutatedEmpathRobotPlayer),
+                      (:Cyan, MutatedEmpathRobotPlayer),
+                      (:Yellow, MutatedEmpathRobotPlayer),
         ]
 generate_players() = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
 
