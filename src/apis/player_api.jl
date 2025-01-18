@@ -91,6 +91,7 @@ function play_devcard(player::Player, devcard::Symbol)
     log_action(":$(player.team) pd", devcard)
     _play_devcard(player, devcard)
 end
+
 function _play_devcard(player::Player, devcard::Symbol)
 
     # TODO these checks should never need to happen
@@ -219,6 +220,7 @@ function assign_largest_army!(players::Vector{PlayerType})
 
     # If noone has crossed threshold, then exit
     if length(player_and_count) == 0
+        println("tla: nothing $([p.player.dev_cards_used for p in players])")
         return nothing
     end
     
@@ -233,6 +235,7 @@ function assign_largest_army!(players::Vector{PlayerType})
     end
     
     # Most often there is only one admissible person
+    # So we transfer directly to them and exit
     if length(admissible) == 1 
         winner = admissible[1][1]
         _transfer_largest_army(old_winner, winner)
@@ -241,6 +244,7 @@ function assign_largest_army!(players::Vector{PlayerType})
     # If noone dethrones current winner
     elseif length(admissible) > 1 
         if old_winner != nothing
+            _transfer_largest_army(old_winner, old_winner)
             return nothing
         else
             println(player_and_count)
@@ -254,6 +258,7 @@ function assign_largest_army!(players::Vector{PlayerType})
 end
 
 function _transfer_largest_army(old_winner::Union{PlayerType, Nothing}, new_winner::Union{PlayerType, Nothing})
+    println("tla: transfer from $(old_winner == nothing ? nothing : old_winner.player.team) to $(new_winner == nothing ? nothing : new_winner.player.team)")
     # Don't fill up log with removing and re-adding LargestArmy to same player
     if old_winner != nothing && new_winner != nothing && new_winner.player.team == old_winner.player.team
         return

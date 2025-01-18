@@ -2,3 +2,5 @@
 _test*
 Manifest.toml
 test/data/oneoff_test_log.txt
+.CondaPkg
+.CondaPkg/*
