@@ -19,7 +19,8 @@ SAVE_GAME_TO_FILE = false
 #SAVEFILEIO = open(SAVEFILE, "a")
 
 map_file = "$(DATA_DIR)/_temp_map_file.csv"
-winners = Dict()
+winners = Dict{Union{Symbol, Nothing}, Int}([(k,0) for k in collect(keys(team_to_mutation))])
+winners[nothing] = 0
 
 # Number of games to play per map
 # Number of maps to generate
@@ -46,11 +47,7 @@ for k=1:tourney.epochs
             if winner != nothing
                 w = winner.player.team
             end
-            if haskey(winners, w)
-                winners[w] += 1
-            else
-                winners[w] = 1
-            end
+            winners[w] += 1
             if winner != nothing
                 println("Game $i: $(winner.player.team)")
             end

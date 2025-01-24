@@ -5,19 +5,7 @@ function print_mutation(mutation::Dict)
 end
 
 function order_winners(unordered_winners)
-    teams = collect(keys(unordered_winners))
-    ordered = [(k,v) for (k,v) in sort(collect(unordered_winners), by=x -> x.second, rev=true) if k != nothing]
-
-    winning_teams = Set([c[1] for c in ordered])
-
-    if length(winning_teams) < 4
-        for t in teams
-            if ~(t in winning_teams)
-                push!(ordered, (t, 0))
-            end
-        end
-    end
-    return ordered
+    return [(k,v) for (k,v) in sort(collect(unordered_winners), by=x -> x.second, rev=true) if k != nothing]
 end
 
 function mutate!(team_to_mutation, player; magnitude=.2)
