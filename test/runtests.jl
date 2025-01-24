@@ -4,6 +4,7 @@ using Test
 #using Catan
 #include("../src/constants.jl")
 #using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
+import Base.:(==)
 include("../src/main.jl")
 
 
@@ -367,6 +368,16 @@ function test_largest_army()
     @test get_total_vp_count(board, player2.player) == 2
 end
 
+function test_road_hashing()
+    road1 = Road((2,3), (2,4), :Blue)
+    road2 = Road((2,3), (2,4), :Blue)
+    set = Set{Road}()
+    push!(set, road1)
+    push!(set, road2)
+    push!(set, road2)
+    println(set)
+    @test length(set) == 1
+end
 function test_longest_road()
     board = read_map(SAMPLE_MAP)
     player_blue = DefaultRobotPlayer(:Blue)
@@ -612,6 +623,7 @@ function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
     end
+    test_road_hashing()
     test_assign_largest_army()
     test_deepcopy()
     test_actions()

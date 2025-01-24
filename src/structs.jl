@@ -1,5 +1,5 @@
 include("players/structs.jl")
-
+import Base: ==
 
 
 mutable struct Game
@@ -18,13 +18,13 @@ Game(players) = Game(deepcopy(DEVCARD_COUNTS), players, Set(), 0, false, false, 
 mutable struct Construction
 end
 
-mutable struct Road
+struct Road
     coord1::Tuple{Int,Int}
     coord2::Tuple{Int,Int}
     team::Symbol
 end
 
-mutable struct Building
+struct Building
     coord::Tuple{Int,Int}
     type::Symbol
     team::Symbol

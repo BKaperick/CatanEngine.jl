@@ -150,7 +150,8 @@ function get_max_road_length(board, team)
         skip_coords = Set([c for (c,b) in board.coord_to_building if b.team != team])
         roads_seen = Set{Road}()
 
-        # Note that `roads_seen` value updates within the recursived function are preserved so we won't revisit the existing ones
+        # Note that `roads_seen` value updates within the recursived function 
+        # are preserved so we won't revisit the existing ones
         len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
         len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
         
@@ -171,12 +172,12 @@ The length includes the current road, so minimum value is 1.
 We stop exploring if we reach a coord in `skip_coords`, which is used to stop counting in the case of intersecting opponent constructions.
 """
 function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
-    
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
     push!(roads_seen, current)
 
     # setdiff is used handle infinite counting in case of loops 
     roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
+    #println("(in recursive call $(length(roads_seen)) $(length(roads_to_explore))")
     
     # Base case - road ends on an opponent's building, or it's a deadend -- count only the current road
     if (coord_to_explore in skip_coords) || (length(roads_to_explore) == 0)
