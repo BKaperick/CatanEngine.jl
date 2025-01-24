@@ -17,7 +17,9 @@ function run(args)
     end
     if length(ARGS) >= 3
         SAVEFILE = ARGS[3]
-        global SAVEFILEIO = open(SAVEFILE, "a")
+        if SAVE_GAME_TO_FILE
+            global SAVEFILEIO = open(SAVEFILE, "a")
+        end
     end
     #initialize_game(game, "data/sample.csv", SAVEFILE)
     initialize_and_do_game!(game, MAPFILE, SAVEFILE)

@@ -462,7 +462,9 @@ end
 initialize_and_do_game!(game::Game, map_file::String) = initialize_and_do_game!(game, map_file, SAVEFILE)
 function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}
     board = read_map(map_file)
-    load_gamestate!(game, board, in_progress_game_file)
+    if SAVE_GAME_TO_FILE
+        load_gamestate!(game, board, in_progress_game_file)
+    end
     for p in game.players
         initialize_player(board, p)
     end
