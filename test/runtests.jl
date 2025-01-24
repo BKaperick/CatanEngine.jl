@@ -4,7 +4,6 @@ using Test
 #using Catan
 #include("../src/constants.jl")
 #using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
-import Base.:(==)
 include("../src/main.jl")
 
 
@@ -670,7 +669,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     if (length(ARGS) > 0)
         setup_and_do_robot_game(ARGS[1])
     else
-        run_tests(true)
+        #run_tests(true)
+        run_tests(false)
     end
 end
 

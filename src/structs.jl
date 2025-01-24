@@ -1,6 +1,4 @@
 include("players/structs.jl")
-import Base: ==
-
 
 mutable struct Game
     devcards::Dict{Symbol,Int}
