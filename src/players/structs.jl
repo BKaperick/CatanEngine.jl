@@ -115,9 +115,8 @@ end
 mutable struct MutatedEmpathRobotPlayer <: RobotPlayer
     player::Player
     machine::Machine
-    mutation::Dict{Symbol, AbstractFloat}
+    mutation::Dict #{Symbol, AbstractFloat}
 end
-
 
 """
 ACTION_TO_DESCRIPTION = Dict(
@@ -143,8 +142,11 @@ function EmpathRobotPlayer(team::Symbol, features_file_name::String)
 end
 
 
-MutatedEmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv", Dict())
-MutatedEmpathRobotPlayer(player::MutatedEmpathRobotPlayer) = MutatedEmpathRobotPlayer(player.player, player.machine, generate_mutation(player.mutation))
+MutatedEmpathRobotPlayer(team::Symbol) = MutatedEmpathRobotPlayer(team, "../../features.csv", get_new_mutation(Dict{Symbol, AbstractFloat}()))
+MutatedEmpathRobotPlayer(team::Symbol, mutation::Dict) = MutatedEmpathRobotPlayer(team, "../../features.csv", mutation)
+RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = RobotPlayer(team)
+PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(team)
+MutatedEmpathRobotPlayer(player::MutatedEmpathRobotPlayer) = MutatedEmpathRobotPlayer(player.player, player.machine, get_new_mutation(player.mutation))
 
 function MutatedEmpathRobotPlayer(team::Symbol, features_file_name::String, mutation::Dict)
     Tree = load_tree_model()
@@ -170,4 +172,7 @@ function Base.deepcopy(player::DefaultRobotPlayer)
 end
 function Base.deepcopy(player::EmpathRobotPlayer)
     return EmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
+end
+function Base.deepcopy(player::MutatedEmpathRobotPlayer)
+    return MutatedEmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
 end

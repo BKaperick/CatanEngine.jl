@@ -101,16 +101,20 @@ end
 
 Randomly perturb the existing mutation returning transformed dict
 """
-function get_new_mutation(last_mutation::Dict{Symbol, AbstractFloat})
-    mutation_size = 0.1
+function get_new_mutation(last_mutation::Dict)::Dict{Symbol, AbstractFloat}
+    mutation_vector = 0.2 * (rand([-1, 1]))
     possible_actions = collect(keys(ACTION_TO_DESCRIPTION))
+    key = sample(possible_actions)
+    
     if length(keys(last_mutation)) == 0
-        key = sample(possible_actions)
-        return Dict(key => mutation_size)
+        return Dict(key => mutation_vector)
     end
 
-    key = sample(keys(last_mutation)) 
-    last_mutation[key] += mutation_size
+    if haskey(last_mutation, key)
+        last_mutation[key] += mutation_vector
+    else
+        last_mutation[key] = mutation_vector
+    end
     return last_mutation
 end
 

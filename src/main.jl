@@ -566,7 +566,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
         end
         finish_turn(game)
 
-        if game.turn_num >= 500
+        if game.turn_num >= 5000
             break
         end
     end
