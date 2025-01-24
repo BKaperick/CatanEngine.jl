@@ -96,27 +96,5 @@ function save_parameters_after_game_end(file::IO, board::Board, players::Vector{
     write(file, "$values,$label\n")
 end
 
-"""
-    get_new_mutation(last_mutation::Dict{Symbol, AbstractFloat})
-
-Randomly perturb the existing mutation returning transformed dict
-"""
-function get_new_mutation(last_mutation::Dict, magnitude::AbstractFloat)::Dict{Symbol, AbstractFloat}
-    mutation_vector = magnitude * (rand([-1, 1]))
-    possible_actions = collect(keys(ACTION_TO_DESCRIPTION))
-    key = sample(possible_actions)
-    
-    if length(keys(last_mutation)) == 0
-        return Dict(key => mutation_vector)
-    end
-
-    if haskey(last_mutation, key)
-        last_mutation[key] += mutation_vector
-    else
-        last_mutation[key] = mutation_vector
-    end
-    return last_mutation
-end
-
 # TODO implement this based on ML model, only accept trade if win proba augments more than the other player's win proba from the trade
 # function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool

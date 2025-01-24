@@ -3,6 +3,7 @@ include("../apis/player_api.jl")
 include("structs.jl")
 include("helpers.jl")
 include("mutation_rule_library.jl")
+include("evolution.jl")
 
 
 team_to_mutation = Dict([
