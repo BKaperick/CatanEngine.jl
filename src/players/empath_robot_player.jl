@@ -97,11 +97,11 @@ function save_parameters_after_game_end(file::IO, board::Board, players::Vector{
 end
 
 """
-    get_new_mutation(last_mutation::Dictionary{Symbol, Float})
+    get_new_mutation(last_mutation::Dict{Symbol, AbstractFloat})
 
 Randomly perturb the existing mutation returning transformed dict
 """
-function get_new_mutation(last_mutation::Dictionary{Symbol, Float})
+function get_new_mutation(last_mutation::Dict{Symbol, AbstractFloat})
     mutation_size = 0.1
     possible_actions = collect(keys(ACTION_TO_DESCRIPTION))
     if length(keys(last_mutation)) == 0

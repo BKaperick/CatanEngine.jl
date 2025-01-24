@@ -112,10 +112,10 @@ mutable struct EmpathRobotPlayer <: RobotPlayer
     machine::Machine
 end
 
-mutable struct MutatedEmpathRobotPlayer <: EmpathRobotPlayer 
+mutable struct MutatedEmpathRobotPlayer <: RobotPlayer
     player::Player
     machine::Machine
-    mutation::Dictionary{Symbol, AbstractFloat}
+    mutation::Dict{Symbol, AbstractFloat}
 end
 
 
