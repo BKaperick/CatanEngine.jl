@@ -15,9 +15,6 @@ end
 
 Game(players) = Game(deepcopy(DEVCARD_COUNTS), players, Set(), 0, false, false, false)
 
-mutable struct Construction
-end
-
 struct Road
     coord1::Tuple{Int,Int}
     coord2::Tuple{Int,Int}
