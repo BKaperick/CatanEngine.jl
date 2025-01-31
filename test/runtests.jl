@@ -618,6 +618,48 @@ function test_assign_largest_army()
     @test player_green.player.has_largest_army == true
 end
 
+function test_evolving_robot_game(neverend)
+    team_and_playertype = [
+                          (:blue, EmpathRobotPlayer),
+                          (:cyan, MutatedEmpathRobotPlayer),
+                          (:green, EmpathRobotPlayer),
+                          (:red, MutatedEmpathRobotPlayer)
+            ]
+    players = setup_players(team_and_playertype)
+    test_automated_game(neverend, players)
+
+end
+function test_robot_game(neverend)
+    players = setup_players()
+    test_automated_game(neverend, players)
+end
+function test_automated_game(neverend, players)
+    if neverend
+        while true
+            # Play the game once
+            println("starting game")
+            try
+                setup_and_do_robot_game(players)
+            catch e
+                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+            end
+
+            # Then immediately try to replay the game from its save file
+            println("replaying game from $SAVEFILE")
+            try
+                setup_and_do_robot_game(players, SAVEFILE)
+            catch e
+                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+            end
+
+            # Now move the latest save file to a special `last_save` file for easy retrieval
+        end
+    else
+        println("starting game")
+        setup_and_do_robot_game()
+    end
+end
+
 function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
@@ -638,30 +680,8 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
-    if neverend
-        while true
-            # Play the game once
-            println("starting game")
-            try
-                setup_and_do_robot_game()
-            catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
-            end
-
-            # Then immediately try to replay the game from its save file
-            println("replaying game from $SAVEFILE")
-            try
-                setup_and_do_robot_game(SAVEFILE)
-            catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
-            end
-
-            # Now move the latest save file to a special `last_save` file for easy retrieval
-        end
-    else
-        println("starting game")
-        setup_and_do_robot_game()
-    end
+    test_robot_game(false)
+    test_evolving_robot_game(neverend)
     """
     """
 end

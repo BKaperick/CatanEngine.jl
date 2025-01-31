@@ -7,7 +7,7 @@ include("../learning/production_model.jl")
 
 Gathers all legal actions, and chooses the one that most increases the player's probability of victory, based on his `player.machine` model.  If no action increases the probability of victory, then do nothing.
 """
-function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::EmpathRobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::MutatedEmpathRobotPlayer, actions::Set{Symbol})
     action_functions = get_legal_action_functions(board, players, player, actions)
     best_action_index = 0
     best_action_proba = -1

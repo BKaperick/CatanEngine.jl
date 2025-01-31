@@ -142,11 +142,10 @@ function EmpathRobotPlayer(team::Symbol, features_file_name::String)
 end
 
 
-MutatedEmpathRobotPlayer(team::Symbol) = MutatedEmpathRobotPlayer(team, "../../features.csv", get_new_mutation(Dict{Symbol, AbstractFloat}()))
+MutatedEmpathRobotPlayer(team::Symbol) = MutatedEmpathRobotPlayer(team, "../../features.csv", Dict{Symbol, AbstractFloat}())
 MutatedEmpathRobotPlayer(team::Symbol, mutation::Dict) = MutatedEmpathRobotPlayer(team, "../../features.csv", mutation)
 RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = RobotPlayer(team)
 PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(team)
-MutatedEmpathRobotPlayer(player::MutatedEmpathRobotPlayer) = MutatedEmpathRobotPlayer(player.player, player.machine, get_new_mutation(player.mutation))
 
 function MutatedEmpathRobotPlayer(team::Symbol, features_file_name::String, mutation::Dict)
     Tree = load_tree_model()
@@ -174,5 +173,20 @@ function Base.deepcopy(player::EmpathRobotPlayer)
     return EmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
 end
 function Base.deepcopy(player::MutatedEmpathRobotPlayer)
-    return MutatedEmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
+    return MutatedEmpathRobotPlayer(deepcopy(player.player), player.machine, deepcopy(player.mutation)) #TODO needto deepcopy the machine?
+end
+
+
+function Base.deepcopy(player::Player)
+    return Player(
+        deepcopy(player.resources),
+        player.vp_count,
+        deepcopy(player.dev_cards),
+        player.team,
+        deepcopy(player.dev_cards_used),
+        deepcopy(player.ports),
+        player.played_dev_card_this_turn,
+        player.bought_dev_card_this_turn,
+        player.has_largest_army
+    )
 end

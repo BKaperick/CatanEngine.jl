@@ -26,8 +26,8 @@ winners[nothing] = 0
 # Number of games to play per map
 # Number of maps to generate
 # Number of epochs (1 epoch is M*N games) to run
-#tourney = Tournament(5,4,10, :Sequential)
-tourney = Tournament(5,4,10, :FiftyPercentWinnerStays)
+tourney = Tournament(20,5,20, :Sequential)
+#tourney = Tournament(20,8,20, :FiftyPercentWinnerStays)
 #tourney = Tournament(5,4,10, :SixtyPercentWinnerStays)
 
 

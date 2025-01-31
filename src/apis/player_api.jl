@@ -2,6 +2,7 @@ import Random
 include("../players/human_player.jl")
 include("../players/robot_player.jl")
 include("../players/empath_robot_player.jl")
+include("../players/mutated_robot_player.jl")
 include("human_action_interface.jl")
 
 # Players API
@@ -191,7 +192,7 @@ function _take_resource(player::Player, resource::Symbol)
     if haskey(player.resources, resource) && player.resources[resource] > 0
         player.resources[resource] -= 1
     else
-        @warn "$(player.team) has insufficient $(resource) cards"
+        @debug "$(player.team) has insufficient $(resource) cards"
     end
 end
 
@@ -244,12 +245,15 @@ function assign_largest_army!(players::Vector{PlayerType})
     # If noone dethrones current winner
     elseif length(admissible) > 1 
         if old_winner != nothing
-            #_transfer_largest_army(old_winner, old_winner)
+            _transfer_largest_army(old_winner, old_winner)
             return
         else
-            println(player_and_count)
-            println(admissible)
-            println(old_winners)
+            # TODO this can happen if there was no old winner, and now
+            # there are many winners
+            println([(p.player.team,c) for (p,c) in player_and_count])
+            println(max_ct)
+            println([(p.player.team,c) for (p,c) in admissible])
+            println([p.player.team for p in old_winners])
             @assert false
         end
     end
