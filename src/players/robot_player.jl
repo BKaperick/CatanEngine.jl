@@ -186,7 +186,9 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
                 push!(action_functions, (g, b) -> do_play_devcard(b, g.players, player, card))
             end
         end
-    elseif :ProposeTrade in actions
+
+    """
+    if :ProposeTrade in actions
         sampled = random_sample_resources(player.player.resources, 1)
         rand_resource_from = [sampled...]
         rand_resource_to = [get_random_resource()]
@@ -194,6 +196,7 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
             rand_resource_to = [get_random_resource()]
         end
         push!(action_functions, (g, b) -> propose_trade_goods(b, g.players, player, rand_resource_from, rand_resource_to))
+    """
     end
     return action_functions
 end
