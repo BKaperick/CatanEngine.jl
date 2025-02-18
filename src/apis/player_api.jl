@@ -243,6 +243,10 @@ function assign_largest_army!(players::Vector{PlayerType})
         return
     
     # If noone dethrones current winner
+    println([(p.player.team,c) for (p,c) in player_and_count])
+    println(max_ct)
+    println([(p.player.team,c) for (p,c) in admissible])
+    println([p.player.team for p in old_winners])
     elseif length(admissible) > 1 
         if old_winner != nothing
             _transfer_largest_army(old_winner, old_winner)
@@ -250,10 +254,6 @@ function assign_largest_army!(players::Vector{PlayerType})
         else
             # TODO this can happen if there was no old winner, and now
             # there are many winners
-            println([(p.player.team,c) for (p,c) in player_and_count])
-            println(max_ct)
-            println([(p.player.team,c) for (p,c) in admissible])
-            println([p.player.team for p in old_winners])
             @assert false
         end
     end

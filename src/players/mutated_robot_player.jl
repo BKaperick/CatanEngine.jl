@@ -16,17 +16,35 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     current_win_proba = predict_model(player.machine, board, player)
     @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
     
+    og_board = Board(
+                 deepcopy(board.tile_to_dicevalue),
+                 deepcopy(board.dicevalue_to_tiles),
+                 deepcopy(board.tile_to_resource),
+                 deepcopy(board.coord_to_building),
+                 deepcopy(board.coord_to_roads),
+                 deepcopy(board.coord_to_port),
+                 deepcopy(board.empty_spaces),
+                 deepcopy(board.buildings),
+                 deepcopy(board.roads),
+                 board.robber_tile,
+                 deepcopy(board.spaces),
+                 board.longest_road
+                    )
+
     for (i,action_func!) in enumerate(action_functions)
         # TODO are there any weird side effects on board if we pass a fresh Game here?
         hypoth_board = deepcopy(board)
         hypoth_player = deepcopy(player)
         action_func!(Game([DefaultRobotPlayer(p.team) for p in players]), hypoth_board)
+        # TODO de-activate while debugging LA assert fail
         p = predict_model(player.machine, board, player)
+        #p = rand()
         if p > best_action_proba
             best_action_proba = p
             best_action_index = i
         end
     end
+    #println("boards match?\n$(og_board)\n$(string(board))")
 
     # Only do an action if it will improve his estimated chances of winning
     if best_action_proba > current_win_proba

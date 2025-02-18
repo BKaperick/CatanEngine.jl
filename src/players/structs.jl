@@ -173,7 +173,7 @@ function Base.deepcopy(player::EmpathRobotPlayer)
     return EmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
 end
 function Base.deepcopy(player::MutatedEmpathRobotPlayer)
-    return MutatedEmpathRobotPlayer(deepcopy(player.player), player.machine, deepcopy(player.mutation)) #TODO needto deepcopy the machine?
+    return MutatedEmpathRobotPlayer(deepcopy(player.player), deepcopy(player.machine), deepcopy(player.mutation)) #TODO needto deepcopy the machine?
 end
 
 
