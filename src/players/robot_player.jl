@@ -154,7 +154,7 @@ end
 function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     #legal_actions = get_legal_actions(game, board, player) # ::Set{Symbol}
     action_functions = []
-
+    """
     if :ConstructCity in actions
         candidates = get_admissible_city_locations(board, player.player)
         for coord in candidates
@@ -173,6 +173,7 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
             push!(action_functions, (g, b) -> construct_road(b, player.player, coord[1], coord[2]))
         end
     end
+    """
 
     if :BuyDevCard in actions
         push!(action_functions, (g, board) -> buy_devcard(g, player.player))
