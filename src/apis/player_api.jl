@@ -95,6 +95,9 @@ function play_devcard(player::Player, devcard::Symbol)
 end
 
 function _play_devcard(player::Player, devcard::Symbol)
+    if ~haskey(player.dev_cards_used, devcard)
+        player.dev_cards_used[devcard] = 0
+    end
     player.dev_cards[devcard] -= 1
     player.dev_cards_used[devcard] += 1
     player.played_dev_card_this_turn = true
