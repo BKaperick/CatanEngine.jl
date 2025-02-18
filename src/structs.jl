@@ -9,9 +9,10 @@ mutable struct Game
     turn_order_set::Bool
     first_turn_forward_finished::Bool
     rolled_dice_already::Bool
+    unique_id::Int
 end
 
-Game(players) = Game(deepcopy(DEVCARD_COUNTS), players, Set(), 0, false, false, false)
+Game(players) = Game(deepcopy(DEVCARD_COUNTS), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)))
 
 struct Road
     coord1::Tuple{Int,Int}

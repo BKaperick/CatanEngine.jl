@@ -42,6 +42,7 @@ for k=1:tourney.epochs
         map = generate_random_map(map_file)
         for i=1:tourney.games_per_map
             game = Game(generate_players())
+            println("starting game $(game.unique_id)")
             _,winner = initialize_and_do_game!(game, map_file)
 
             w = winner

@@ -426,7 +426,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
         end
         next_action = choose_next_action(board, [PlayerPublicView(p) for p in game.players], player, actions)
         if next_action != nothing
-            next_action(game, board)
+            next_action(game, board, player)
         end
     end
     @debug "setting dice false"

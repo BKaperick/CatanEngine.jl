@@ -86,6 +86,7 @@ function _add_devcard(player::Player, devcard::Symbol)
     else
         player.dev_cards[devcard] = 1
     end
+    player.bought_dev_card_this_turn = devcard
 end
     
 function play_devcard(player::Player, devcard::Symbol)
@@ -94,14 +95,7 @@ function play_devcard(player::Player, devcard::Symbol)
 end
 
 function _play_devcard(player::Player, devcard::Symbol)
-
-    # TODO these checks should never need to happen
-    if haskey(player.dev_cards, devcard)
-        player.dev_cards[devcard] -= 1
-    end
-    if ~haskey(player.dev_cards_used, devcard)
-        player.dev_cards_used[devcard] = 0
-    end
+    player.dev_cards[devcard] -= 1
     player.dev_cards_used[devcard] += 1
     player.played_dev_card_this_turn = true
 end
@@ -242,12 +236,8 @@ function assign_largest_army!(players::Vector{PlayerType})
         _transfer_largest_army(old_winner, winner)
         return
     
-    # If noone dethrones current winner
-    println([(p.player.team,c) for (p,c) in player_and_count])
-    println(max_ct)
-    println([(p.player.team,c) for (p,c) in admissible])
-    println([p.player.team for p in old_winners])
     elseif length(admissible) > 1 
+
         if old_winner != nothing
             _transfer_largest_army(old_winner, old_winner)
             return
