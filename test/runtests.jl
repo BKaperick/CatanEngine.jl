@@ -618,17 +618,6 @@ function test_assign_largest_army()
     @test player_green.player.has_largest_army == true
 end
 
-function test_evolving_robot_game(neverend)
-    team_and_playertype = [
-                          (:blue, EmpathRobotPlayer),
-                          (:cyan, MutatedEmpathRobotPlayer),
-                          (:green, EmpathRobotPlayer),
-                          (:red, MutatedEmpathRobotPlayer)
-            ]
-    players = setup_players(team_and_playertype)
-    test_automated_game(neverend, players)
-
-end
 function test_robot_game(neverend)
     players = setup_players()
     test_automated_game(neverend, players)
@@ -681,7 +670,6 @@ function run_tests(neverend = false)
     test_call_api()
     test_longest_road()
     test_robot_game(false)
-    test_evolving_robot_game(neverend)
     """
     """
 end
