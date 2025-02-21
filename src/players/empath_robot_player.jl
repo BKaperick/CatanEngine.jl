@@ -17,11 +17,16 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     @info "$(player.player.team) thinks his chance of winning is $(current_win_proba)"
     
     for (i,action_func!) in enumerate(action_functions)
-        # TODO are there any weird side effects on board if we pass a fresh Game here?
+
+        # Deep copy game objects, apply the proposed action, and compute win probability
+        # TODO this is an illogical approach for non-deterministic actions like drawing 
+        # a card...
         hypoth_board = deepcopy(board)
         hypoth_player = deepcopy(player)
-        action_func!(Game([DefaultRobotPlayer(p.team) for p in players]), hypoth_board)
-        p = predict_model(player.machine, board, player)
+        hypoth_game = Game([DefaultRobotPlayer(p.team) for p in players])
+        action_func!(hypoth_game, hypoth_board, hypoth_player)
+        p = predict_model(hypoth_player.machine, hypoth_board, hypoth_player)
+        
         if p > best_action_proba
             best_action_proba = p
             best_action_index = i
@@ -34,7 +39,6 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         return action_functions[best_action_index]
     end
     return nothing
-
 end
 
 function save_parameters_after_game_end(file::IO, board::Board, players::Vector{PlayerType}, player::EmpathRobotPlayer, winner_team::Symbol)
