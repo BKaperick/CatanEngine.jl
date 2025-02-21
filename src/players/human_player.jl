@@ -62,7 +62,7 @@ function choose_next_action(board, players, player::HumanPlayer, actions)
     end
     @warn keys(PLAYER_ACTIONS)
     func = PLAYER_ACTIONS[action_and_args[1]]
-    return (game, board) -> func(game, board, player, action_and_args[2:end]...)
+    return (game, b, p) -> func(game, b, p, action_and_args[2:end]...)
 end
 
 function steal_random_resource(from_player, to_player)

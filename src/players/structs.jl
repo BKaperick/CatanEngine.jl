@@ -34,20 +34,6 @@ function Player(team::Symbol)
     return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing, false)
 end
 
-function deepcopy(player::Player)
-    return Player(
-                  deepcopy(player.resources),
-                  player.vp_count,
-                  deepcopy(player.dev_cards),
-                  player.team,
-                  deepcopy(player.dev_cards_used),
-                  deepcopy(player.ports),
-                  player.played_dev_card_this_turn,
-                  player.bought_dev_card_this_turn,
-                  player.has_largest_army
-                 )
-end
-
 """
     PlayerPublicView
 

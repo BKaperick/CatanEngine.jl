@@ -64,26 +64,26 @@ end
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
-        return (game, board) -> construct_city(board, player.player, coord)
+        return (game, b, p) -> construct_city(b, p.player, coord)
     end
     if :ConstructSettlement in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
-        return (game, board) -> construct_settlement(board, player.player, coord)
+        return (game, b, p) -> construct_settlement(b, p.player, coord)
     end
     if :ConstructRoad in actions
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (game, board) -> construct_road(board, player.player, coord1, coord2)
+        return (game, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
     if :BuyDevCard in actions
-        return (game, board) -> buy_devcard(game, player.player)
+        return (game, b, p) -> buy_devcard(game, p.player)
     end
     if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, game.players, player, devcards)
         if card != nothing
-            return (game, board) -> do_play_devcard(board, players, player, card)
+            return (game, b, p) -> do_play_devcard(b, players, p, card)
         end
     elseif :ProposeTrade in actions
         if rand() < player.propose_trade_willingness
@@ -94,7 +94,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (game, board) -> propose_trade_goods(board, game.players, player, rand_resource_from, rand_resource_to)
+            return (game, b, p) -> propose_trade_goods(b, game.players, p, rand_resource_from, rand_resource_to)
         end
     end
     return nothing

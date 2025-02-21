@@ -96,7 +96,7 @@ function choose_robber_victim(board::Board, player::RobotPlayer, potential_victi
     return max_ind
 end
 function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-    if length(values(devcards)) > 0
+    if sum(values(devcards)) > 0
         card = random_sample_resources(devcards, 1)[1]
         if card != :VictoryPoint
             return card
@@ -108,26 +108,26 @@ end
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
-        return (g, b) -> construct_city(b, player.player, coord)
+        return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if :ConstructSettlement in actions
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
-        return (g, b) -> construct_settlement(b, player.player, coord)
+        return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if :ConstructRoad in actions
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (g, b) -> construct_road(b, player.player, coord1, coord2)
+        return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
     if :BuyDevCard in actions
-        return (g, board) -> buy_devcard(g, player.player)
+        return (g, b, p) -> buy_devcard(g, p.player)
     end
     if :PlayDevCard in actions
         devcards = get_admissible_devcards(player.player)
         card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (g, b) -> do_play_devcard(b, g.players, player, card)
+            return (g, b, p) -> do_play_devcard(b, g.players, p, card)
         end
     elseif :ProposeTrade in actions
         if rand() > .8
@@ -138,7 +138,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (g, b) -> propose_trade_goods(b, g.players, player, rand_resource_from, rand_resource_to)
+            return (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
         end
     end
     return nothing

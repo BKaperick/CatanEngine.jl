@@ -113,6 +113,7 @@ function generate_random_map(fname::String)
 9,b
    """ 
    close(io)
+   return fname
 end
 
 
