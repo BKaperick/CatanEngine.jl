@@ -1,7 +1,6 @@
 import Random
 include("../players/human_player.jl")
 include("../players/robot_player.jl")
-include("../players/empath_robot_player.jl")
 include("human_action_interface.jl")
 
 # Players API

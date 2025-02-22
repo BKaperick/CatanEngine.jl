@@ -6,19 +6,21 @@ using Test
 #using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
 include("../src/main.jl")
 
+TEST_DATA_DIR = "data/"
+MAIN_DATA_DIR = "../data/"
 
-SAVEFILE = "data/_test_save_$(Dates.format(now(), "HHMMSS")).txt"
+SAVEFILE = "$(TEST_DATA_DIR)_test_save_$(Dates.format(now(), "HHMMSS")).txt"
 SAVEFILEIO = open(SAVEFILE, "a")
 SAVE_GAME_TO_FILE = true
-SAMPLE_MAP = "../data/sample.csv"
+SAMPLE_MAP = "$(MAIN_DATA_DIR)sample.csv"
 println(SAVEFILE)
 
 # Reset the one-off test log
-io = open("data/oneoff_test_log.txt", "w")
+io = open("$(TEST_DATA_DIR)oneoff_test_log.txt", "w")
 write(io,"")
 close(io)
 
-logger_io = open("data/oneoff_test_log.txt","w+")
+logger_io = open("$(TEST_DATA_DIR)oneoff_test_log.txt","w+")
 logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
@@ -46,7 +48,7 @@ function test_deepcopy()
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
-                          (:red, EmpathRobotPlayer)
+                          (:red, DefaultRobotPlayer)
             ]
 
     players = setup_players(team_and_playertype)
@@ -58,20 +60,13 @@ function test_deepcopy()
     @test !haskey(game2.players[1].player.resources, :Wood)
 end
 
-function empath_player()
-    player = EmpathRobotPlayer(:red)
-    board = read_map(SAMPLE_MAP)
-    p = predict_model(player.machine, board, player)
-    return player, board, p
-end
-
 function test_set_starting_player()
     reset_savefile_with_timestamp("test_set_starting_player")
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
-                          (:red, EmpathRobotPlayer)
+                          (:red, DefaultRobotPlayer)
             ]
     players = setup_players(team_and_playertype)
     game = Game(players)
@@ -108,7 +103,7 @@ function setup_players()
                           (:cyan, DefaultRobotPlayer),
                           (:green, DefaultRobotPlayer),
                           #(:red, DefaultRobotPlayer)
-                          (:red, EmpathRobotPlayer)
+                          (:red, DefaultRobotPlayer)
     ]
     setup_players(team_and_playertype)
 end

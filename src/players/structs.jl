@@ -1,11 +1,7 @@
 #include("../learning/production_model.jl")
 using Random
 using CSV
-using MLJ
-using DataFrames
-import DataFramesMeta as DFM
 import Base: deepcopy
-using DelimitedFiles
 
 abstract type PlayerType end
 mutable struct Player
@@ -93,35 +89,6 @@ mutable struct TestRobotPlayer <: RobotPlayer
     resource_to_proba_weight::Dict{Symbol, Int}
 end
 
-mutable struct EmpathRobotPlayer <: RobotPlayer
-    player::Player
-    machine::Machine
-end
-
-"""
-ACTION_TO_DESCRIPTION = Dict(
-    :ProposeTrade => "[pt] Propose trade (e.g. \"pt 2 w w g g\")",
-    :ConstructCity => "[bc] Build city",
-    :ConstructSettlement => "[bs] Build settlement",
-    :ConstructRoad => "[br] Build road",
-    :BuyDevCard => "[bd] Buy development card",
-    :PlayDevCard => "[pd] Play development card"
-   )
-"""
-
-EmpathRobotPlayer(team::Symbol) = EmpathRobotPlayer(team, "../../features.csv")
-function EmpathRobotPlayer(team::Symbol, features_file_name::String)
-    Tree = load_tree_model()
-    tree = Base.invokelatest(Tree,
-        max_depth = 6,
-        min_gain = 0.0,
-        min_records = 2,
-        max_features = 0,
-        splitting_criterion = BetaML.Utils.gini)
-    EmpathRobotPlayer(Player(team), try_load_model_from_csv(tree, "$(DATA_DIR)/model.jls", "$(DATA_DIR)/features.csv"))
-end
-
-
 RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = RobotPlayer(team)
 PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(team)
 
@@ -135,9 +102,6 @@ TestRobotPlayer(player::Player) = TestRobotPlayer(player, 5, 5, Dict(:Wood => 1,
 
 function Base.deepcopy(player::DefaultRobotPlayer)
     return DefaultRobotPlayer(deepcopy(player.player))
-end
-function Base.deepcopy(player::EmpathRobotPlayer)
-    return EmpathRobotPlayer(deepcopy(player.player), player.machine) #TODO needto deepcopy the machine?
 end
 
 function Base.deepcopy(player::Player)

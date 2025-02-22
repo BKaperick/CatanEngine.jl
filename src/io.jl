@@ -205,6 +205,15 @@ end
 # Feature writing utils
 #
 
+"""
+    compute_features(board::Board, player::PlayerType)
+
+Base implementation does nothing.
+"""
+function compute_features(board::Board, player::Player)
+    return []
+end
+
 function _write_feature_file_header(file::IO, board::Board, player::PlayerType)
     features = compute_features(board, player.player)
     header = join([get_csv_friendly(f[1]) for f in features], ",")

@@ -1,4 +1,4 @@
 cyan,DefaultRobotPlayer
-red,EmpathRobotPlayer
+red,TestRobotPlayer
 yellow,TestRobotPlayer
 green,DefaultRobotPlayer
