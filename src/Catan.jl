@@ -40,7 +40,7 @@ function run(args, PLAYERS)
     initialize_and_do_game!(game, MAPFILE, SAVEFILE)
 end
 
-function run(players)
+function run(players::Vector{PlayerType})
     game = Game(players)
     MAPFILE = generate_random_map("_temp_map_file.csv")
     SAVEFILE = "./data/savefile.txt"

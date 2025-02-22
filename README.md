@@ -1,6 +1,8 @@
-## CatanLearning.jl
+# CatanEngine.jl
 
-[CatanLearning.jl](https://github.com/BKaperick/CatanLearning.jl) has been split off of the main repo.  It implements the reinforcement-learned players and their training code.
+This repository handles the engine for playing Settlers of Catan with a mixture of human and scripted players.
+
+For examples of implementation and advanced player algorithms, check out the sister repo [CatanLearning.jl](https://github.com/BKaperick/CatanLearning.jl/).
 
 ## How to run the game
 To launch a new or existing game:

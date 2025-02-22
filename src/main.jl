@@ -1,5 +1,5 @@
 using StatsBase, DocStringExtensions
-include("structs.jl")
+#include("structs.jl")
 include("constants.jl")
 include("io.jl")
 include("apis/board_api.jl")
