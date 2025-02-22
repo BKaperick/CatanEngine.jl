@@ -2,8 +2,6 @@ using Test
 #using Dates
 #using Logging
 #using Catan
-#include("../src/constants.jl")
-#using BenchmarkTools, Profile, StatProfilerHTML, ProfileView
 include("../src/main.jl")
 
 TEST_DATA_DIR = "data/"

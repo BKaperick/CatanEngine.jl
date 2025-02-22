@@ -1,7 +1,7 @@
 module Catan
 include("main.jl")
 
-export DefaultRobotPlayer, RobotPlayer, Player
+export DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView
 
 game = nothing
 println(ARGS)

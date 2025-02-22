@@ -1,6 +1,4 @@
-#include("../learning/production_model.jl")
 using Random
-using CSV
 import Base: deepcopy
 
 abstract type PlayerType end
