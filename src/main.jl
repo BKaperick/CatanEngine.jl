@@ -578,7 +578,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
 
     # Post game steps (writing features, updating models, etc)
     if winner != nothing && WRITE_FEATURES
-        write_features_file(board, game.players, winner)
+        do_post_game_action(board, game.players, winner)
     end
     return winner
 end

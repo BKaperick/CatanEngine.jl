@@ -7,13 +7,7 @@ logger = ConsoleLogger(stderr, Logging.Info)
 global_logger(logger)
 
 
-"""
-In tournament play, we want to write a set of game-state features to a common csv file for training,
-assigned here.
-"""
-FEATURES_FILE = "features.csv"
 DATA_DIR = "/home/bryan/Projects/Catan/CatanEngine.jl/data"
-WRITE_FEATURES = true
 
 BOARD_API = Set(["bs","br","bc"])
 VERBOSITY = 0
