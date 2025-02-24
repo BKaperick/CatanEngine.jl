@@ -115,3 +115,7 @@ function Base.deepcopy(player::Player)
         player.has_largest_army
     )
 end
+
+player(player::DefaultRobotPlayer) = p -> p.player
+player(player::TestRobotPlayer) = p -> p.player
+player(player::HumanPlayer) = p -> p.player

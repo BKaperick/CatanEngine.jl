@@ -4,6 +4,19 @@ include("main.jl")
 export DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!
 
+export choose_accept_trade,
+choose_building_location,
+choose_cards_to_discard,
+choose_monopoly_resource,
+choose_place_robber,
+choose_play_devcard,
+choose_next_action,
+choose_road_location,
+choose_robber_victim,
+choose_who_to_trade_with,
+choose_year_of_plenty_resources,
+choose_card_to_steal
+
 game = nothing
 println(ARGS)
 
