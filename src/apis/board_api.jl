@@ -197,9 +197,9 @@ function count_victory_points_from_board(board, team)
     for building in board.buildings
         if building.team == team
             if building.type == :Settlement
-                count += 1
+                count += VP_AWARDS[:Settlement]
             else
-                count += 2
+                count += VP_AWARDS[:City]
             end
         end
     end

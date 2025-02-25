@@ -4,6 +4,7 @@ include("main.jl")
 export DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!
 
+# Player methods to implement
 export choose_accept_trade,
 choose_building_location,
 choose_cards_to_discard,

@@ -9,8 +9,6 @@ global_logger(logger)
 
 DATA_DIR = "/home/bryan/Projects/Catan/CatanEngine.jl/data"
 
-BOARD_API = Set(["bs","br","bc"])
-VERBOSITY = 0
 SAVE_GAME_TO_FILE = false
 PRINT_BOARD = false
 
