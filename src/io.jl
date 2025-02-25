@@ -201,5 +201,5 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     end
 end
 
-function do_post_game_action(board::Board, players::Vector{PlayerType}, winner::PlayerType)
+function do_post_game_action(board::Board, players::Vector{PlayerType}, winner::Union{PlayerType, Nothing})
 end
