@@ -662,15 +662,19 @@ function run_tests(neverend = false)
     test_do_turn()
     test_call_api()
     test_longest_road()
-    test_robot_game(false)
+    test_robot_game(neverend)
     """
     """
 end
 if abspath(PROGRAM_FILE) == @__FILE__
     if (length(ARGS) > 0)
-        setup_and_do_robot_game(ARGS[1])
+        if ARGS[1] == "--neverend"
+            run_tests(true)
+        else
+            # Explicit save file passed as arg
+            setup_and_do_robot_game(ARGS[1])
+        end
     else
-        #run_tests(true)
         run_tests(false)
     end
 end
