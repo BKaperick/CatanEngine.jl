@@ -19,7 +19,7 @@
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-    return rand() > .5 + (from_player.visible_vp_count / 20)
+    return rand() > .5
 end
 
 function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
@@ -88,15 +88,13 @@ function choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView
     return get_random_resource(),get_random_resource()
 end
 function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
-    public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.player.team], potential_victims)
-    
-    
+    max_ind = sample(collect(potential_victims), 1)[1]
     @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player"
     return max_ind
 end
+
 function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-    if sum(values(devcards)) > 0
+    if sum(values(devcards)) > 0 && (rand() > .5)
         card = random_sample_resources(devcards, 1)[1]
         if card != :VictoryPoint
             return card
@@ -145,8 +143,10 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
 end
 
 function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
-    public_scores = count_victory_points_from_board(board)
-    max_ind = argmax(v -> public_scores[v.team], players)
+    max_ind = player.player
+    while max_ind.team == player.player.team
+        max_ind = sample(collect(players), 1)[1]
+    end
     @info "$(player.player.team) decided it is wisest to do business with $(max_ind.team) player"
     return max_ind.team
 end
