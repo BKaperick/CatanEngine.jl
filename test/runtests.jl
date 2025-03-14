@@ -259,29 +259,29 @@ function test_max_construction()
     board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
-        build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
+        build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player.team, true)[1])
     end
-    @test length(get_admissible_settlement_locations(board, player1.player, true)) > 0
-    build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
-    @test length(get_admissible_settlement_locations(board, player1.player, true)) == 0
+    @test length(get_admissible_settlement_locations(board, player1.player.team, true)) > 0
+    build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player.team, true)[1])
+    @test length(get_admissible_settlement_locations(board, player1.player.team, true)) == 0
     @test count_settlements(board, player1.player.team) == MAX_SETTLEMENT
     
     for i in 1:(MAX_CITY-1)
-        build_city(board, :Test1, get_admissible_city_locations(board, player1.player)[1])
+        build_city(board, :Test1, get_admissible_city_locations(board, player1.player.team)[1])
     end
-    @test length(get_admissible_city_locations(board, player1.player)) > 0
-    build_city(board, :Test1, get_admissible_city_locations(board, player1.player)[1])
-    @test length(get_admissible_city_locations(board, player1.player)) == 0
+    @test length(get_admissible_city_locations(board, player1.player.team)) > 0
+    build_city(board, :Test1, get_admissible_city_locations(board, player1.player.team)[1])
+    @test length(get_admissible_city_locations(board, player1.player.team)) == 0
     @test count_cities(board, player1.player.team) == MAX_CITY
     
     for i in 1:(MAX_ROAD-1)
-        coords = get_admissible_road_locations(board, player1.player)[1]
+        coords = get_admissible_road_locations(board, player1.player.team)[1]
         build_road(board, :Test1, coords...)
     end
-    @test length(get_admissible_road_locations(board, player1.player)) > 0
-    coords = get_admissible_road_locations(board, player1.player)[1]
+    @test length(get_admissible_road_locations(board, player1.player.team)) > 0
+    coords = get_admissible_road_locations(board, player1.player.team)[1]
     build_road(board, :Test1, coords...)
-    @test length(get_admissible_road_locations(board, player1.player)) == 0
+    @test length(get_admissible_road_locations(board, player1.player.team)) == 0
     @test count_roads(board, player1.player.team) == MAX_ROAD
 end
 
@@ -478,7 +478,7 @@ function test_board_api()
 
     build_settlement(board, :Test1, (3,9))
     @test is_valid_settlement_placement(board, :Test1, (4,9)) == false
-    @test !((4,9) in get_admissible_settlement_locations(board, Player(:Test1), true))
+    @test !((4,9) in get_admissible_settlement_locations(board, :Test1, true))
 
     @test length(board.buildings) == 3
     @test length(keys(board.coord_to_building)) == 3
@@ -513,23 +513,29 @@ function test_call_api()
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    candidates = get_admissible_settlement_locations(board, player1.player, true)
-    loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
+    settlement = choose_validate_build_settlement(board, players_public, player1, true)
+    loc_settlement = settlement.coord
+    #candidates = get_admissible_settlement_locations(board, player1.player.team, true)
+    #loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
+    #build_settlement(board, player1.player.team, loc_settlement)
     @test loc_settlement != nothing
-    build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    candidates = get_admissible_city_locations(board, player1.player)
-    loc_city = choose_building_location(board, players_public, player1, candidates, :City)
-    build_city(board, player1.player.team, loc_city)
+    city = choose_validate_build_city(board, players_public, player1)
+    loc_city = city.coord
+    #candidates = get_admissible_city_locations(board, player1.player.team)
+    #loc_city = choose_building_location(board, players_public, player1, candidates, :City)
+    #build_city(board, player1.player.team, loc_city)
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
     players_public = [PlayerPublicView(p) for p in players]
-    admissible_roads = get_admissible_road_locations(board, player1.player, true)
+    
+    #Equiv: choose_validate_build_road(board, players_public, player1, true)
+    admissible_roads = get_admissible_road_locations(board, player1.player.team, true)
     road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     build_road(board, player1.player.team, road_coords[1], road_coords[2])
     @test length(admissible_roads) == length(get_neighbors(loc_settlement))
@@ -538,15 +544,14 @@ function test_call_api()
 
     # Build second settlement
     players_public = [PlayerPublicView(p) for p in players]
-    candidates = get_admissible_settlement_locations(board, player1.player, true)
-    loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
+    settlement = choose_validate_build_settlement(board, players_public, player1, true)
+    loc_settlement = settlement.coord
     @test loc_settlement != nothing
-    build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1 # City is no longer counted
     
     # Build a road attached to second settlement
-    admissible_roads = get_admissible_road_locations(board, player1.player, true)
+    admissible_roads = get_admissible_road_locations(board, player1.player.team, true)
     players_public = [PlayerPublicView(p) for p in players]
     road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     if road_coords == nothing

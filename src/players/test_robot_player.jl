@@ -54,9 +54,9 @@ end
 function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
     admissible = []
     if building_type == :Settlement
-        admissible = get_admissible_settlement_locations(board, player.player, is_first_turn)
+        admissible = get_admissible_settlement_locations(board, player.player.team, is_first_turn)
     else
-        admissible = get_admissible_city_locations(board, player.player)
+        admissible = get_admissible_city_locations(board, player.player.team)
     end
     return _get_optimal_building_placement(board, players, player, is_first_turn, admissible)
 end

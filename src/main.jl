@@ -304,13 +304,13 @@ end
 
 function get_legal_actions(game, board, player)::Set{Symbol}
     actions = Set{Symbol}()
-    if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player.team)) > 0
         push!(actions, :ConstructCity)
     end
-    if has_enough_resources(player, COSTS[:Settlement]) && length(get_admissible_settlement_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:Settlement]) && length(get_admissible_settlement_locations(board, player.team)) > 0
         push!(actions, :ConstructSettlement)
     end
-    if has_enough_resources(player, COSTS[:Road]) && length(get_admissible_road_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:Road]) && length(get_admissible_road_locations(board, player.team)) > 0
         push!(actions, :ConstructRoad)
     end
     if has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
@@ -323,67 +323,6 @@ function get_legal_actions(game, board, player)::Set{Symbol}
         push!(actions, :ProposeTrade)
     end
     return actions
-end
-
-function get_admissible_city_locations(board, player::Player)::Vector{Tuple{Int,Int}}
-    if count_cities(board, player.team) >= MAX_CITY
-        return []
-    end
-    get_settlement_locations(board, player.team)
-end
-
-"""
-    `get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple{Int,Int}}`
-
-Returns a vector of all legal locations to place a settlement:
-1. Always respect the distance-from-other-buildings rule (most not be neighboring another city or settlement)
-2. Must not exceed `MAX_SETTLEMENT`
-3. If it's not the first turn, it must be adjacent to a road of the same team
-"""
-function get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple{Int,Int}}
-
-    # Some quick checks to eliminate most spaces
-    if count_settlements(board, player.team) >= MAX_SETTLEMENT
-        return []
-    end
-    coords_near_player_road = get_road_locations(board, player.team)
-    empty = get_empty_spaces(board)
-    if first_turn
-        admissible = empty
-    else
-        admissible = intersect(empty, coords_near_player_road)
-    end
-    
-    # More complex check after we've done the first filtration
-    return filter(c -> is_valid_settlement_placement(board, player.team, c, first_turn), admissible)
-end
-function get_admissible_road_locations(board::Board, player::Player, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
-    if count_roads(board, player.team) >= MAX_ROAD
-        return []
-    end
-    start_coords = []
-    coords_near_player_road = get_road_locations(board, player.team)
-    coords_near_player_buildings = get_building_locations(board, player.team)
-
-    # This is because on the first turn (placement of first 2 settlements), the second road must be attached to the second
-    # settlement
-    if is_first_turn
-        filter!(c -> !(c in coords_near_player_road), coords_near_player_buildings)
-    else 
-        append!(start_coords, coords_near_player_road)
-    end
-    append!(start_coords, coords_near_player_buildings)
-    start_coords = Set(unique(start_coords))
-    road_coords = []
-    for c in start_coords
-        ns = get_neighbors(c)
-        for n in ns
-            if is_valid_road_placement(board, player.team, c, n)
-                push!(road_coords, [c,n])
-            end
-        end
-    end
-    return road_coords
 end
 
 function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, thief::PlayerType, new_tile)
@@ -478,15 +417,15 @@ function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_
 end
 
 function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
+    candidates = get_admissible_settlement_locations(board, player.player.team, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     if coord != nothing
         build_settlement(board, player.player.team, coord)
     end
 end
 
-function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = get_admissible_city_locations(board, player.player, is_first_turn)
+function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
+    candidates = get_admissible_city_locations(board, player.player.team)
     coord = choose_building_location(board, players, player, candidates, :City)
     if coord != nothing
         build_city(board, player.player.team, coord)
@@ -494,7 +433,7 @@ function choose_validate_build_city(board::Board, players::Vector{PlayerPublicVi
 end
 
 function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = get_admissible_road_locations(board, player.player, is_first_turn)
+    candidates = get_admissible_road_locations(board, player.player.team, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
         build_road(board, player.player.team, coord[1], coord[2])
@@ -588,6 +527,4 @@ function print_player_stats(game, board, player::Player)
     end
     @info player
 end
-
-
 

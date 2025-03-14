@@ -229,8 +229,35 @@ end
 
 
 
-
+#
 # Construction validation
+#
+
+"""
+    `get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int,Int}}`
+
+Returns a vector of all legal locations to place a settlement:
+1. Always respect the distance-from-other-buildings rule (most not be neighboring another city or settlement)
+2. Must not exceed `MAX_SETTLEMENT`
+3. If it's not the first turn, it must be adjacent to a road of the same team
+"""
+function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int,Int}}
+
+    # Some quick checks to eliminate most spaces
+    if count_settlements(board, team) >= MAX_SETTLEMENT
+        return []
+    end
+    coords_near_player_road = get_road_locations(board, team)
+    empty = get_empty_spaces(board)
+    if first_turn
+        admissible = empty
+    else
+        admissible = intersect(empty, coords_near_player_road)
+    end
+    
+    # More complex check after we've done the first filtration
+    return filter(c -> is_valid_settlement_placement(board, team, c, first_turn), admissible)
+end
 
 function is_valid_settlement_placement(board, team, coord, is_first_turn::Bool = false)::Bool
     if coord == nothing
@@ -279,6 +306,13 @@ function is_valid_city_placement(board, team, coord)::Bool
     return false
 end
 
+function get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int,Int}}
+    if count_cities(board, team) >= MAX_CITY
+        return []
+    end
+    get_settlement_locations(board, team)
+end
+
 function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     if coord1 == nothing || coord2 == nothing
         return false
@@ -315,5 +349,34 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
         @debug "[Invalid road] never found a valid neighbor"
     end
     return found_neighbor
+end
+
+function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
+    if count_roads(board, team) >= MAX_ROAD
+        return []
+    end
+    start_coords = []
+    coords_near_player_road = get_road_locations(board, team)
+    coords_near_player_buildings = get_building_locations(board, team)
+
+    # This is because on the first turn (placement of first 2 settlements), the 
+    # second road must be attached to the second settlement
+    if is_first_turn
+        filter!(c -> !(c in coords_near_player_road), coords_near_player_buildings)
+    else 
+        append!(start_coords, coords_near_player_road)
+    end
+    append!(start_coords, coords_near_player_buildings)
+    start_coords = Set(unique(start_coords))
+    road_coords = []
+    for c in start_coords
+        ns = get_neighbors(c)
+        for n in ns
+            if is_valid_road_placement(board, team, c, n)
+                push!(road_coords, [c,n])
+            end
+        end
+    end
+    return road_coords
 end
 
