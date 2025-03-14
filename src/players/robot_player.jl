@@ -22,15 +22,14 @@ function choose_accept_trade(board::Board, player::RobotPlayer, from_player::Pla
     return rand() > .5
 end
 
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple})::Union{Nothing,Vector{Tuple}}
-    candidates = get_admissible_road_locations(board, player.player, is_first_turn)
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})::Union{Nothing,Vector{Tuple{Int, Int}}}
     if length(candidates) > 0
         return sample(candidates)
     end
     @info "I didn't find any place to put my road"
     return nothing
 end
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Union{Nothing,Vector{Tuple{Int,Int}}}
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
     if length(candidates) > 0
         return sample(candidates, 1)[1]
     end

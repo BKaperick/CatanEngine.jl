@@ -513,7 +513,8 @@ function test_call_api()
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
+    candidates = get_admissible_settlement_locations(board, player1.player, true)
+    loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
     @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
@@ -521,14 +522,15 @@ function test_call_api()
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    loc_city = choose_building_location(board, players_public, player1, :City)
+    candidates = get_admissible_city_locations(board, player1.player)
+    loc_city = choose_building_location(board, players_public, player1, candidates, :City)
     build_city(board, player1.player.team, loc_city)
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
     players_public = [PlayerPublicView(p) for p in players]
-    admissible_roads = get_admissible_road_locations(board, player1.player)
-    road_coords = choose_road_location(board, players_public, player1)
+    admissible_roads = get_admissible_road_locations(board, player1.player, true)
+    road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     build_road(board, player1.player.team, road_coords[1], road_coords[2])
     @test length(admissible_roads) == length(get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
@@ -536,7 +538,8 @@ function test_call_api()
 
     # Build second settlement
     players_public = [PlayerPublicView(p) for p in players]
-    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
+    candidates = get_admissible_settlement_locations(board, player1.player, true)
+    loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
     @test loc_settlement != nothing
     build_settlement(board, player1.player.team, loc_settlement)
     settlement_locs = get_settlement_locations(board, player1.player.team)
@@ -545,7 +548,7 @@ function test_call_api()
     # Build a road attached to second settlement
     admissible_roads = get_admissible_road_locations(board, player1.player, true)
     players_public = [PlayerPublicView(p) for p in players]
-    road_coords = choose_road_location(board, players_public, player1, true)
+    road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     if road_coords == nothing
         print_board(board)
     end

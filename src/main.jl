@@ -357,7 +357,7 @@ function get_admissible_settlement_locations(board, player::Player, first_turn =
     # More complex check after we've done the first filtration
     return filter(c -> is_valid_settlement_placement(board, player.team, c, first_turn), admissible)
 end
-function get_admissible_road_locations(board::Board, player::Player, is_first_turn = false)
+function get_admissible_road_locations(board::Board, player::Player, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
     if count_roads(board, player.team) >= MAX_ROAD
         return []
     end
@@ -401,6 +401,11 @@ function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, 
     return potential_victims
 end
 
+"""
+    `do_turn(game::Game, board::Board, player::PlayerType)`
+
+Called each turn except the first turn.  See `do_first_turn` for first turn behavior.
+"""
 function do_turn(game::Game, board::Board, player::PlayerType)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
@@ -475,19 +480,25 @@ end
 function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
-    build_settlement(board, player.player.team, coord)
+    if coord != nothing
+        build_settlement(board, player.player.team, coord)
+    end
 end
 
 function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = get_admissible_city_locations(board, player.player, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :City)
-    build_city(board, player.player.team, coord)
+    if coord != nothing
+        build_city(board, player.player.team, coord)
+    end
 end
 
 function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = get_admissible_road_locations(board, player.player, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
-    build_road(board, player.player.team, coord[1], coord[2])
+    if coord != nothing
+        build_road(board, player.player.team, coord[1], coord[2])
+    end
 end
 
 function do_first_turn(game, board::Board, players)
@@ -501,7 +512,7 @@ function do_first_turn_forward(game, board, players)
         # TODO we really only need to re-calculate the player who just played,
         # but we can optimize later if needed
         players_public = [PlayerPublicView(p) for p in players]
-        choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_settlement(board, players_public, player, true)
         choose_validate_build_road(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
     end
@@ -510,7 +521,7 @@ end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
         players_public = [PlayerPublicView(p) for p in players]
-        settlement = choose_validate_build_settlement(board, players_public, player)
+        settlement = choose_validate_build_settlement(board, players_public, player, true)
         choose_validate_build_road(board, players_public, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
