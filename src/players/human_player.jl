@@ -8,18 +8,34 @@ function choose_cards_to_discard(player::HumanPlayer, amount)
     return parse_resources(player.io, "$(player.player.team) discards: ")
 end
 
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, building_type, is_first_turn = false)::Tuple{Int, Int}
-    parse_ints(player.io, "$(player.player.team) places a $(building_type):")
-end
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, is_first_turn = false)::Vector{Tuple{Int,Int}}
-    coords = parse_road_coord(player.io, "$(player.player.team) places a Road:")
-    if length(coords) == 4
-        out = [Tuple(coords[1:2]);Tuple(coords[3:4])]
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int,Int}}, building_type::Symbol, is_first_turn = false)::Union{Nothing, Tuple{Int, Int}}
+    if building_type == :Settlement
+        validation_check = is_valid_settlement_placement
     else
-        out = coords
+        validation_check = is_valid_city_placement
     end
-    @info out
-    return out
+    coord = nothing
+    while (!validation_check(board, player.player.team, coord))
+        coord = parse_ints(player.io, "$(player.player.team) places a $(building_type):")
+    end
+end
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int,Int}}
+    road_coord1 = nothing
+    road_coord2 = nothing
+    road_coords = Vector{Tuple{Int,Int}}()
+    while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
+        coords = parse_road_coord(player.io, "$(player.player.team) places a Road:")
+        if length(coords) == 4
+            road_coords = [Tuple(coords[1:2]);Tuple(coords[3:4])]
+        else
+            road_coords = coords
+        end
+        @debug "road_coord: $road_coords"
+        road_coord1 = road_coords[1]
+        road_coord2 = road_coords[2]
+    end
+    @info road_coords
+    return road_coords
 end
 
 function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer)

@@ -5,7 +5,7 @@
 # Robot Player API.  Your RobotPlayer type must implement these methods.  If any are not implemented, it falls back to the existing implementation
 #
 # choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-# choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
+# choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, candidates::Vector{Tuple}, is_first_turn::Bool = false)::Tuple
 # choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
 # choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
 # choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
@@ -22,7 +22,7 @@ function choose_accept_trade(board::Board, player::RobotPlayer, from_player::Pla
     return rand() > .5
 end
 
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple})::Union{Nothing,Vector{Tuple}}
     candidates = get_admissible_road_locations(board, player.player, is_first_turn)
     if length(candidates) > 0
         return sample(candidates)
@@ -30,17 +30,9 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
     @info "I didn't find any place to put my road"
     return nothing
 end
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
-    if building_type == :Settlement
-        candidates = get_admissible_settlement_locations(board, player.player, is_first_turn)
-        if length(candidates) > 0
-            return sample(candidates, 1)[1]
-        end
-    elseif building_type == :City
-        settlement_locs = get_admissible_city_locations(board, player.player)
-        if length(settlement_locs) > 0
-            return rand(settlement_locs)
-        end
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Union{Nothing,Vector{Tuple{Int,Int}}}
+    if length(candidates) > 0
+        return sample(candidates, 1)[1]
     end
     return nothing
 end
@@ -105,15 +97,18 @@ end
 
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
-        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :City)
+        candidates = get_admissible_city_locations(board, player.player)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
         return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if :ConstructSettlement in actions
-        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, :Settlement)
+        candidates = get_admissible_settlement_locations(board, player.player, false)
+        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
         return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if :ConstructRoad in actions
-        coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, false)
+        candidates = get_admissible_road_locations(board, player.player, false)
+        coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
         return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
