@@ -16,9 +16,10 @@ harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 """
 
 module BoardApi
-using ..Catan: Board, Building, Road, log_action
-include("../constants.jl")
+using ..Catan: Board, Building, Road, log_action, 
+MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
 include("../board.jl")
+
 macro api_name(x)
     API_DICTIONARY[string(x)] = x
 end
