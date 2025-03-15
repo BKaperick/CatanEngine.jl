@@ -1,22 +1,8 @@
 module Catan
 include("main.jl")
 
-export DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView, Game,
-    initialize_and_do_game!
-
-# Additionally used for testing
-export get_coord_from_human_tile_description,
-get_road_coords_from_human_tile_description,
-get_neighbors,
-read_map,
-load_gamestate!,
-reset_savefile,
-random_sample_resources,
-add_devcard,
-play_devcard,
-assign_largest_army!,
-get_total_vp_count,
-add_port,
+export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
+    initialize_and_do_game!,
 BoardApi
 
 # Player methods to implement
