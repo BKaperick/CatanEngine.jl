@@ -15,6 +15,11 @@ count_victory_points_from_board(board)
 harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 """
 
+module BoardApi
+#import Catan: Board, Road
+using ..Catan: Board, Road
+include("../constants.jl")
+include("../board.jl")
 macro api_name(x)
     API_DICTIONARY[string(x)] = x
 end
@@ -33,6 +38,11 @@ function count_cities(board, team)
     return length(get_city_locations(board, team))
 end
 
+function print_board_stats(board::Board, team::Symbol)
+    @info "$(count_roads(board, team)) roads"
+    @info "$(count_settlements(board, team)) settlements"
+    @info "$(count_cities(board, team)) cities"
+end
 
 function get_building_locations(board, team::Symbol)::Vector{Tuple}
     [c for (c,b) in board.coord_to_building if b.team == team]
@@ -379,4 +389,4 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
     end
     return road_coords
 end
-
+end

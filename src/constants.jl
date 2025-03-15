@@ -16,7 +16,16 @@ MAX_CITY = 4
 MAX_SETTLEMENT = 5
 MAX_ROAD = 14
 
-SAVEFILE = "game_$(Dates.format(now(), "HHMMSS")).txt"
+function reset_savefile(path)
+    global SAVEFILE = path
+
+    if true #SAVE_GAME_TO_FILE
+        io = open(SAVEFILE, "w"); write(io,""); close(io)
+        global SAVEFILEIO = open(SAVEFILE, "a")
+    end
+    return SAVEFILE, SAVEFILEIO
+end
+
 VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,

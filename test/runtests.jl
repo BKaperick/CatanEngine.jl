@@ -1,8 +1,17 @@
 using Test
-#using Dates
-#using Logging
+using Dates
+using Logging
 #using Catan
-include("../src/main.jl")
+#include("../src/Catan.jl")
+#include("../src/main.jl")
+using Catan
+using Catan: DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView, Game,
+    initialize_and_do_game!,
+get_coord_from_human_tile_description,
+get_road_coords_from_human_tile_description,
+get_neighbors,
+Board,
+Road
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
@@ -24,11 +33,13 @@ global_logger(logger)
 
 global counter = 1
 
+"""
 function reset_savefile(file_name)
     global SAVEFILE = file_name
     global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
 end
+"""
 
 function reset_savefile_with_timestamp(name)
     global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
@@ -69,7 +80,7 @@ function test_set_starting_player()
     players = setup_players(team_and_playertype)
     game = Game(players)
 
-    set_starting_player(game, 2)
+    Catan.set_starting_player(game, 2)
 
     @test game.turn_order_set == true
     @test game.players[1].player.team == :cyan
@@ -82,6 +93,7 @@ function test_set_starting_player()
     @info "testing logfile $SAVEFILE"
     new_game = Game(players)
     load_gamestate!(new_game, board, SAVEFILE)
+    println("save file: $SAVEFILE")
     
     flush(logger_io)
 
@@ -573,44 +585,44 @@ end
 
 
 function test_assign_largest_army()
-    board = read_map(SAMPLE_MAP)
-    player_blue = DefaultRobotPlayer(:Blue)
+    board = Catan.read_map(SAMPLE_MAP)
+    player_blue = Catan.DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
 
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == false
 
-    _add_devcard(player_blue.player, :Knight)
-    _add_devcard(player_blue.player, :Knight)
-    _add_devcard(player_blue.player, :Knight)
-    _play_devcard(player_blue.player, :Knight)
-    _play_devcard(player_blue.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan.assign_largest_army!(players)
 
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == false
 
-    _play_devcard(player_blue.player, :Knight)
-    assign_largest_army!(players)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan.assign_largest_army!(players)
     
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
     
-    _add_devcard(player_green.player, :Knight)
-    _add_devcard(player_green.player, :Knight)
-    _add_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan.assign_largest_army!(players)
 
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
 
-    _add_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan.assign_largest_army!(players)
     
     # TODO fails
     println(player_blue.player)
@@ -674,6 +686,7 @@ function run_tests(neverend = false)
     """
     """
 end
+println("abspath(PROGRAM_FILE): $(abspath(PROGRAM_FILE))")
 if abspath(PROGRAM_FILE) == @__FILE__
     if (length(ARGS) > 0)
         if ARGS[1] == "--neverend"

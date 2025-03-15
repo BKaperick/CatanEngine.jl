@@ -4,6 +4,14 @@ include("main.jl")
 export DefaultRobotPlayer, RobotPlayer, Player, Board, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!
 
+# Additionally used for testing
+export get_coord_from_human_tile_description,
+get_road_coords_from_human_tile_description,
+get_neighbors,
+read_map,
+load_gamestate!,
+reset_savefile
+
 # Player methods to implement
 export choose_accept_trade,
 choose_building_location,
@@ -16,10 +24,15 @@ choose_road_location,
 choose_robber_victim,
 choose_who_to_trade_with,
 choose_year_of_plenty_resources,
-choose_card_to_steal
+choose_card_to_steal,
+
+PLAYER_ACTIONS,
+MAX_SETTLEMENT,
+MAX_CITY
 
 game = nothing
 println(ARGS)
+reset_savefile("game_$(Dates.format(now(), "HHMMSS")).txt")
 
 function run(args)
     if length(args) >= 1
@@ -39,11 +52,13 @@ function run(args, PLAYERS)
     end
     if length(args) >= 3
         SAVEFILE = args[3]
+        reset_savefile(SAVEFILE)
+
         if SAVE_GAME_TO_FILE
             global SAVEFILEIO = open(SAVEFILE, "a")
         end
     else
-        SAVEFILE = "./data/savefile.txt"
+        reset_savefile("./data/savefile.txt")
         io = open(SAVEFILE, "w")
         write(io,"")
         close(io)
@@ -58,11 +73,11 @@ end
 function run(players::Vector{PlayerType})
     game = Game(players)
     MAPFILE = generate_random_map("_temp_map_file.csv")
-    SAVEFILE = "./data/savefile.txt"
-    io = open(SAVEFILE, "w"); write(io,""); close(io)
-    if SAVE_GAME_TO_FILE
-        global SAVEFILEIO = open(SAVEFILE, "a")
-    end
+    reset_savefile("./data/savefile.txt")
+    #SAVEFILE = "./data/savefile.txt"
+    #if SAVE_GAME_TO_FILE
+    #    global SAVEFILEIO = open(SAVEFILE, "a")
+    #end
     initialize_and_do_game!(game, MAPFILE, SAVEFILE)
 end
 

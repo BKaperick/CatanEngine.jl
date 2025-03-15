@@ -8,6 +8,7 @@ include("apis/game_api.jl")
 # include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
+import .BoardApi
 
 API_DICTIONARY = Dict(
                       # Game commands
@@ -20,10 +21,10 @@ API_DICTIONARY = Dict(
                       "ft" => _finish_turn,
 
                       # Board commands
-                      "bc" => _build_city,
-                      "bs" => _build_settlement,
-                      "br" => _build_road,
-                      "mr" => _move_robber,
+                      "bc" => BoardApi._build_city,
+                      "bs" => BoardApi._build_settlement,
+                      "br" => BoardApi._build_road,
+                      "mr" => BoardApi._move_robber,
 
                       # Players commands
 
@@ -304,13 +305,13 @@ end
 
 function get_legal_actions(game, board, player)::Set{Symbol}
     actions = Set{Symbol}()
-    if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player.team)) > 0
+    if has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
         push!(actions, :ConstructCity)
     end
-    if has_enough_resources(player, COSTS[:Settlement]) && length(get_admissible_settlement_locations(board, player.team)) > 0
+    if has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
         push!(actions, :ConstructSettlement)
     end
-    if has_enough_resources(player, COSTS[:Road]) && length(get_admissible_road_locations(board, player.team)) > 0
+    if has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
         push!(actions, :ConstructRoad)
     end
     if has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
@@ -417,26 +418,26 @@ function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_
 end
 
 function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = get_admissible_settlement_locations(board, player.player.team, is_first_turn)
+    candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     if coord != nothing
-        build_settlement(board, player.player.team, coord)
+        BoardApi.build_settlement(board, player.player.team, coord)
     end
 end
 
 function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
-    candidates = get_admissible_city_locations(board, player.player.team)
+    candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
     coord = choose_building_location(board, players, player, candidates, :City)
     if coord != nothing
-        build_city(board, player.player.team, coord)
+        BoardApi.build_city(board, player.player.team, coord)
     end
 end
 
 function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = get_admissible_road_locations(board, player.player.team, is_first_turn)
+    candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
-        build_road(board, player.player.team, coord[1], coord[2])
+        BoardApi.build_road(board, player.player.team, coord[1], coord[2])
     end
 end
 
@@ -513,9 +514,7 @@ function print_player_stats(game, board, player::Player)
     public_points = get_public_vp_count(board, player)
     total_points = get_total_vp_count(board, player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
-    @info "$(count_roads(board, player.team)) roads"
-    @info "$(count_settlements(board, player.team)) settlements"
-    @info "$(count_cities(board, player.team)) cities"
+    print_board_stats()
     if player.has_largest_army
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
