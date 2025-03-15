@@ -8,6 +8,7 @@ include("apis/game_api.jl")
 # include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
+import .BoardApi
 
 API_DICTIONARY = Dict(
                       # Game commands
@@ -20,10 +21,10 @@ API_DICTIONARY = Dict(
                       "ft" => _finish_turn,
 
                       # Board commands
-                      "bc" => _build_city,
-                      "bs" => _build_settlement,
-                      "br" => _build_road,
-                      "mr" => _move_robber,
+                      "bc" => BoardApi._build_city,
+                      "bs" => BoardApi._build_settlement,
+                      "br" => BoardApi._build_road,
+                      "mr" => BoardApi._move_robber,
 
                       # Players commands
 
@@ -125,18 +126,18 @@ end
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
     pay_construction(player, :City)
-    build_city(board, player.team, coord)
+    BoardApi.build_city(board, player.team, coord)
 end
 function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
     if haskey(board.coord_to_port, coord)
         add_port(player, board.coord_to_port[coord])
     end
-    build_settlement(board, player.team, coord)
+    BoardApi.build_settlement(board, player.team, coord)
 end
 function construct_road(board, player::Player, coord1, coord2)
     pay_construction(player, :Road)
-    build_road(board, player.team, coord1, coord2)
+    BoardApi.build_road(board, player.team, coord1, coord2)
 end
 
 function pay_construction(player::Player, construction::Symbol)
@@ -275,7 +276,7 @@ end
 
 function do_knight_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
@@ -285,7 +286,7 @@ end
 
 function do_robber_move(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
@@ -304,13 +305,13 @@ end
 
 function get_legal_actions(game, board, player)::Set{Symbol}
     actions = Set{Symbol}()
-    if has_enough_resources(player, COSTS[:City]) && length(get_admissible_city_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
         push!(actions, :ConstructCity)
     end
-    if has_enough_resources(player, COSTS[:Settlement]) && length(get_admissible_settlement_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
         push!(actions, :ConstructSettlement)
     end
-    if has_enough_resources(player, COSTS[:Road]) && length(get_admissible_road_locations(board, player)) > 0
+    if has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
         push!(actions, :ConstructRoad)
     end
     if has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
@@ -323,69 +324,6 @@ function get_legal_actions(game, board, player)::Set{Symbol}
         push!(actions, :ProposeTrade)
     end
     return actions
-end
-
-function get_admissible_city_locations(board, player::Player)::Vector{Tuple}
-    if count_cities(board, player.team) >= MAX_CITY
-        return []
-    end
-    get_settlement_locations(board, player.team)
-end
-
-function get_admissible_settlement_locations(board, player::Player, first_turn = false)::Vector{Tuple}
-    if count_settlements(board, player.team) >= MAX_SETTLEMENT
-        return []
-    end
-    coords_near_player_road = get_road_locations(board, player.team)
-    empty = get_empty_spaces(board)
-    isolated_empty = empty #[]
-#     for e in empty
-#         if all([!haskey(board.coord_to_building, n) for n in get_neighbors(e)])
-#             push!(isolated_empty, e)
-#         end
-#     end
-
-    if first_turn
-        admissible = isolated_empty
-    else
-        admissible = intersect(isolated_empty, coords_near_player_road)
-    end
-
-    valid = []
-    for coord in admissible
-        if is_valid_settlement_placement(board, player.team, coord, first_turn)
-            push!(valid, coord)
-        end
-    end
-    return valid
-end
-function get_admissible_road_locations(board::Board, player::Player, is_first_turn = false)
-    if count_roads(board, player.team) >= MAX_ROAD
-        return []
-    end
-    start_coords = []
-    coords_near_player_road = get_road_locations(board, player.team)
-    coords_near_player_buildings = get_building_locations(board, player.team)
-
-    # This is because on the first turn (placement of first 2 settlements), the second road must be attached to the second
-    # settlement
-    if is_first_turn
-        filter!(c -> !(c in coords_near_player_road), coords_near_player_buildings)
-    else 
-        append!(start_coords, coords_near_player_road)
-    end
-    append!(start_coords, coords_near_player_buildings)
-    start_coords = Set(unique(start_coords))
-    road_coords = []
-    for c in start_coords
-        ns = get_neighbors(c)
-        for n in ns
-            if is_valid_road_placement(board, player.team, c, n)
-                push!(road_coords, [c,n])
-            end
-        end
-    end
-    return road_coords
 end
 
 function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, thief::PlayerType, new_tile)
@@ -403,6 +341,11 @@ function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, 
     return potential_victims
 end
 
+"""
+    `do_turn(game::Game, board::Board, player::PlayerType)`
+
+Called each turn except the first turn.  See `do_first_turn` for first turn behavior.
+"""
 function do_turn(game::Game, board::Board, player::PlayerType)
     if can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
@@ -445,7 +388,7 @@ function someone_has_won(game, board, players::Vector{PlayerType})::Bool
     return get_winner(game, board, players) != nothing
 end
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
-    board_points = count_victory_points_from_board(board) 
+    board_points = BoardApi.count_victory_points_from_board(board) 
     winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)
@@ -474,42 +417,28 @@ function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_
     return board, winner
 end
 
-function choose_validate_building(board, players, player, building_type, coord = nothing)
-    if building_type == :Settlement
-        validation_check = is_valid_settlement_placement
-    else
-        validation_check = is_valid_city_placement
+function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+    candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, is_first_turn)
+    coord = choose_building_location(board, players, player, candidates, :Settlement)
+    if coord != nothing
+        BoardApi.build_settlement(board, player.player.team, coord)
     end
-    while (!validation_check(board, player.player.team, coord))
-        players_public = [PlayerPublicView(p) for p in players]
-        coord = choose_building_location(board, players_public, player, building_type, true)
-    end
-    return coord
-end
-
-function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
-    coord = choose_validate_building(board, players, player, :Settlement)
-    build_settlement(board, player.player.team, coord)
 end
 
 function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
-    coord = choose_validate_building(board, players, player, :City)
-    build_city(board, player.player.team, coord)
+    candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
+    coord = choose_building_location(board, players, player, candidates, :City)
+    if coord != nothing
+        BoardApi.build_city(board, player.player.team, coord)
+    end
 end
 
 function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    road_coord1 = nothing
-    road_coord2 = nothing
-    while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
-        road_coord = choose_road_location(board, players, player, is_first_turn)
-        @debug "road_coord: $road_coord"
-        if road_coord == nothing
-            return
-        end
-        road_coord1 = road_coord[1]
-        road_coord2 = road_coord[2]
+    candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
+    coord = choose_road_location(board, players, player, candidates)
+    if coord != nothing
+        BoardApi.build_road(board, player.player.team, coord[1], coord[2])
     end
-    build_road(board, player.player.team, road_coord1, road_coord2)
 end
 
 function do_first_turn(game, board::Board, players)
@@ -523,7 +452,7 @@ function do_first_turn_forward(game, board, players)
         # TODO we really only need to re-calculate the player who just played,
         # but we can optimize later if needed
         players_public = [PlayerPublicView(p) for p in players]
-        choose_validate_build_settlement(board, players_public, player)
+        choose_validate_build_settlement(board, players_public, player, true)
         choose_validate_build_road(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
     end
@@ -532,7 +461,7 @@ end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
         players_public = [PlayerPublicView(p) for p in players]
-        settlement = choose_validate_build_settlement(board, players_public, player)
+        settlement = choose_validate_build_settlement(board, players_public, player, true)
         choose_validate_build_road(board, players_public, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
@@ -585,9 +514,7 @@ function print_player_stats(game, board, player::Player)
     public_points = get_public_vp_count(board, player)
     total_points = get_total_vp_count(board, player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
-    @info "$(count_roads(board, player.team)) roads"
-    @info "$(count_settlements(board, player.team)) settlements"
-    @info "$(count_cities(board, player.team)) cities"
+    BoardApi.print_board_stats(board, player.team)
     if player.has_largest_army
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
@@ -599,6 +526,4 @@ function print_player_stats(game, board, player::Player)
     end
     @info player
 end
-
-
 

@@ -1,15 +1,42 @@
 using Test
-#using Dates
-#using Logging
+using Dates
+using Logging
 #using Catan
-include("../src/main.jl")
+#include("../src/Catan.jl")
+#include("../src/main.jl")
+using Catan
+using Catan: 
+get_coord_from_human_tile_description,
+get_road_coords_from_human_tile_description,
+get_neighbors,
+read_map,
+load_gamestate!,
+reset_savefile,
+random_sample_resources,
+add_devcard,
+play_devcard,
+assign_largest_army!,
+get_total_vp_count,
+add_port,
+get_potential_theft_victims,
+has_any_resources,
+roll_dice,
+give_resource,
+choose_validate_build_settlement,
+choose_validate_build_city,
+choose_road_location,
+take_resource,
+count_resources,
+do_monopoly_action
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
 
 SAVEFILE = "$(TEST_DATA_DIR)_test_save_$(Dates.format(now(), "HHMMSS")).txt"
-SAVEFILEIO = open(SAVEFILE, "a")
-SAVE_GAME_TO_FILE = true
+reset_savefile(SAVEFILE)
+
+Catan.SAVE_GAME_TO_FILE = true
+
 SAMPLE_MAP = "$(MAIN_DATA_DIR)sample.csv"
 println(SAVEFILE)
 
@@ -24,17 +51,17 @@ global_logger(logger)
 
 global counter = 1
 
-function reset_savefile(file_name)
+function reset_test_savefile(file_name)
     global SAVEFILE = file_name
-    global SAVEFILEIO = open(SAVEFILE, "a")
-    return SAVEFILE, SAVEFILEIO
+    reset_savefile(file_name)
+    return SAVEFILE, Catan.SAVEFILEIO
 end
 
 function reset_savefile_with_timestamp(name)
     global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
     global counter += 1
-    global SAVEFILEIO = open(SAVEFILE, "a")
-    return SAVEFILE, SAVEFILEIO
+    reset_savefile(SAVEFILE)
+    return SAVEFILE, Catan.SAVEFILEIO
 end
 
 function test_actions()
@@ -59,7 +86,8 @@ function test_deepcopy()
 end
 
 function test_set_starting_player()
-    reset_savefile_with_timestamp("test_set_starting_player")
+    sf, sfio = reset_savefile_with_timestamp("test_set_starting_player")
+    reset_savefile(sf, sfio)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -69,7 +97,7 @@ function test_set_starting_player()
     players = setup_players(team_and_playertype)
     game = Game(players)
 
-    set_starting_player(game, 2)
+    Catan.set_starting_player(game, 2)
 
     @test game.turn_order_set == true
     @test game.players[1].player.team == :cyan
@@ -77,7 +105,7 @@ function test_set_starting_player()
     @test game.players[3].player.team == :red
     @test game.players[4].player.team == :blue
     
-    flush(SAVEFILEIO)
+    flush(Catan.SAVEFILEIO)
     board = read_map(SAMPLE_MAP)
     @info "testing logfile $SAVEFILE"
     new_game = Game(players)
@@ -133,7 +161,7 @@ function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{No
     if (savefile == nothing)
         reset_savefile_with_timestamp("test_robot_game_savefile")
     else
-        reset_savefile(savefile)
+        reset_test_savefile(savefile)
     end
     board, winner = initialize_and_do_game!(game, SAMPLE_MAP)
     return board, game
@@ -187,7 +215,7 @@ function test_log()
                           (:red, DefaultRobotPlayer)
                          ]
     board, game = setup_and_do_robot_game(team_and_playertype)
-    flush(SAVEFILEIO)
+    flush(Catan.SAVEFILEIO)
     
     @info "testing savefile $SAVEFILE"
     
@@ -225,9 +253,9 @@ function test_do_turn()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
-    start_turn(game)
+    Catan.start_turn(game)
     @test game.turn_num == 1
-    do_turn(game, board, player1)
+    Catan.do_turn(game, board, player1)
 end
 
 function test_robber()
@@ -235,8 +263,8 @@ function test_robber()
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
-    build_settlement(board, :Test1, (1,1))
-    build_settlement(board, :Test2, (1,3))
+    BoardApi.build_settlement(board, :Test1, (1,1))
+    BoardApi.build_settlement(board, :Test2, (1,3))
 
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
@@ -259,30 +287,30 @@ function test_max_construction()
     board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
-        build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
+        BoardApi.build_settlement(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
     end
-    @test length(get_admissible_settlement_locations(board, player1.player, true)) > 0
-    build_settlement(board, :Test1, get_admissible_settlement_locations(board, player1.player, true)[1])
-    @test length(get_admissible_settlement_locations(board, player1.player, true)) == 0
-    @test count_settlements(board, player1.player.team) == MAX_SETTLEMENT
+    @test length(BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)) > 0
+    BoardApi.build_settlement(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
+    @test length(BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)) == 0
+    @test BoardApi.count_settlements(board, player1.player.team) == MAX_SETTLEMENT
     
     for i in 1:(MAX_CITY-1)
-        build_city(board, :Test1, get_admissible_city_locations(board, player1.player)[1])
+        BoardApi.build_city(board, :Test1, BoardApi.get_admissible_city_locations(board, player1.player.team)[1])
     end
-    @test length(get_admissible_city_locations(board, player1.player)) > 0
-    build_city(board, :Test1, get_admissible_city_locations(board, player1.player)[1])
-    @test length(get_admissible_city_locations(board, player1.player)) == 0
-    @test count_cities(board, player1.player.team) == MAX_CITY
+    @test length(BoardApi.get_admissible_city_locations(board, player1.player.team)) > 0
+    BoardApi.build_city(board, :Test1, BoardApi.get_admissible_city_locations(board, player1.player.team)[1])
+    @test length(BoardApi.get_admissible_city_locations(board, player1.player.team)) == 0
+    @test BoardApi.count_cities(board, player1.player.team) == MAX_CITY
     
     for i in 1:(MAX_ROAD-1)
-        coords = get_admissible_road_locations(board, player1.player)[1]
-        build_road(board, :Test1, coords...)
+        coords = BoardApi.get_admissible_road_locations(board, player1.player.team)[1]
+        BoardApi.build_road(board, :Test1, coords...)
     end
-    @test length(get_admissible_road_locations(board, player1.player)) > 0
-    coords = get_admissible_road_locations(board, player1.player)[1]
-    build_road(board, :Test1, coords...)
-    @test length(get_admissible_road_locations(board, player1.player)) == 0
-    @test count_roads(board, player1.player.team) == MAX_ROAD
+    @test length(BoardApi.get_admissible_road_locations(board, player1.player.team)) > 0
+    coords = BoardApi.get_admissible_road_locations(board, player1.player.team)[1]
+    BoardApi.build_road(board, :Test1, coords...)
+    @test length(BoardApi.get_admissible_road_locations(board, player1.player.team)) == 0
+    @test BoardApi.count_roads(board, player1.player.team) == MAX_ROAD
 end
 
 # API Tests
@@ -302,17 +330,17 @@ function test_devcards()
     @test count_resources(player1.player) == 4
     
     players_public = [PlayerPublicView(p) for p in players]
-    do_year_of_plenty_action(board, players_public, player1)
+    Catan.do_year_of_plenty_action(board, players_public, player1)
     @test count_resources(player1.player) == 6
 
-    build_settlement(board, player1.player.team, (2,5))
+    BoardApi.build_settlement(board, player1.player.team, (2,5))
     players_public = [PlayerPublicView(p) for p in players]
-    do_road_building_action(board, players_public, player1)
-    @test count_roads(board, player1.player.team) == 2
+    Catan.do_road_building_action(board, players_public, player1)
+    @test BoardApi.count_roads(board, player1.player.team) == 2
     
     players_public = [PlayerPublicView(p) for p in players]
-    do_road_building_action(board, players_public, player1)
-    @test count_roads(board, player1.player.team) == 4
+    Catan.do_road_building_action(board, players_public, player1)
+    @test BoardApi.count_roads(board, player1.player.team) == 4
     
     @test get_total_vp_count(board, player1.player) == 1
     @test get_total_vp_count(board, player2.player) == 0
@@ -381,44 +409,44 @@ function test_longest_road()
     # (9)|  D  |  E  |  F  |  G  |
     #    21-22-23-24-25-26-27-28-29
     
-    build_settlement(board, :Green, (2,4))
-    build_settlement(board, :Blue, (2,3))
+    BoardApi.build_settlement(board, :Green, (2,4))
+    BoardApi.build_settlement(board, :Blue, (2,3))
 
-    build_road(board, :Blue, (2,3), (2,4))
-    build_road(board, :Blue, (2,2), (2,3))
-    build_road(board, :Blue, (2,1), (2,2))
-    build_road(board, :Blue, (2,1), (3,2))
+    BoardApi.build_road(board, :Blue, (2,3), (2,4))
+    BoardApi.build_road(board, :Blue, (2,2), (2,3))
+    BoardApi.build_road(board, :Blue, (2,1), (2,2))
+    BoardApi.build_road(board, :Blue, (2,1), (3,2))
 
     @test board.longest_road == nothing
     
     
     # Length 5 road, but it's intersected by :Green settlement
-    build_road(board, :Blue, (2,5), (2,4))
+    BoardApi.build_road(board, :Blue, (2,5), (2,4))
     @test board.longest_road == nothing
 
     # Now player one builds a 5-length road without intersection
-    build_road(board, :Blue, (3,3), (3,2))
+    BoardApi.build_road(board, :Blue, (3,3), (3,2))
     @test board.longest_road == :Blue
 
-    build_settlement(board, :Green, (3,10))
-    build_road(board, :Green, (3,10), (3,11))
-    build_road(board, :Green, (3,10), (3,9))
-    build_road(board, :Green, (3,8), (3,9))
-    build_road(board, :Green, (3,10), (2,9))
-    build_road(board, :Green, (2,9), (2,8))
-    build_road(board, :Green, (2,8), (2,7))
+    BoardApi.build_settlement(board, :Green, (3,10))
+    BoardApi.build_road(board, :Green, (3,10), (3,11))
+    BoardApi.build_road(board, :Green, (3,10), (3,9))
+    BoardApi.build_road(board, :Green, (3,8), (3,9))
+    BoardApi.build_road(board, :Green, (3,10), (2,9))
+    BoardApi.build_road(board, :Green, (2,9), (2,8))
+    BoardApi.build_road(board, :Green, (2,8), (2,7))
     
     # Player green built 6 roads connected, but branched, so still player 1 has longest road
     @test board.longest_road == :Blue
     
     # Now player green makes a loop, allowing 6 roads continuous
-    build_road(board, :Green, (3,8), (2,7))
+    BoardApi.build_road(board, :Green, (3,8), (2,7))
     @test board.longest_road == :Green
 
-    build_settlement(board, :Blue, (5,1))
-    build_road(board, :Blue, (5,1), (5,2))
-    build_road(board, :Blue, (5,3), (5,2))
-    build_road(board, :Blue, (5,3), (5,4))
+    BoardApi.build_settlement(board, :Blue, (5,1))
+    BoardApi.build_road(board, :Blue, (5,1), (5,2))
+    BoardApi.build_road(board, :Blue, (5,3), (5,2))
+    BoardApi.build_road(board, :Blue, (5,3), (5,4))
     
     # Player blue added more roads, but not contiguous, so they don't beat player green
     @test board.longest_road == :Green
@@ -449,7 +477,7 @@ function test_ports()
     @test player1.player.ports[:Grain] == 2
     @test player1.player.ports[:Wood] == 3
 
-    construct_settlement(board, player1.player, (3,2))
+    Catan.construct_settlement(board, player1.player, (3,2))
     
     @test player1.player.ports[:Brick] == 2
 end
@@ -471,27 +499,27 @@ function test_board_api()
     @test length(get_neighbors((4,1))) == 2
 
     board = read_map(SAMPLE_MAP)
-    build_settlement(board, :Test1, (1,1))
-    build_road(board, :Test1, (1,1),(1,2))
-    @test is_valid_settlement_placement(board, :Test1, (1,2)) == false
-    build_settlement(board, :Test1, (1,2))
+    BoardApi.build_settlement(board, :Test1, (1,1))
+    BoardApi.build_road(board, :Test1, (1,1),(1,2))
+    @test BoardApi.is_valid_settlement_placement(board, :Test1, (1,2)) == false
+    BoardApi.build_settlement(board, :Test1, (1,2))
 
-    build_settlement(board, :Test1, (3,9))
-    @test is_valid_settlement_placement(board, :Test1, (4,9)) == false
-    @test !((4,9) in get_admissible_settlement_locations(board, Player(:Test1), true))
+    BoardApi.build_settlement(board, :Test1, (3,9))
+    @test BoardApi.is_valid_settlement_placement(board, :Test1, (4,9)) == false
+    @test !((4,9) in BoardApi.get_admissible_settlement_locations(board, :Test1, true))
 
     @test length(board.buildings) == 3
     @test length(keys(board.coord_to_building)) == 3
-    @test count_settlements(board, :Test1) == 3
-    @test count_settlements(board, :Test2) == 0
+    @test BoardApi.count_settlements(board, :Test1) == 3
+    @test BoardApi.count_settlements(board, :Test2) == 0
 
-    build_city(board, :Test1, (1,1))
+    BoardApi.build_city(board, :Test1, (1,1))
     @test length(board.buildings) == 3
     @test length(keys(board.coord_to_building)) == 3
-    @test count_settlements(board, :Test1) == 2
-    @test count_cities(board, :Test1) == 1
-    @test count_settlements(board, :Test2) == 0
-    @test count_victory_points_from_board(board, :Test1) == 4
+    @test BoardApi.count_settlements(board, :Test1) == 2
+    @test BoardApi.count_cities(board, :Test1) == 1
+    @test BoardApi.count_settlements(board, :Test2) == 0
+    @test BoardApi.count_victory_points_from_board(board, :Test1) == 4
 end
 
 function test_call_api()
@@ -513,44 +541,46 @@ function test_call_api()
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
+    settlement = choose_validate_build_settlement(board, players_public, player1, true)
+    loc_settlement = settlement.coord
     @test loc_settlement != nothing
-    build_settlement(board, player1.player.team, loc_settlement)
-    settlement_locs = get_settlement_locations(board, player1.player.team)
+    settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    loc_city = choose_building_location(board, players_public, player1, :City)
-    build_city(board, player1.player.team, loc_city)
+    city = choose_validate_build_city(board, players_public, player1)
+    loc_city = city.coord
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
     players_public = [PlayerPublicView(p) for p in players]
-    admissible_roads = get_admissible_road_locations(board, player1.player)
-    road_coords = choose_road_location(board, players_public, player1)
-    build_road(board, player1.player.team, road_coords[1], road_coords[2])
-    @test length(admissible_roads) == length(get_neighbors(loc_settlement))
+    
+    #Equiv: choose_validate_build_road(board, players_public, player1, true)
+    admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
+    road_coords = choose_road_location(board, players_public, player1, admissible_roads)
+    BoardApi.build_road(board, player1.player.team, road_coords[1], road_coords[2])
+    @test length(admissible_roads) == length(BoardApi.get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
-    @test length(get_road_locations(board, player1.player.team)) == 2
+    @test length(BoardApi.get_road_locations(board, player1.player.team)) == 2
 
     # Build second settlement
     players_public = [PlayerPublicView(p) for p in players]
-    loc_settlement = choose_building_location(board, players_public, player1, :Settlement, true)
+    settlement = Catan.choose_validate_build_settlement(board, players_public, player1, true)
+    loc_settlement = settlement.coord
     @test loc_settlement != nothing
-    build_settlement(board, player1.player.team, loc_settlement)
-    settlement_locs = get_settlement_locations(board, player1.player.team)
+    settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1 # City is no longer counted
     
     # Build a road attached to second settlement
-    admissible_roads = get_admissible_road_locations(board, player1.player, true)
+    admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
     players_public = [PlayerPublicView(p) for p in players]
-    road_coords = choose_road_location(board, players_public, player1, true)
+    road_coords = Catan.choose_road_location(board, players_public, player1, admissible_roads)
     if road_coords == nothing
         print_board(board)
     end
-    build_road(board, player1.player.team, road_coords[1], road_coords[2])
-    @test length(admissible_roads) == length(get_neighbors(loc_settlement))
+    BoardApi.build_road(board, player1.player.team, road_coords[1], road_coords[2])
+    @test length(admissible_roads) == length(BoardApi.get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)
 
 # roll_dice(player::RobotPlayer)::Int
@@ -565,44 +595,44 @@ end
 
 
 function test_assign_largest_army()
-    board = read_map(SAMPLE_MAP)
-    player_blue = DefaultRobotPlayer(:Blue)
+    board = Catan.read_map(SAMPLE_MAP)
+    player_blue = Catan.DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
 
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == false
 
-    _add_devcard(player_blue.player, :Knight)
-    _add_devcard(player_blue.player, :Knight)
-    _add_devcard(player_blue.player, :Knight)
-    _play_devcard(player_blue.player, :Knight)
-    _play_devcard(player_blue.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._add_devcard(player_blue.player, :Knight)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan.assign_largest_army!(players)
 
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == false
 
-    _play_devcard(player_blue.player, :Knight)
-    assign_largest_army!(players)
+    Catan._play_devcard(player_blue.player, :Knight)
+    Catan.assign_largest_army!(players)
     
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
     
-    _add_devcard(player_green.player, :Knight)
-    _add_devcard(player_green.player, :Knight)
-    _add_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan.assign_largest_army!(players)
 
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
 
-    _add_devcard(player_green.player, :Knight)
-    _play_devcard(player_green.player, :Knight)
-    assign_largest_army!(players)
+    Catan._add_devcard(player_green.player, :Knight)
+    Catan._play_devcard(player_green.player, :Knight)
+    Catan.assign_largest_army!(players)
     
     # TODO fails
     println(player_blue.player)
