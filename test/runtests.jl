@@ -18,8 +18,16 @@ play_devcard,
 assign_largest_army!,
 get_total_vp_count,
 add_port,
-get_potential_theft_victims
-
+get_potential_theft_victims,
+has_any_resources,
+roll_dice,
+give_resource,
+choose_validate_build_settlement,
+choose_validate_build_city,
+choose_road_location,
+take_resource,
+count_resources,
+do_monopoly_action
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
@@ -264,12 +272,12 @@ function test_robber()
     victims = get_potential_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
-    Catan.give_resource(player2.player, :Grain)
+    give_resource(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
-    Catan.take_resource(player2.player, :Grain)
+    take_resource(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
@@ -312,18 +320,18 @@ function test_devcards()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
 
-    Catan.give_resource(player1.player, :Grain)
-    Catan.give_resource(player1.player, :Stone)
-    Catan.give_resource(player1.player, :Pasture)
-    Catan.give_resource(player1.player, :Brick)
-    Catan.give_resource(player1.player, :Wood)
+    give_resource(player1.player, :Grain)
+    give_resource(player1.player, :Stone)
+    give_resource(player1.player, :Pasture)
+    give_resource(player1.player, :Brick)
+    give_resource(player1.player, :Wood)
     
-    Catan.do_monopoly_action(board, players, player2)
-    @test Catan.count_resources(player1.player) == 4
+    do_monopoly_action(board, players, player2)
+    @test count_resources(player1.player) == 4
     
     players_public = [PlayerPublicView(p) for p in players]
     Catan.do_year_of_plenty_action(board, players_public, player1)
-    @test Catan.count_resources(player1.player) == 6
+    @test count_resources(player1.player) == 6
 
     BoardApi.build_settlement(board, player1.player.team, (2,5))
     players_public = [PlayerPublicView(p) for p in players]
@@ -520,35 +528,29 @@ function test_call_api()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
 
-    @test Catan.has_any_resources(player1.player) == false
-    @test Catan.has_any_resources(player2.player) == false
+    @test has_any_resources(player1.player) == false
+    @test has_any_resources(player2.player) == false
 
-    Catan.give_resource(player1.player, :Grain)
+    give_resource(player1.player, :Grain)
 
-    @test Catan.has_any_resources(player1.player) == true
+    @test has_any_resources(player1.player) == true
 
-    @test Catan.roll_dice(player1) <= 12
-    @test Catan.roll_dice(player2) >= 2
+    @test roll_dice(player1) <= 12
+    @test roll_dice(player2) >= 2
     
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    settlement = Catan.choose_validate_build_settlement(board, players_public, player1, true)
+    settlement = choose_validate_build_settlement(board, players_public, player1, true)
     loc_settlement = settlement.coord
-    #candidates = get_admissible_settlement_locations(board, player1.player.team, true)
-    #loc_settlement = choose_building_location(board, players_public, player1, candidates, :Settlement)
-    #build_settlement(board, player1.player.team, loc_settlement)
     @test loc_settlement != nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    city = Catan.choose_validate_build_city(board, players_public, player1)
+    city = choose_validate_build_city(board, players_public, player1)
     loc_city = city.coord
-    #candidates = get_admissible_city_locations(board, player1.player.team)
-    #loc_city = choose_building_location(board, players_public, player1, candidates, :City)
-    #build_city(board, player1.player.team, loc_city)
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
@@ -556,7 +558,7 @@ function test_call_api()
     
     #Equiv: choose_validate_build_road(board, players_public, player1, true)
     admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
-    road_coords = Catan.choose_road_location(board, players_public, player1, admissible_roads)
+    road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     BoardApi.build_road(board, player1.player.team, road_coords[1], road_coords[2])
     @test length(admissible_roads) == length(BoardApi.get_neighbors(loc_settlement))
     @test (road_coords[1] == loc_settlement || road_coords[2] == loc_settlement)

@@ -26,7 +26,7 @@ MAX_ROAD
 
 game = nothing
 println(ARGS)
-reset_savefile("game_$(Dates.format(now(), "HHMMSS")).txt")
+#reset_savefile("game_$(Dates.format(now(), "HHMMSS")).txt")
 
 function run(args)
     if length(args) >= 1
