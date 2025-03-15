@@ -16,7 +16,6 @@ harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 """
 
 module BoardApi
-#import Catan: Board, Road
 using ..Catan: Board, Building, Road, log_action
 include("../constants.jl")
 include("../board.jl")
