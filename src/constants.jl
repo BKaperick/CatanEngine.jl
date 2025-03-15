@@ -23,10 +23,10 @@ end
 function reset_savefile(path)
     global SAVEFILE = path
 
-    if true #SAVE_GAME_TO_FILE
+    if SAVE_GAME_TO_FILE
         io = open(SAVEFILE, "w"); write(io,""); close(io)
-        global SAVEFILEIO = open(SAVEFILE, "a")
     end
+    global SAVEFILEIO = open(SAVEFILE, "a")
     return SAVEFILE, SAVEFILEIO
 end
 

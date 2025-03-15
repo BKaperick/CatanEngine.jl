@@ -18,7 +18,7 @@ play_devcard,
 assign_largest_army!,
 get_total_vp_count,
 add_port,
-BoardApi
+get_potential_theft_victims
 
 
 TEST_DATA_DIR = "data/"
@@ -258,20 +258,20 @@ function test_robber()
     BoardApi.build_settlement(board, :Test1, (1,1))
     BoardApi.build_settlement(board, :Test2, (1,3))
 
-    victims = Catan.get_potential_theft_victims(board, players, player1, :A)
+    victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
     
-    victims = Catan.get_potential_theft_victims(board, players, player1, :S)
+    victims = get_potential_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
     Catan.give_resource(player2.player, :Grain)
     
-    victims = Catan.get_potential_theft_victims(board, players, player1, :A)
+    victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
     Catan.take_resource(player2.player, :Grain)
     
-    victims = Catan.get_potential_theft_victims(board, players, player1, :A)
+    victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
 end
 
