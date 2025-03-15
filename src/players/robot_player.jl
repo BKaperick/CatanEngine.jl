@@ -96,17 +96,17 @@ end
 
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
     if :ConstructCity in actions
-        candidates = get_admissible_city_locations(board, player.player.team)
+        candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
         return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if :ConstructSettlement in actions
-        candidates = get_admissible_settlement_locations(board, player.player.team, false)
+        candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, false)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
         return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if :ConstructRoad in actions
-        candidates = get_admissible_road_locations(board, player.player.team, false)
+        candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
@@ -150,19 +150,19 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
     action_functions = []
     
     if :ConstructCity in actions
-        candidates = get_admissible_city_locations(board, player.player.team)
+        candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
         for coord in candidates
             push!(action_functions, (g, b, p) -> construct_city(b, p.player, coord))
         end
     end
     if :ConstructSettlement in actions
-        candidates = get_admissible_settlement_locations(board, player.player.team)
+        candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team)
         for coord in candidates
             push!(action_functions, (g, b, p) -> construct_settlement(b, p.player, coord))
         end
     end
     if :ConstructRoad in actions
-        candidates = get_admissible_road_locations(board, player.player.team)
+        candidates = BoardApi.get_admissible_road_locations(board, player.player.team)
         for coord in candidates
             push!(action_functions, (g, b, p) -> construct_road(b, p.player, coord[1], coord[2]))
         end

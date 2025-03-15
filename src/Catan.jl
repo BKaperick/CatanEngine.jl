@@ -10,7 +10,14 @@ get_road_coords_from_human_tile_description,
 get_neighbors,
 read_map,
 load_gamestate!,
-reset_savefile
+reset_savefile,
+random_sample_resources,
+add_devcard,
+play_devcard,
+assign_largest_army!,
+get_total_vp_count,
+add_port,
+BoardApi
 
 # Player methods to implement
 export choose_accept_trade,
@@ -28,7 +35,8 @@ choose_card_to_steal,
 
 PLAYER_ACTIONS,
 MAX_SETTLEMENT,
-MAX_CITY
+MAX_CITY,
+MAX_ROAD
 
 game = nothing
 println(ARGS)

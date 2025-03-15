@@ -61,7 +61,7 @@ function get_total_vp_count(board, player::Player)
     return get_public_vp_count(board, player) + get_vp_count_from_dev_cards(player)
 end
 function get_public_vp_count(board, player::Player)
-    points = count_victory_points_from_board(board, player.team)
+    points = BoardApi.count_victory_points_from_board(board, player.team)
     if player.has_largest_army
         points += 2
     end

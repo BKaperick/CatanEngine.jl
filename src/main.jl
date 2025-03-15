@@ -126,18 +126,18 @@ end
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
     pay_construction(player, :City)
-    build_city(board, player.team, coord)
+    BoardApi.build_city(board, player.team, coord)
 end
 function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
     if haskey(board.coord_to_port, coord)
         add_port(player, board.coord_to_port[coord])
     end
-    build_settlement(board, player.team, coord)
+    BoardApi.build_settlement(board, player.team, coord)
 end
 function construct_road(board, player::Player, coord1, coord2)
     pay_construction(player, :Road)
-    build_road(board, player.team, coord1, coord2)
+    BoardApi.build_road(board, player.team, coord1, coord2)
 end
 
 function pay_construction(player::Player, construction::Symbol)
@@ -276,7 +276,7 @@ end
 
 function do_knight_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
@@ -286,7 +286,7 @@ end
 
 function do_robber_move(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
@@ -388,7 +388,7 @@ function someone_has_won(game, board, players::Vector{PlayerType})::Bool
     return get_winner(game, board, players) != nothing
 end
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
-    board_points = count_victory_points_from_board(board) 
+    board_points = BoardApi.count_victory_points_from_board(board) 
     winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)
@@ -514,7 +514,7 @@ function print_player_stats(game, board, player::Player)
     public_points = get_public_vp_count(board, player)
     total_points = get_total_vp_count(board, player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
-    print_board_stats()
+    BoardApi.print_board_stats(board, player.team)
     if player.has_largest_army
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end

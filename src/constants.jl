@@ -16,6 +16,10 @@ MAX_CITY = 4
 MAX_SETTLEMENT = 5
 MAX_ROAD = 14
 
+function reset_savefile(path, io)
+    global SAVEFILE = path
+    global SAVEFILEIO = io
+end
 function reset_savefile(path)
     global SAVEFILE = path
 
