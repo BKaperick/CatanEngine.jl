@@ -492,6 +492,12 @@ function test_human_player()
     initialize_and_do_game!(game, SAMPLE_MAP)
 end
 
+function test_game_api()
+    players = setup_players()
+    game = Game(players)
+    BoardApi.
+end
+
 function test_board_api()
 
     @test length(get_neighbors((3,8))) == 3

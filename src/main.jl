@@ -15,6 +15,7 @@ API_DICTIONARY = Dict(
                       "dt" => _reset_dice_true,
                       "df" => _reset_dice_false,
                       "dd" => _draw_devcard,
+                      "dr" => _draw_resource,
                       "ss" => _set_starting_player,
                       "st" => _start_turn,
                       "fp" => _finish_player_turn,
@@ -205,13 +206,15 @@ end
 
 function harvest_resource(players, building::Building, resource::Symbol)
     player = [p.player for p in players if p.player.team == building.team][1]
-    if building.type == :Settlement
+    if building.type == :Settlement && can_draw_resource(game, resource)
         @info "$(player.team) harvests a $resource"
         give_resource(player, resource)
+        draw_resource(game, resource)
     elseif building.type == :City
         @info "$(player.team) harvests two $(resource)s"
         give_resource(player, resource)
         give_resource(player, resource)
+        draw_resource(game, resource)
     end
 end
 

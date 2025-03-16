@@ -15,6 +15,7 @@ PRINT_BOARD = false
 MAX_CITY = 4
 MAX_SETTLEMENT = 5
 MAX_ROAD = 14
+MAX_RESOURCE = 25
 
 function reset_savefile(path, io)
     global SAVEFILE = path

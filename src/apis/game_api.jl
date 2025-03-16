@@ -55,6 +55,18 @@ function _draw_devcard(game::Game, card::Symbol)
     return card
 end
 
+function can_draw_resource(game::Game, resource::Symbol)
+    return game.resources[resource] > 0
+end
+function draw_resource(game::Game, resource::Symbol)
+    log_action("game dr :$resource")
+    _draw_resource(game, resource)
+end
+function _draw_resource(game::Game, resource::Symbol)
+    game.resources[resource] -= 1
+    return resource 
+end
+
 function set_starting_player(game, index)
     log_action("game ss", index)
     _set_starting_player(game, index)
