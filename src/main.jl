@@ -119,7 +119,7 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
     if card != nothing
         do_devcard_action(board, players, player, card)
         play_devcard(player.player, card)
-        assign_largest_army!(players)
+        assign_largest_army!(board, players)
     end
 end
 

@@ -28,7 +28,8 @@ choose_road_location,
 take_resource,
 count_resources,
 do_monopoly_action,
-harvest_resources
+harvest_resources,
+assign_largest_army!
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
@@ -367,26 +368,26 @@ function test_largest_army()
     # < 3 knights played, so no largest army assigned
     play_devcard(player1.player, :Knight)
     play_devcard(player1.player, :Knight)
-    assign_largest_army!(players)
+    assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player1.player) == 0
     
     # Player1 has 3 knights, so he gets 2 points
     play_devcard(player1.player, :Knight)
-    assign_largest_army!(players)
+    assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     
     # Player1 has largest army, and Player2 plays 3 knights, so Player 1 keeps LA
     play_devcard(player2.player, :Knight)
     play_devcard(player2.player, :Knight)
     play_devcard(player2.player, :Knight)
-    assign_largest_army!(players)
+    assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     @test get_total_vp_count(board, player2.player) == 0
     
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
     play_devcard(player2.player, :Knight)
-    assign_largest_army!(players)
+    assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
 end
@@ -666,16 +667,18 @@ function test_assign_largest_army()
     Catan._add_devcard(player_blue.player, :Knight)
     Catan._play_devcard(player_blue.player, :Knight)
     Catan._play_devcard(player_blue.player, :Knight)
-    Catan.assign_largest_army!(players)
+    assign_largest_army!(board, players)
 
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == false
+    @test board.largest_army == nothing
 
     Catan._play_devcard(player_blue.player, :Knight)
-    Catan.assign_largest_army!(players)
+    assign_largest_army!(board, players)
     
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
+    @test board.largest_army == :Blue
     
     Catan._add_devcard(player_green.player, :Knight)
     Catan._add_devcard(player_green.player, :Knight)
@@ -683,20 +686,19 @@ function test_assign_largest_army()
     Catan._play_devcard(player_green.player, :Knight)
     Catan._play_devcard(player_green.player, :Knight)
     Catan._play_devcard(player_green.player, :Knight)
-    Catan.assign_largest_army!(players)
+    assign_largest_army!(board, players)
 
     @test player_blue.player.has_largest_army == true
     @test player_green.player.has_largest_army == false
+    @test board.largest_army == :Blue
 
     Catan._add_devcard(player_green.player, :Knight)
     Catan._play_devcard(player_green.player, :Knight)
-    Catan.assign_largest_army!(players)
+    assign_largest_army!(board, players)
     
-    # TODO fails
-    println(player_blue.player)
-    println(player_green.player)
     @test player_blue.player.has_largest_army == false
     @test player_green.player.has_largest_army == true
+    @test board.largest_army == :Green
 end
 
 function test_robot_game(neverend)
@@ -734,9 +736,9 @@ function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
     end
+    test_assign_largest_army()
     test_game_api()
     test_road_hashing()
-    test_assign_largest_army()
     test_deepcopy()
     test_actions()
     test_set_starting_player()

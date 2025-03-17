@@ -389,4 +389,8 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
     end
     return road_coords
 end
+
+function assign_largest_army(board::Board, team::Symbol)
+    board.largest_army = team
+end
 end

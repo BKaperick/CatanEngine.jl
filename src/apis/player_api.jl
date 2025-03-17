@@ -197,7 +197,7 @@ function roll_dice(player::RobotPlayer)::Int
     return value
 end
 
-function assign_largest_army!(players::Vector{PlayerType})
+function assign_largest_army!(board::Board, players::Vector{PlayerType})
     
     # Gather all players who've played at least three Knights
     max_ct = 3
@@ -222,55 +222,41 @@ function assign_largest_army!(players::Vector{PlayerType})
     
     # Gather those with the max number of knights, as well as the current LargestArmy holder
     admissible = [(p,c) for (p,c) in player_and_count if c == max_ct]
-    old_winners = [p for p in players if p.player.has_largest_army]
-    @assert length(old_winners) <= 1
-    if length(old_winners) > 0
-        old_winner = old_winners[1]
-    else
-        old_winner = nothing
-    end
+    old_winner = (board.largest_army == nothing) ? nothing : [p.player for p in players if p.player.team == board.largest_army][1]
     
     # Most often there is only one admissible person
     # So we transfer directly to them and exit
     if length(admissible) == 1 
-        winner = admissible[1][1]
-        _transfer_largest_army(old_winner, winner)
+        winner = admissible[1][1].player
+        _transfer_largest_army(board, old_winner, winner)
         return
     
-    elseif length(admissible) > 1 
-
-        if old_winner != nothing
-            _transfer_largest_army(old_winner, old_winner)
-            return
-        else
-            # TODO this can happen if there was no old winner, and now
-            # there are many winners
-            @assert false
-        end
+    # Don't need to do anything else, as the current holder keeps it, and never should happen that
+    # there are multiple, since this assign gets called often enough
+    elseif length(admissible) > 1 && old_winner == nothing
+        @assert false
     end
-
-    _transfer_largest_army(old_winner, winner)
 end
 
-function _transfer_largest_army(old_winner::Union{PlayerType, Nothing}, new_winner::Union{PlayerType, Nothing})
+function _transfer_largest_army(board::Board, old_winner::Union{Player, Nothing}, new_winner::Union{Player, Nothing})
     # Don't fill up log with removing and re-adding LargestArmy to same player
-    if old_winner != nothing && new_winner != nothing && new_winner.player.team == old_winner.player.team
+    if old_winner != nothing && new_winner != nothing && new_winner.team == old_winner.team
         return
     end
-    #println("tla: transfer from $(old_winner == nothing ? nothing : old_winner.player.team) to $(new_winner == nothing ? nothing : new_winner.player.team)")
 
     if old_winner != nothing
-        log_action(":$(old_winner.player.team) rl")
-        _remove_largest_army(old_winner.player)
+        log_action(":$(old_winner.team) rl")
+        _remove_largest_army(old_winner)
     end
 
     if new_winner != nothing
-        log_action(":$(new_winner.player.team) la")
-        _assign_largest_army(new_winner.player)
+        log_action(":$(new_winner.team) la")
+        _assign_largest_army(board, new_winner)
     end
 end
 
-function _assign_largest_army(player::Player)
+function _assign_largest_army(board::Board, player::Player)
+    BoardApi.assign_largest_army(board, player.team)
     player.has_largest_army = true
 end
 function _remove_largest_army(player::Player)
