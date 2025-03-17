@@ -501,18 +501,6 @@ function do_first_turn_reverse(game, board, players)
     end
 end
 
-function do_set_turn_order(game)
-    if !game.turn_order_set
-        out_players = []
-        values = []
-        for player in game.players
-            push!(values, roll_dice(player))
-        end
-
-        set_starting_player(game, argmax(values))
-    end
-end
-
 function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     if game.turn_num == 0
         # Here we need to pass the whole game so we can modify the players list order in-place

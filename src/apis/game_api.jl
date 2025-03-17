@@ -14,6 +14,19 @@ end
 function get_players_to_play(game::Game)
     [p for p in game.players if !(p.player.team in game.already_played_this_turn)]
 end
+
+function do_set_turn_order(game)
+    if !game.turn_order_set
+        out_players = []
+        values = []
+        for player in game.players
+            push!(values, roll_dice(player))
+        end
+
+        set_starting_player(game, argmax(values))
+    end
+end
+
 function finish_player_turn(game::Game, team)
     log_action("game fp :$team")
     _finish_player_turn(game, team)
