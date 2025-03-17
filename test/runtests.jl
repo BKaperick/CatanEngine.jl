@@ -328,16 +328,16 @@ function test_devcards()
     do_monopoly_action(board, players, player2)
     @test PlayerApi.count_resources(player1.player) == 4
     
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     Catan.do_year_of_plenty_action(board, players_public, player1)
     @test PlayerApi.count_resources(player1.player) == 6
 
     BoardApi.build_settlement!(board, player1.player.team, (2,5))
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     Catan.do_road_building_action(board, players_public, player1)
     @test BoardApi.count_roads(board, player1.player.team) == 2
     
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     Catan.do_road_building_action(board, players_public, player1)
     @test BoardApi.count_roads(board, player1.player.team) == 4
     
@@ -718,10 +718,26 @@ function test_automated_game(neverend, players)
     end
 end
 
+function test_trading()
+    board = read_map(SAMPLE_MAP)
+    player1 = DefaultRobotPlayer(:Test1)
+    player2 = DefaultRobotPlayer(:Test2)
+    players = Vector{PlayerType}([player1, player2])
+    players_public = PlayerPublicView.(players)
+    PlayerApi.give_resource!(player1.player, :Grain)
+    PlayerApi.give_resource!(player2.player, :Brick)
+    actions = Set([:ProposeTrade])
+    next_action = choose_next_action(board::Board, players_public, player1, actions)
+    #@test next_action != nothing 
+end
+
 function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
     end
+    test_trading()
+    """
+    """
     test_assign_largest_army()
     test_game_api()
     test_road_hashing()
@@ -740,8 +756,6 @@ function run_tests(neverend = false)
     test_call_api()
     test_longest_road()
     test_robot_game(neverend)
-    """
-    """
 end
 if abspath(PROGRAM_FILE) == @__FILE__
     if (length(ARGS) > 0)
