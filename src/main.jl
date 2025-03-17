@@ -8,7 +8,6 @@ include("players/robot_player.jl")
 include("apis/board_api.jl")
 include("apis/player_api.jl")
 include("apis/game_api.jl")
-# include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
 import .BoardApi
@@ -37,30 +36,15 @@ API_DICTIONARY = Dict(
                       # Player commands
                       "gr" => PlayerApi._give_resource!,
                       "tr" => PlayerApi._take_resource!,
-                      "dc" => PlayerApi._discard_cards,
-                      "pd" => PlayerApi._play_devcard,
-                      "ad" => PlayerApi._add_devcard,
-                      "ap" => PlayerApi._add_port
+                      "dc" => PlayerApi._discard_cards!,
+                      "pd" => PlayerApi._play_devcard!,
+                      "ad" => PlayerApi._add_devcard!,
+                      "ap" => PlayerApi._add_port!
                      )
 
 
 
 
-#function Int turn(Private_Info current_player, List{Public_Info} other_players):
-#end
-
-#     *-*-*-*-*-*-*
-#     |   |   |   |
-#   *-*-*-*-*-*-*-*-*
-#   |   |   |   |   |
-# *-*-*-*-*-*-*-*-*-*-*
-# |   |   |   |   |   |
-# *-*-*-*-*-*-*-*-*-*-*
-#   |   |   |   |   |
-#   *-*-*-*-*-*-*-*-*
-#     |   |   |   |
-#     *-*-*-*-*-*-*
-#
 # Coordinate in (row, column)
 
 #       61-62-63-64-65-66-67
@@ -75,33 +59,10 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
-function team_with_two_adjacent_roads(roads, coord)::Union{Symbol,Nothing}
-    roads = get_adjacent_roads(roads, coord)
-    if length(roads) < 2
-        return nothing
-    end
-    for team in TEAMS
-        if count([r for r in roads if r.team == team]) >= 2
-            return team
-        end
-    end
-    return nothing
-end
-
-function get_adjacent_roads(roads, coord)
-    adjacent = []
-    for road in roads
-        if road.coord1 == coord || road.coord2 == coord
-            push!(adjacent, road)
-        end
-    end
-    return adjacent
-end
-
 function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
     if card != nothing
         do_devcard_action(board, players, player, card)
-        PlayerApi.play_devcard(player.player, card)
+        PlayerApi.play_devcard!(player.player, card)
         decide_and_assign_largest_army!(board, players)
     end
 end
@@ -159,7 +120,7 @@ end
 function construct_settlement(board, player::Player, coord)
     PlayerApi.pay_construction(player, :Settlement)
     if haskey(board.coord_to_port, coord)
-        PlayerApi.add_port(player, board.coord_to_port[coord])
+        PlayerApi.add_port!(player, board.coord_to_port[coord])
     end
     BoardApi.build_settlement!(board, player.team, coord)
 end
@@ -280,8 +241,6 @@ function harvest_resources(game, board, players, dice_value)
     end
 end
 
-buildings = Array{Building,1}()
-
 function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
@@ -293,7 +252,7 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
 end
 
 function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     if card == :Knight
         do_knight_action(board, players, player)
     elseif card == :Monopoly
@@ -302,6 +261,8 @@ function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerTyp
         do_year_of_plenty_action(board, players_public, player)
     elseif card == :RoadBuilding
         do_road_building_action(board, players_public, player)
+    else
+        @assert false
     end
 end
 
@@ -316,7 +277,7 @@ function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, play
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     res = choose_monopoly_resource(board, players_public, player)
     for victim in players
         @info "$(victim.player.team) gives $(PlayerApi.count_resource(victim.player, res)) $res to $(player.player.team)"
@@ -328,7 +289,7 @@ function do_monopoly_action(board, players::Vector{PlayerType}, player)
 end
 
 function do_knight_action(board, players::Vector{PlayerType}, player)
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
@@ -338,7 +299,7 @@ function do_knight_action(board, players::Vector{PlayerType}, player)
 end
 
 function do_robber_move(board, players::Vector{PlayerType}, player)
-    players_public = [PlayerPublicView(p) for p in players]
+    players_public = PlayerPublicView.(players)
     new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
@@ -346,7 +307,7 @@ function do_robber_move(board, players::Vector{PlayerType}, player)
         r_count = PlayerApi.count_cards(player.player)
         if r_count > 7
             resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
-            PlayerApi.discard_cards(player.player, resources_to_discard...)
+            PlayerApi.discard_cards!(player.player, resources_to_discard...)
         end
     end  
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
@@ -402,7 +363,7 @@ Called each turn except the first turn.  See `do_first_turn` for first turn beha
 function do_turn(game::Game, board::Board, player::PlayerType)
     if PlayerApi.can_play_dev_card(player.player)
         devcards = get_admissible_devcards(player)
-        card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)
+        card = choose_play_devcard(board, PlayerPublicView.(game.players), player, devcards)
         
         do_play_devcard(board, game.players, player, card)
     end
@@ -420,7 +381,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(board, [PlayerPublicView(p) for p in game.players], player, actions)
+        next_action = choose_next_action(board, PlayerPublicView.(game.players), player, actions)
         if next_action != nothing
             next_action(game, board, player)
         end
@@ -434,7 +395,7 @@ end
 function buy_devcard(game::Game, player::Player)
     card = draw_devcard(game)
     PlayerApi.pay_construction(player, :DevelopmentCard)
-    PlayerApi.add_devcard(player, card)
+    PlayerApi.add_devcard!(player, card)
 end
 
 function someone_has_won(game, board, players::Vector{PlayerType})::Bool
@@ -503,7 +464,7 @@ function do_first_turn_forward(game, board, players)
     for player in get_players_to_play(game)
         # TODO we really only need to re-calculate the player who just played,
         # but we can optimize later if needed
-        players_public = [PlayerPublicView(p) for p in players]
+        players_public = PlayerPublicView.(players)
         choose_validate_build_settlement!(board, players_public, player, true)
         choose_validate_build_road!(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
@@ -512,7 +473,7 @@ function do_first_turn_forward(game, board, players)
 end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
-        players_public = [PlayerPublicView(p) for p in players]
+        players_public = PlayerPublicView.(players)
         settlement = choose_validate_build_settlement!(board, players_public, player, true)
         choose_validate_build_road!(board, players_public, player, true)
         
@@ -565,8 +526,8 @@ function print_player_stats(game, board, player::Player)
     if board.longest_road == player.team
         @info "Longest road"
     end
-    if get_vp_count_from_dev_cards(player) > 0
-        @info "$(get_vp_count_from_dev_cards(player)) points from dev cards"
+    if PlayerApi.get_vp_count_from_dev_cards(player) > 0
+        @info "$(PlayerApi.get_vp_count_from_dev_cards(player)) points from dev cards"
     end
     @info player
 end

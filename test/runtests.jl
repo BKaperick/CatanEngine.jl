@@ -352,37 +352,37 @@ function test_largest_army()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
     
-    PlayerApi.add_devcard(player1.player, :Knight)
-    PlayerApi.add_devcard(player1.player, :Knight)
-    PlayerApi.add_devcard(player1.player, :Knight)
+    PlayerApi.add_devcard!(player1.player, :Knight)
+    PlayerApi.add_devcard!(player1.player, :Knight)
+    PlayerApi.add_devcard!(player1.player, :Knight)
     
-    PlayerApi.add_devcard(player2.player, :Knight)
-    PlayerApi.add_devcard(player2.player, :Knight)
-    PlayerApi.add_devcard(player2.player, :Knight)
-    PlayerApi.add_devcard(player2.player, :Knight)
+    PlayerApi.add_devcard!(player2.player, :Knight)
+    PlayerApi.add_devcard!(player2.player, :Knight)
+    PlayerApi.add_devcard!(player2.player, :Knight)
+    PlayerApi.add_devcard!(player2.player, :Knight)
     
     # < 3 knights played, so no largest army assigned
-    PlayerApi.play_devcard(player1.player, :Knight)
-    PlayerApi.play_devcard(player1.player, :Knight)
+    PlayerApi.play_devcard!(player1.player, :Knight)
+    PlayerApi.play_devcard!(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player1.player) == 0
     
     # Player1 has 3 knights, so he gets 2 points
-    PlayerApi.play_devcard(player1.player, :Knight)
+    PlayerApi.play_devcard!(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     
     # Player1 has largest army, and Player2 plays 3 knights, so Player 1 keeps LA
-    PlayerApi.play_devcard(player2.player, :Knight)
-    PlayerApi.play_devcard(player2.player, :Knight)
-    PlayerApi.play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard!(player2.player, :Knight)
+    PlayerApi.play_devcard!(player2.player, :Knight)
+    PlayerApi.play_devcard!(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     @test get_total_vp_count(board, player2.player) == 0
     
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
-    PlayerApi.play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard!(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
@@ -465,13 +465,13 @@ function test_ports()
     @test all([v == 4 for v in values(player1.player.ports)])
     @test length(keys(player1.player.ports)) == 5
 
-    PlayerApi.add_port(player1.player, :Grain)
+    PlayerApi.add_port!(player1.player, :Grain)
 
     @test player1.player.ports[:Grain] == 2
     @test player1.player.ports[:Wood] == 4
     
-    PlayerApi.add_port(player1.player, :All)
-    PlayerApi.add_port(player2.player, :All)
+    PlayerApi.add_port!(player1.player, :All)
+    PlayerApi.add_port!(player2.player, :All)
     
     @test all([v == 3 for v in values(player2.player.ports)])
     @test player1.player.ports[:Grain] == 2
@@ -657,32 +657,32 @@ function test_assign_largest_army()
 
     @test board.largest_army == nothing
 
-    PlayerApi._add_devcard(player_blue.player, :Knight)
-    PlayerApi._add_devcard(player_blue.player, :Knight)
-    PlayerApi._add_devcard(player_blue.player, :Knight)
-    PlayerApi._play_devcard(player_blue.player, :Knight)
-    PlayerApi._play_devcard(player_blue.player, :Knight)
+    PlayerApi._add_devcard!(player_blue.player, :Knight)
+    PlayerApi._add_devcard!(player_blue.player, :Knight)
+    PlayerApi._add_devcard!(player_blue.player, :Knight)
+    PlayerApi._play_devcard!(player_blue.player, :Knight)
+    PlayerApi._play_devcard!(player_blue.player, :Knight)
     decide_and_assign_largest_army!(board, players)
 
     @test board.largest_army == nothing
 
-    PlayerApi._play_devcard(player_blue.player, :Knight)
+    PlayerApi._play_devcard!(player_blue.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     
     @test board.largest_army == :Blue
     
-    PlayerApi._add_devcard(player_green.player, :Knight)
-    PlayerApi._add_devcard(player_green.player, :Knight)
-    PlayerApi._add_devcard(player_green.player, :Knight)
-    PlayerApi._play_devcard(player_green.player, :Knight)
-    PlayerApi._play_devcard(player_green.player, :Knight)
-    PlayerApi._play_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard!(player_green.player, :Knight)
+    PlayerApi._add_devcard!(player_green.player, :Knight)
+    PlayerApi._add_devcard!(player_green.player, :Knight)
+    PlayerApi._play_devcard!(player_green.player, :Knight)
+    PlayerApi._play_devcard!(player_green.player, :Knight)
+    PlayerApi._play_devcard!(player_green.player, :Knight)
     decide_and_assign_largest_army!(board, players)
 
     @test board.largest_army == :Blue
 
-    PlayerApi._add_devcard(player_green.player, :Knight)
-    PlayerApi._play_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard!(player_green.player, :Knight)
+    PlayerApi._play_devcard!(player_green.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     
     @test board.largest_army == :Green

@@ -6,31 +6,30 @@ Meta-game Player API: for initializing and storing results for purposes of algor
 
 # Functions that modify player state, only called via API_DICTIONARY:
 
-_add_devcard(player::Player, devcard::Symbol)
-_add_port(player::Player, resource::Symbol)
-_discard_cards(player, resources...)
+_add_devcard!(player::Player, devcard::Symbol)
+_add_port!(player::Player, resource::Symbol)
+_discard_cards!(player, resources...)
 _give_resource!(player::Player, resource::Symbol)
-_play_devcard(player::Player, devcard::Symbol)
+_play_devcard!(player::Player, devcard::Symbol)
 _take_resource!(player::Player, resource::Symbol)
 
 # Read-only helper functions, can be used from anywhere:
 
-add_devcard(player::Player, devcard::Symbol)
-add_port(player::Player, resource::Symbol)
-can_pay_price(player::Player, cost::Dict)::Bool
+add_devcard!(player::Player, devcard::Symbol)
+add_port!(player::Player, resource::Symbol)
 can_play_dev_card(player::Player)::Bool
 count_cards(player::Player)
 count_resource(player::Player, resource::Symbol)::Int
 count_resources(player::Player)
-discard_cards(player, resources...)
+discard_cards!(player, resources...)
 get_admissible_devcards(player::Player)
 get_vp_count_from_dev_cards(player::Player)
 give_resource!(player::Player, resource::Symbol)
 has_any_resources(player::Player)::Bool
 has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
 pay_construction(player::Player, construction::Symbol)
-pay_price(player::Player, cost::Dict)
-play_devcard(player::Player, devcard::Symbol)
+pay_price!(player::Player, cost::Dict)
+play_devcard!(player::Player, devcard::Symbol)
 take_resource!(player::Player, resource::Symbol)
 trade_resource_with_bank(player::Player, from_resource, to_resource)
 """
@@ -68,11 +67,11 @@ function get_vp_count_from_dev_cards(player::Player)
     end
     return 0
 end
-function add_devcard(player::Player, devcard::Symbol)
+function add_devcard!(player::Player, devcard::Symbol)
     log_action(":$(player.team) ad", devcard)
-    _add_devcard(player, devcard)
+    _add_devcard!(player, devcard)
 end
-function _add_devcard(player::Player, devcard::Symbol)
+function _add_devcard!(player::Player, devcard::Symbol)
     if haskey(player.dev_cards, devcard)
         player.dev_cards[devcard] += 1
     else
@@ -81,12 +80,12 @@ function _add_devcard(player::Player, devcard::Symbol)
     player.bought_dev_card_this_turn = devcard
 end
     
-function play_devcard(player::Player, devcard::Symbol)
+function play_devcard!(player::Player, devcard::Symbol)
     log_action(":$(player.team) pd", devcard)
-    _play_devcard(player, devcard)
+    _play_devcard!(player, devcard)
 end
 
-function _play_devcard(player::Player, devcard::Symbol)
+function _play_devcard!(player::Player, devcard::Symbol)
     if ~haskey(player.dev_cards_used, devcard)
         player.dev_cards_used[devcard] = 0
     end
@@ -130,11 +129,11 @@ function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
     return true
 end
 
-function discard_cards(player, resources...)
+function discard_cards!(player, resources...)
     log_action(":$(player.team) dc", resources...)
-    _discard_cards(player, resources...)
+    _discard_cards!(player, resources...)
 end
-function _discard_cards(player, resources...)
+function _discard_cards!(player, resources...)
     for r in resources
         _take_resource!(player, r)
     end
@@ -144,11 +143,11 @@ function count_cards(player::Player)
     sum(values(player.resources))
 end
 
-function add_port(player::Player, resource::Symbol)
+function add_port!(player::Player, resource::Symbol)
     log_action(":$(player.team) ap", resource)
-    _add_port(player, resource)
+    _add_port!(player, resource)
 end
-function _add_port(player::Player, resource::Symbol)
+function _add_port!(player::Player, resource::Symbol)
     if haskey(player.ports, resource)
         player.ports[resource] = 2
 
@@ -185,29 +184,15 @@ function _take_resource!(player::Player, resource::Symbol)
     end
 end
 
-"""
-    can_pay_price(player::Player, cost::Dict)::Bool
-
-Returns `Bool` for whether the inputted `player` has sufficient resources to pay `cost`.
-"""
-function can_pay_price(player::Player, cost::Dict)::Bool
-    for resource in keys(cost)
-        if player.resources[resource] < cost[resource]
-            return false
-        end
-    end
-    return true
-end
-
-function pay_price(player::Player, cost::Dict)
+function pay_price!(player::Player, cost::Dict)
     resources = keys(cost)
     for (r,amount) in cost
-        discard_cards(player, repeat([r], amount)...)
+        discard_cards!(player, repeat([r], amount)...)
     end
 end
 
 function pay_construction(player::Player, construction::Symbol)
     cost = COSTS[construction]
-    pay_price(player, cost)
+    pay_price!(player, cost)
 end
 end
