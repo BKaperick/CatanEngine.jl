@@ -127,6 +127,44 @@ function assign_largest_army!(board, players)
     BoardApi._assign_largest_army(board, la_team)
 end
 
+function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{Nothing, Symbol}
+    # Gather all players who've played at least three Knights
+    max_ct = 3
+    player_and_count = Vector{Tuple{PlayerType, Int}}()
+    for p in players
+        if haskey(p.player.dev_cards_used, :Knight)
+            ct = p.player.dev_cards_used[:Knight]
+            if ct >= 3
+                push!(player_and_count, (p, ct))
+            end
+            if ct > max_ct
+                max_ct = ct
+            end
+        end
+    end
+
+    # If noone has crossed threshold, then exit
+    if length(player_and_count) == 0
+        return
+    end
+    
+    # Gather those with the max number of knights, as well as the current LargestArmy holder
+    admissible = [(p,c) for (p,c) in player_and_count if c == max_ct]
+    old_winner = (board.largest_army == nothing) ? nothing : [p.player for p in players if p.player.team == board.largest_army][1]
+    
+    # Most often there is only one admissible person
+    # So we transfer directly to them and exit
+    if length(admissible) == 1 
+        winner = admissible[1][1].player
+        return winner.team
+    
+    # Don't need to do anything else, as the current holder keeps it, and never should happen that
+    # there are multiple, since this assign gets called often enough
+    elseif length(admissible) > 1 && old_winner == nothing
+        @assert false
+    end
+end
+
 
 # TODO think about combining with choose_validate_build_X methods.
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
