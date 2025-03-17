@@ -57,17 +57,10 @@ function can_play_dev_card(player::Player)::Bool
     return sum(values(player.dev_cards)) > 0 && ~player.played_dev_card_this_turn
 end
 
+# TODO move out of player API, we don't want them referencing each other
 function get_total_vp_count(board, player::Player)
-    return get_public_vp_count(board, player) + get_vp_count_from_dev_cards(player)
+    return BoardApi.get_public_vp_count(board, player.team) + get_vp_count_from_dev_cards(player)
 end
-function get_public_vp_count(board, player::Player)
-    points = BoardApi.count_victory_points_from_board(board, player.team)
-    if player.has_largest_army
-        points += 2
-    end
-    return points
-end
-
 function get_vp_count_from_dev_cards(player::Player)
     if haskey(player.dev_cards, :VictoryPoint)
         return player.dev_cards[:VictoryPoint]
@@ -250,13 +243,13 @@ function _transfer_largest_army(board::Board, old_winner::Union{Player, Nothing}
     end
 
     if new_winner != nothing
-        log_action(":$(new_winner.team) la")
+        log_action(":$(new_winner.team) _deprecated_la")
         _assign_largest_army(board, new_winner)
     end
 end
 
 function _assign_largest_army(board::Board, player::Player)
-    BoardApi.assign_largest_army(board, player.team)
+    BoardApi._assign_largest_army(board, player.team)
     player.has_largest_army = true
 end
 function _remove_largest_army(player::Player)

@@ -390,7 +390,23 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
     return road_coords
 end
 
-function assign_largest_army(board::Board, team::Symbol)
+function _assign_largest_army(board::Board, team::Symbol)
+    log_action("board la :$team")
     board.largest_army = team
 end
+
+"""
+    `get_public_vp_count(board::Board, team::Symbol)::Int`
+
+Returns all victory points publicly-visible for `team`.  I.e. Buildings, 
+longest road, and largest army.  (Everything except dev card VPs)
+"""
+function get_public_vp_count(board::Board, team::Symbol)::Int
+    points = BoardApi.count_victory_points_from_board(board, team)
+    if board.largest_army == team
+        points += 2
+    end
+    return points
+end
+
 end

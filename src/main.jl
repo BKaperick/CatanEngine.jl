@@ -26,6 +26,7 @@ API_DICTIONARY = Dict(
                       "bs" => BoardApi._build_settlement,
                       "br" => BoardApi._build_road,
                       "mr" => BoardApi._move_robber,
+                      "la" => BoardApi._assign_largest_army,
 
                       # Players commands
 
@@ -36,8 +37,8 @@ API_DICTIONARY = Dict(
                       "pd" => _play_devcard,
                       "ad" => _add_devcard,
                       "ap" => _add_port,
-                      "la" => _assign_largest_army,
                       "rl" => _remove_largest_army,
+                      "_deprecated_la" => _assign_largest_army,
                      )
 
 
@@ -529,7 +530,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
 end
 
 function print_player_stats(game, board, player::Player)
-    public_points = get_public_vp_count(board, player)
+    public_points = BoardApi.get_public_vp_count(board, player.team)
     total_points = get_total_vp_count(board, player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
     BoardApi.print_board_stats(board, player.team)

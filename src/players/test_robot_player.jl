@@ -48,7 +48,7 @@ function _get_total_resource_probabilities(board)
 end
 
 function choose_accept_trade(board::Board, player::TestRobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-    return rand() > player.accept_trade_willingness + (get_public_vp_count(board, from_player) / 20)
+    return rand() > player.accept_trade_willingness + (BoardApi.get_public_vp_count(board, from_player.team) / 20)
 end
 
 function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::TestRobotPlayer, building_type::Symbol, is_first_turn::Bool = false)::Tuple
