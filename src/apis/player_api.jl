@@ -1,17 +1,12 @@
-# Players API
+"""
+Players API
 
-#
-# Meta-game Player API: for initializing and storing results for purposes of algorithm training
-#
 
+Meta-game Player API: for initializing and storing results for purposes of algorithm training
+
+"""
 module PlayerApi
-using ..Catan: PlayerType,Player,HumanPlayer,RobotPlayer, log_action, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS
-#,MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
-import Random
-#include("../players/human_player.jl")
-#include("../players/robot_player.jl")
-#include("human_action_interface.jl")
-
+using ..Catan: PlayerType,Player, HumanPlayer, RobotPlayer, log_action, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS
 
 # Player API
 
