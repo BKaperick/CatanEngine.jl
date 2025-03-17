@@ -203,3 +203,11 @@ end
 
 function do_post_game_action(board::Board, players::Vector{PlayerType}, winner::Union{PlayerType, Nothing})
 end
+
+"""
+    save_parameters_after_game_end(board::Board, player::PlayerType)
+
+After the game, store or update parameters based on the end state
+"""
+function save_parameters_after_game_end(file::IO, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
+end

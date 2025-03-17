@@ -9,23 +9,6 @@ include("human_action_interface.jl")
 # Meta-game Player API: for initializing and storing results for purposes of algorithm training
 #
 
-"""
-    initialize_player(board::Board, player::PlayerType)
-
-This function is useful to do any one-time computations of the player as soon 
-as the board is generated.
-"""
-function initialize_player(board::Board, player::PlayerType)
-end
-
-"""
-    save_parameters_after_game_end(board::Board, player::PlayerType)
-
-After the game, store or update parameters based on the end state
-"""
-function save_parameters_after_game_end(file::IO, board::Board, players::Vector{PlayerType}, player::PlayerType, winner_team::Symbol)
-end
-
 
 # Player API
 
@@ -57,10 +40,6 @@ function can_play_dev_card(player::Player)::Bool
     return sum(values(player.dev_cards)) > 0 && ~player.played_dev_card_this_turn
 end
 
-# TODO move out of player API, we don't want them referencing each other
-function get_total_vp_count(board, player::Player)
-    return BoardApi.get_public_vp_count(board, player.team) + get_vp_count_from_dev_cards(player)
-end
 function get_vp_count_from_dev_cards(player::Player)
     if haskey(player.dev_cards, :VictoryPoint)
         return player.dev_cards[:VictoryPoint]

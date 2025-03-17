@@ -570,6 +570,10 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     return winner
 end
 
+function get_total_vp_count(board, player::Player)
+    return BoardApi.get_public_vp_count(board, player.team) + get_vp_count_from_dev_cards(player)
+end
+
 function print_player_stats(game, board, player::Player)
     public_points = BoardApi.get_public_vp_count(board, player.team)
     total_points = get_total_vp_count(board, player)
@@ -585,5 +589,14 @@ function print_player_stats(game, board, player::Player)
         @info "$(get_vp_count_from_dev_cards(player)) points from dev cards"
     end
     @info player
+end
+
+"""
+    initialize_player(board::Board, player::PlayerType)
+
+This function is useful to do any one-time computations of the player as soon 
+as the board is generated.
+"""
+function initialize_player(board::Board, player::PlayerType)
 end
 
