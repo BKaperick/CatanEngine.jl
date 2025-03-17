@@ -77,8 +77,8 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
     max_ct = 3
     player_and_count = Vector{Tuple{PlayerType, Int}}()
     for p in players
-        if haskey(p.player.dev_cards_used, :Knight)
-            ct = p.player.dev_cards_used[:Knight]
+        if haskey(p.player.devcards_used, :Knight)
+            ct = p.player.devcards_used[:Knight]
             if ct >= 3
                 push!(player_and_count, (p, ct))
             end
@@ -331,7 +331,7 @@ function get_legal_actions(game, board, player)::Set{Symbol}
     if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
         push!(actions, :BuyDevCard)
     end
-    if PlayerApi.can_play_dev_card(player)
+    if PlayerApi.can_play_devcard(player)
         push!(actions, :PlayDevCard)
     end
     if PlayerApi.has_any_resources(player)
@@ -361,7 +361,7 @@ end
 Called each turn except the first turn.  See `do_first_turn` for first turn behavior.
 """
 function do_turn(game::Game, board::Board, player::PlayerType)
-    if PlayerApi.can_play_dev_card(player.player)
+    if PlayerApi.can_play_devcard(player.player)
         devcards = get_admissible_devcards(player)
         card = choose_play_devcard(board, PlayerPublicView.(game.players), player, devcards)
         
@@ -512,7 +512,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
 end
 
 function get_total_vp_count(board, player::Player)
-    return BoardApi.get_public_vp_count(board, player.team) + PlayerApi.get_vp_count_from_dev_cards(player)
+    return BoardApi.get_public_vp_count(board, player.team) + PlayerApi.get_vp_count_from_devcards(player)
 end
 
 function print_player_stats(game, board, player::Player)
@@ -521,13 +521,13 @@ function print_player_stats(game, board, player::Player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
     BoardApi.print_board_stats(board, player.team)
     if board.largest_army == player.team
-        @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
+        @info "Largest Army ($(player.devcards_used[:Knight]) knights)"
     end
     if board.longest_road == player.team
         @info "Longest road"
     end
-    if PlayerApi.get_vp_count_from_dev_cards(player) > 0
-        @info "$(PlayerApi.get_vp_count_from_dev_cards(player)) points from dev cards"
+    if PlayerApi.get_vp_count_from_devcards(player) > 0
+        @info "$(PlayerApi.get_vp_count_from_devcards(player)) points from dev cards"
     end
     @info player
 end

@@ -6,14 +6,14 @@ mutable struct Player
     # Private fields (can't be directly accessed by other players)
     resources::Dict{Symbol,Int}
     vp_count::Int
-    dev_cards::Dict{Symbol,Int}
+    devcards::Dict{Symbol,Int}
     
     # Public fields (can be used by other players to inform their moves)
     team::Symbol
-    dev_cards_used::Dict{Symbol,Int}
+    devcards_used::Dict{Symbol,Int}
     ports::Dict{Symbol, Int}
-    played_dev_card_this_turn::Bool
-    bought_dev_card_this_turn::Union{Nothing,Symbol}
+    played_devcard_this_turn::Bool
+    bought_devcard_this_turn::Union{Nothing,Symbol}
 end
 
 function Player(team::Symbol)
@@ -36,14 +36,14 @@ publicly about the private fields.  E.g. everyone knows how many dev cards each 
 mutable struct PlayerPublicView
     # This is the same as the public fields in `Player`
     team::Symbol
-    dev_cards_used::Dict{Symbol,Int}
+    devcards_used::Dict{Symbol,Int}
     ports::Dict{Symbol, Int}
-    played_dev_card_this_turn::Bool
-    bought_dev_card_this_turn::Union{Nothing,Symbol}
+    played_devcard_this_turn::Bool
+    bought_devcard_this_turn::Union{Nothing,Symbol}
     
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
-    dev_cards_count::Int
+    devcards_count::Int
     visible_vp_count::Int
 end
 
@@ -51,18 +51,18 @@ PlayerPublicView(player::PlayerPublicView) = player;
 PlayerPublicView(player::PlayerType) = PlayerPublicView(player.player)
 PlayerPublicView(player::Player) = PlayerPublicView(
     player.team,
-    player.dev_cards_used,
+    player.devcards_used,
     player.ports,
-    player.played_dev_card_this_turn,
-    player.bought_dev_card_this_turn,
+    player.played_devcard_this_turn,
+    player.bought_devcard_this_turn,
 
     # Resource count
     sum(values(player.resources)), 
     # Dev cards count
-    sum(values(player.dev_cards)),
+    sum(values(player.devcards)),
     
     # Total victory points minus the ones that are hidden from view (only case is a dev card awarding one)
-    player.vp_count - sum([item.second for item in player.dev_cards if item.first == :VictoryPoint])
+    player.vp_count - sum([item.second for item in player.devcards if item.first == :VictoryPoint])
    )
 
 
@@ -103,12 +103,12 @@ function Base.deepcopy(player::Player)
     return Player(
         deepcopy(player.resources),
         player.vp_count,
-        deepcopy(player.dev_cards),
+        deepcopy(player.devcards),
         player.team,
-        deepcopy(player.dev_cards_used),
+        deepcopy(player.devcards_used),
         deepcopy(player.ports),
-        player.played_dev_card_this_turn,
-        player.bought_dev_card_this_turn
+        player.played_devcard_this_turn,
+        player.bought_devcard_this_turn
     )
 end
 

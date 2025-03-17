@@ -17,13 +17,13 @@ _take_resource!(player::Player, resource::Symbol)
 
 add_devcard!(player::Player, devcard::Symbol)
 add_port!(player::Player, resource::Symbol)
-can_play_dev_card(player::Player)::Bool
+can_play_devcard(player::Player)::Bool
 count_cards(player::Player)
 count_resource(player::Player, resource::Symbol)::Int
 count_resources(player::Player)
 discard_cards!(player, resources...)
 get_admissible_devcards(player::Player)
-get_vp_count_from_dev_cards(player::Player)
+get_vp_count_from_devcards(player::Player)
 give_resource!(player::Player, resource::Symbol)
 has_any_resources(player::Player)::Bool
 has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
@@ -40,12 +40,12 @@ using ..Catan: Player, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
 
 
 function get_admissible_devcards(player::Player)
-    if ~can_play_dev_card(player)
+    if ~can_play_devcard(player)
         return 
     end
-    out = deepcopy(player.dev_cards)
-    if player.bought_dev_card_this_turn != nothing
-        out[player.bought_dev_card_this_turn] -= 1
+    out = deepcopy(player.devcards)
+    if player.bought_devcard_this_turn != nothing
+        out[player.bought_devcard_this_turn] -= 1
     end
     return out
 end
@@ -57,13 +57,13 @@ function trade_resource_with_bank(player::Player, from_resource, to_resource)
     give_resource!(player, to_resource)
 end
 
-function can_play_dev_card(player::Player)::Bool
-    return sum(values(player.dev_cards)) > 0 && ~player.played_dev_card_this_turn
+function can_play_devcard(player::Player)::Bool
+    return sum(values(player.devcards)) > 0 && ~player.played_devcard_this_turn
 end
 
-function get_vp_count_from_dev_cards(player::Player)
-    if haskey(player.dev_cards, :VictoryPoint)
-        return player.dev_cards[:VictoryPoint]
+function get_vp_count_from_devcards(player::Player)
+    if haskey(player.devcards, :VictoryPoint)
+        return player.devcards[:VictoryPoint]
     end
     return 0
 end
@@ -72,12 +72,12 @@ function add_devcard!(player::Player, devcard::Symbol)
     _add_devcard!(player, devcard)
 end
 function _add_devcard!(player::Player, devcard::Symbol)
-    if haskey(player.dev_cards, devcard)
-        player.dev_cards[devcard] += 1
+    if haskey(player.devcards, devcard)
+        player.devcards[devcard] += 1
     else
-        player.dev_cards[devcard] = 1
+        player.devcards[devcard] = 1
     end
-    player.bought_dev_card_this_turn = devcard
+    player.bought_devcard_this_turn = devcard
 end
     
 function play_devcard!(player::Player, devcard::Symbol)
@@ -86,12 +86,12 @@ function play_devcard!(player::Player, devcard::Symbol)
 end
 
 function _play_devcard!(player::Player, devcard::Symbol)
-    if ~haskey(player.dev_cards_used, devcard)
-        player.dev_cards_used[devcard] = 0
+    if ~haskey(player.devcards_used, devcard)
+        player.devcards_used[devcard] = 0
     end
-    player.dev_cards[devcard] -= 1
-    player.dev_cards_used[devcard] += 1
-    player.played_dev_card_this_turn = true
+    player.devcards[devcard] -= 1
+    player.devcards_used[devcard] += 1
+    player.played_devcard_this_turn = true
 end
 
 function count_resources(player::Player)

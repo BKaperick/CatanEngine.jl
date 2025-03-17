@@ -237,11 +237,11 @@ function test_log()
         @test player.team == new_player.team
         @test player.resources == new_player.resources
         @test player.vp_count == new_player.vp_count
-        @test player.dev_cards == new_player.dev_cards
-        @test player.dev_cards_used == new_player.dev_cards_used
+        @test player.devcards == new_player.devcards
+        @test player.devcards_used == new_player.devcards_used
         @test player.ports == new_player.ports
-        @test player.played_dev_card_this_turn == new_player.played_dev_card_this_turn
-        @test player.bought_dev_card_this_turn == new_player.bought_dev_card_this_turn
+        @test player.played_devcard_this_turn == new_player.played_devcard_this_turn
+        @test player.bought_devcard_this_turn == new_player.bought_devcard_this_turn
         @test new_board.longest_road == board.longest_road
     end
     rm(SAVEFILE)
