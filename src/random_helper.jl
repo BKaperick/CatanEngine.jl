@@ -1,3 +1,4 @@
+using StatsBase
 function has_any_elements(sym_dict::Dict{Symbol, Int})
     return sum(values(sym_dict)) > 0
 end

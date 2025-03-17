@@ -7,6 +7,7 @@ export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerP
     initialize_and_do_game!,
 BoardApi, 
 PlayerApi,
+GameApi,
 GameRunner
 
 # Player methods to implement

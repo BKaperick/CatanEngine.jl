@@ -1,14 +1,14 @@
 module GameRunner
 using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                read_map, load_gamestate!, initialize_player,
-               do_set_turn_order, get_players_to_play, get_admissible_devcards,
-               do_first_turn_building!,finish_player_turn,finish_turn,start_turn,set_dice_false,can_draw_devcard,
-               choose_play_devcard,do_play_devcard,
+               do_first_turn_building!,
+               choose_play_devcard,do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
                do_post_game_action,
                COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
+using ..Catan.GameApi: do_set_turn_order, get_players_to_play, finish_player_turn, finish_turn, start_turn, set_dice_false, can_draw_devcard
 
 #initialize_and_do_game!(game::Game, map_file::String) = initialize_and_do_game!(game, map_file, SAVEFILE)
 function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}

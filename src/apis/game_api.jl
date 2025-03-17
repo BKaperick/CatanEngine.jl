@@ -1,4 +1,7 @@
+module GameApi
+using ..Catan: Game, roll_dice, log_action
 import Random
+include("../random_helper.jl")
 
 function start_turn(game::Game)::Nothing
     log_action("game st")
@@ -90,4 +93,4 @@ function _set_starting_player(game::Game, index)
     @debug "After: $([p.player.team for p in game.players])"
     game.turn_order_set = true
 end
-    
+end

@@ -97,7 +97,7 @@ function test_set_starting_player()
     players = setup_players(team_and_playertype)
     game = Game(players)
 
-    Catan.set_starting_player(game, 2)
+    GameApi.set_starting_player(game, 2)
 
     @test game.turn_order_set == true
     @test game.players[1].player.team == :cyan
@@ -252,7 +252,7 @@ function test_do_turn()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
-    Catan.start_turn(game)
+    GameApi.start_turn(game)
     @test game.turn_num == 1
     GameRunner.do_turn(game, board, player1)
 end

@@ -1,6 +1,7 @@
-using StatsBase, DocStringExtensions
+using DocStringExtensions
 #include("structs.jl")
 include("constants.jl")
+include("random_helper.jl")
 include("io.jl")
 include("apis/human_action_interface.jl")
 include("players/human_player.jl")
@@ -9,20 +10,20 @@ include("apis/board_api.jl")
 include("apis/player_api.jl")
 include("apis/game_api.jl")
 include("draw_board.jl")
-include("random_helper.jl")
 import .BoardApi
 import .PlayerApi
+import .GameApi
 
 API_DICTIONARY = Dict(
                       # Game commands
-                      "dt" => _reset_dice_true,
-                      "df" => _reset_dice_false,
-                      "dd" => _draw_devcard,
-                      "dr" => _draw_resource,
-                      "ss" => _set_starting_player,
-                      "st" => _start_turn,
-                      "fp" => _finish_player_turn,
-                      "ft" => _finish_turn,
+                      "dt" => GameApi._reset_dice_true,
+                      "df" => GameApi._reset_dice_false,
+                      "dd" => GameApi._draw_devcard,
+                      "dr" => GameApi._draw_resource,
+                      "ss" => GameApi._set_starting_player,
+                      "st" => GameApi._start_turn,
+                      "fp" => GameApi._finish_player_turn,
+                      "ft" => GameApi._finish_turn,
 
                       # Board commands
                       "bc" => BoardApi._build_city!,
@@ -200,7 +201,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
             #@info "$(player.team) harvests $count $resource"
             for i=1:count
                 PlayerApi.give_resource!(player, resource)
-                draw_resource(game, resource)
+                GameApi.draw_resource(game, resource)
             end
         end
     else
@@ -213,7 +214,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
             @info "$(player.team) harvests $total_needed $resource"
             for i=1:total_remaining
                 PlayerApi.give_resource!(player, resource)
-                draw_resource(game, resource)
+                GameApi.draw_resource(game, resource)
             end
         end
     end
@@ -254,7 +255,7 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
     else
         do_robber_move(board, players, player)
     end
-    set_dice_true(game)
+    GameApi.set_dice_true(game)
 end
 
 function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
@@ -339,7 +340,7 @@ function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, 
 end
 
 function buy_devcard(game::Game, player::Player)
-    card = draw_devcard(game)
+    card = GameApi.draw_devcard(game)
     PlayerApi.pay_construction(player, :DevelopmentCard)
     PlayerApi.add_devcard!(player, card)
 end
@@ -382,4 +383,3 @@ as the board is generated.
 """
 function initialize_player(board::Board, player::PlayerType)
 end
-
