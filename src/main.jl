@@ -204,17 +204,56 @@ function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{
     end
 end
 
-function harvest_resource(players, building::Building, resource::Symbol)
-    player = [p.player for p in players if p.player.team == building.team][1]
-    if building.type == :Settlement && can_draw_resource(game, resource)
-        @info "$(player.team) harvests a $resource"
-        give_resource(player, resource)
-        draw_resource(game, resource)
-    elseif building.type == :City
-        @info "$(player.team) harvests two $(resource)s"
-        give_resource(player, resource)
-        give_resource(player, resource)
-        draw_resource(game, resource)
+function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
+    total_remaining = game.resources[resource]
+    player_and_counts = [(player, t == :Settlement ? 1 : 2) for (player, t) in player_and_types]
+    total_needed = sum([x[2] for x in player_and_counts])
+    if total_needed == 0
+        return
+    end
+    if total_needed <= total_remaining
+        for (player,count) in player_and_counts
+            #@info "$(player.team) harvests $count $resource"
+            for i=1:count
+                give_resource(player, resource)
+                draw_resource(game, resource)
+            end
+        end
+    else
+        # If multiple people harvest, but there aren't enough resources,
+        # noone gets any.
+        # If only one person needs it, then we give them the rest
+        num_teams = length(Set([x[1].team for x in player_and_counts]))
+        if num_teams == 1
+            player = player_and_counts[1][1]
+            @info "$(player.team) harvests $total_needed $resource"
+            for i=1:total_remaining
+                give_resource(player, resource)
+                draw_resource(game, resource)
+            end
+        end
+    end
+end
+
+function harvest_resources(game, board, players, dice_value)
+    # Dict of resource -> (player -> count)
+    resource_to_harvest_targets = Dict([(r, Vector{Tuple{Player, Symbol}}()) for r in collect(keys(RESOURCE_TO_COUNT))]) 
+    for tile in board.dicevalue_to_tiles[dice_value]
+        resource = board.tile_to_resource[tile]
+        # Don't harvest Desert, and don't harvest the robber resource
+        if tile == board.robber_tile || resource == :Desert
+            continue
+        end
+        for coord in TILE_TO_COORDS[tile]
+            if coord in keys(board.coord_to_building)
+                building = board.coord_to_building[coord]
+                player = [p.player for p in players if p.player.team == building.team][1]
+                push!(resource_to_harvest_targets[resource], (player, building.type))
+            end
+        end
+    end
+    for r in collect(keys(resource_to_harvest_targets))
+        harvest_one_resource(game, players, resource_to_harvest_targets[r], r)
     end
 end
 
@@ -223,19 +262,7 @@ buildings = Array{Building,1}()
 function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
-        for tile in board.dicevalue_to_tiles[value]
-            resource = board.tile_to_resource[tile]
-            # Don't harvest Desert, and don't harvest the robber resource
-            if tile == board.robber_tile || resource == :Desert
-                continue
-            end
-            for coord in TILE_TO_COORDS[tile]
-                if coord in keys(board.coord_to_building)
-                    building = board.coord_to_building[coord]
-                    harvest_resource(players, building, resource)
-                end
-            end
-        end
+        harvest_resources(game, board, players, value)
     else
         do_robber_move(board, players, player)
     end

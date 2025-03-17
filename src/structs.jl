@@ -13,7 +13,7 @@ mutable struct Game
     unique_id::Int
 end
 
-Game(players) = Game(deepcopy(DEVCARD_COUNTS), Dict([r -> MAX_RESOURCE for r in collect(keys(RESOURCE_TO_COUNT))]), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)))
+Game(players) = Game(deepcopy(DEVCARD_COUNTS), Dict([(r, MAX_RESOURCE) for r in collect(keys(RESOURCE_TO_COUNT))]), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)))
 
 struct Road
     coord1::Tuple{Int,Int}

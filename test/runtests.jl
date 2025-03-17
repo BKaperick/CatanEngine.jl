@@ -27,7 +27,8 @@ choose_validate_build_city,
 choose_road_location,
 take_resource,
 count_resources,
-do_monopoly_action
+do_monopoly_action,
+harvest_resources
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
@@ -38,6 +39,8 @@ reset_savefile(SAVEFILE)
 Catan.SAVE_GAME_TO_FILE = true
 
 SAMPLE_MAP = "$(MAIN_DATA_DIR)sample.csv"
+# Only difference is some changing of dice values for testing
+SAMPLE_MAP_2 = "$(MAIN_DATA_DIR)sample_2.csv"
 println(SAVEFILE)
 
 # Reset the one-off test log
@@ -493,9 +496,58 @@ function test_human_player()
 end
 
 function test_game_api()
-    players = setup_players()
+    players = setup_players() # blue, green, cyan
     game = Game(players)
-    BoardApi.
+    board = read_map(SAMPLE_MAP_2)
+
+    @test game.resources[:Pasture] == 25
+    @test game.resources[:Brick] == 25
+    @test game.resources[:Stone] == 25
+
+
+    p1 = players[1]
+    p2 = players[2]
+    # dice roll 9
+    BoardApi.build_settlement(board, p1.player.team, (5,8)) # 2 stone
+    BoardApi.build_city(board, p1.player.team, (5,8)) # 4 stone
+    BoardApi.build_settlement(board, p2.player.team, (4,8)) # 1 brick, 1 stone
+    BoardApi.build_city(board, p2.player.team, (4,8)) # 2 brick, 2 stone
+    
+    # dice roll 8
+    BoardApi.build_settlement(board, p1.player.team, (2,6)) # 1 pasture
+    BoardApi.build_city(board, p1.player.team, (2,6)) # 2 pasture
+    
+    for i=1:4
+        # 4*(4+2) = 24
+        harvest_resources(game, board, players, 9)
+        # 4*(0+2) = 8
+        harvest_resources(game, board, players, 8)
+    end
+    @test haskey(p1.player.resources, :Stone)
+    @test haskey(p1.player.resources, :Pasture)
+    @test haskey(p2.player.resources, :Stone)
+    @test haskey(p2.player.resources, :Brick)
+    
+    @test p1.player.resources[:Pasture] == 8
+    @test p1.player.resources[:Stone] == 16
+    @test p2.player.resources[:Stone] == 8
+    @test p2.player.resources[:Brick] == 8
+
+    harvest_resources(game, board, players, 9)
+    for i=1:9
+        harvest_resources(game, board, players, 8)
+    end
+    
+    @test p1.player.resources[:Pasture] == 25
+    @test p1.player.resources[:Stone] == 16
+    @test p2.player.resources[:Stone] == 8
+    @test p2.player.resources[:Brick] == 25
+    @test ~haskey(p1.player.resources, :Brick)
+    @test ~haskey(p2.player.resources, :Wood)
+    
+    @test game.resources[:Pasture] == 0
+    @test game.resources[:Stone] == 1
+    @test game.resources[:Brick] == 0
 end
 
 function test_board_api()
@@ -682,6 +734,7 @@ function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
         Base.Filesystem.rm("data/$file")
     end
+    test_game_api()
     test_road_hashing()
     test_assign_largest_army()
     test_deepcopy()
