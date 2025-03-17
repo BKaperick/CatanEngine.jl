@@ -14,7 +14,6 @@ load_gamestate!,
 reset_savefile,
 random_sample_resources,
 decide_and_assign_largest_army!,
-get_total_vp_count,
 get_potential_theft_victims,
 choose_road_location,
 choose_validate_build_settlement!,
@@ -164,7 +163,7 @@ function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{No
     else
         reset_test_savefile(savefile)
     end
-    board, winner = initialize_and_do_game!(game, SAMPLE_MAP)
+    board, winner = GameRunner.initialize_and_do_game!(game, SAMPLE_MAP, SAVEFILE)
     return board, game
 end
 
@@ -255,7 +254,7 @@ function test_do_turn()
     game = Game(players)
     Catan.start_turn(game)
     @test game.turn_num == 1
-    Catan.do_turn(game, board, player1)
+    GameRunner.do_turn(game, board, player1)
 end
 
 function test_robber()
@@ -342,8 +341,8 @@ function test_devcards()
     Catan.do_road_building_action(board, players_public, player1)
     @test BoardApi.count_roads(board, player1.player.team) == 4
     
-    @test get_total_vp_count(board, player1.player) == 1
-    @test get_total_vp_count(board, player2.player) == 0
+    @test GameRunner.get_total_vp_count(board, player1.player) == 1
+    @test GameRunner.get_total_vp_count(board, player2.player) == 0
 end
 
 function test_largest_army()
@@ -365,27 +364,27 @@ function test_largest_army()
     PlayerApi.play_devcard!(player1.player, :Knight)
     PlayerApi.play_devcard!(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
-    @test get_total_vp_count(board, player1.player) == 0
-    @test get_total_vp_count(board, player1.player) == 0
+    @test GameRunner.get_total_vp_count(board, player1.player) == 0
+    @test GameRunner.get_total_vp_count(board, player1.player) == 0
     
     # Player1 has 3 knights, so he gets 2 points
     PlayerApi.play_devcard!(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
-    @test get_total_vp_count(board, player1.player) == 2
+    @test GameRunner.get_total_vp_count(board, player1.player) == 2
     
     # Player1 has largest army, and Player2 plays 3 knights, so Player 1 keeps LA
     PlayerApi.play_devcard!(player2.player, :Knight)
     PlayerApi.play_devcard!(player2.player, :Knight)
     PlayerApi.play_devcard!(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
-    @test get_total_vp_count(board, player1.player) == 2
-    @test get_total_vp_count(board, player2.player) == 0
+    @test GameRunner.get_total_vp_count(board, player1.player) == 2
+    @test GameRunner.get_total_vp_count(board, player2.player) == 0
     
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
     PlayerApi.play_devcard!(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
-    @test get_total_vp_count(board, player1.player) == 0
-    @test get_total_vp_count(board, player2.player) == 2
+    @test GameRunner.get_total_vp_count(board, player1.player) == 0
+    @test GameRunner.get_total_vp_count(board, player2.player) == 2
 end
 
 function test_road_hashing()
@@ -453,9 +452,9 @@ function test_longest_road()
 
     
     # Two settlements
-    @test get_total_vp_count(board, player_blue.player) == 2
+    @test GameRunner.get_total_vp_count(board, player_blue.player) == 2
     # Two settlements + Longest road
-    @test get_total_vp_count(board, player_green.player) == 4
+    @test GameRunner.get_total_vp_count(board, player_green.player) == 4
 end
 
 function test_ports()
@@ -489,7 +488,7 @@ function test_human_player()
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
     reset_savefile_with_timestamp("test_human_game")
-    initialize_and_do_game!(game, SAMPLE_MAP)
+    GameRunner.initialize_and_do_game!(game, SAMPLE_MAP)
 end
 
 function test_game_api()

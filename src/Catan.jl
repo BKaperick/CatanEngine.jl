@@ -1,10 +1,13 @@
 module Catan
 include("main.jl")
+include("game_runner.jl")
+import .GameRunner
 
 export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!,
 BoardApi, 
-PlayerApi
+PlayerApi,
+GameRunner
 
 # Player methods to implement
 export choose_accept_trade,
@@ -62,7 +65,7 @@ function run(args, PLAYERS)
         end
     end
     #initialize_game(game, "data/sample.csv", SAVEFILE)
-    initialize_and_do_game!(game, MAPFILE, SAVEFILE)
+    GameRunner.initialize_and_do_game!(game, MAPFILE, SAVEFILE)
 end
 
 function run(players::Vector{PlayerType})
@@ -73,7 +76,12 @@ function run(players::Vector{PlayerType})
     #if SAVE_GAME_TO_FILE
     #    global SAVEFILEIO = open(SAVEFILE, "a")
     #end
-    initialize_and_do_game!(game, MAPFILE, SAVEFILE)
+    GameRunner.initialize_and_do_game!(game, MAPFILE, SAVEFILE)
+end
+
+function run(game::Game, map_file::String)
+    reset_savefile("./data/savefile.txt")
+    GameRunner.initialize_and_do_game!(game, MAPFILE, SAVEFILE)
 end
 
 if length(ARGS) >= 2
