@@ -26,7 +26,7 @@ API_DICTIONARY = Dict(
                       "bs" => BoardApi._build_settlement,
                       "br" => BoardApi._build_road,
                       "mr" => BoardApi._move_robber,
-                      "la" => BoardApi._assign_largest_army,
+                      "la" => BoardApi._assign_largest_army!,
 
                       # Players commands
 
@@ -118,13 +118,13 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
     if card != nothing
         do_devcard_action(board, players, player, card)
         play_devcard(player.player, card)
-        assign_largest_army!(board, players)
+        decide_and_assign_largest_army!(board, players)
     end
 end
 
-function assign_largest_army!(board, players)
+function decide_and_assign_largest_army!(board, players)
     la_team = decide_largest_army(board, players)
-    BoardApi._assign_largest_army(board, la_team)
+    BoardApi.assign_largest_army(board, la_team)
 end
 
 function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{Nothing, Symbol}
