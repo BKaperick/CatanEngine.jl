@@ -20,7 +20,7 @@ function do_set_turn_order(game)
         out_players = []
         values = []
         for player in game.players
-            push!(values, roll_dice(player))
+            push!(values, PlayerApi.roll_dice(player))
         end
 
         set_starting_player(game, argmax(values))

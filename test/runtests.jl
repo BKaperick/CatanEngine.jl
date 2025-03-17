@@ -13,21 +13,13 @@ read_map,
 load_gamestate!,
 reset_savefile,
 random_sample_resources,
-add_devcard,
-play_devcard,
 decide_and_assign_largest_army!,
 get_total_vp_count,
-add_port,
 get_potential_theft_victims,
-has_any_resources,
-roll_dice,
-give_resource,
+choose_road_location,
 choose_validate_build_settlement!,
 choose_validate_build_city!,
 choose_validate_build_road!,
-choose_road_location,
-take_resource,
-count_resources,
 do_monopoly_action,
 harvest_resources
 
@@ -275,12 +267,12 @@ function test_robber()
     victims = get_potential_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
-    give_resource(player2.player, :Grain)
+    PlayerApi.give_resource(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
-    take_resource(player2.player, :Grain)
+    PlayerApi.take_resource(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
@@ -323,18 +315,18 @@ function test_devcards()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
 
-    give_resource(player1.player, :Grain)
-    give_resource(player1.player, :Stone)
-    give_resource(player1.player, :Pasture)
-    give_resource(player1.player, :Brick)
-    give_resource(player1.player, :Wood)
+    PlayerApi.give_resource(player1.player, :Grain)
+    PlayerApi.give_resource(player1.player, :Stone)
+    PlayerApi.give_resource(player1.player, :Pasture)
+    PlayerApi.give_resource(player1.player, :Brick)
+    PlayerApi.give_resource(player1.player, :Wood)
     
     do_monopoly_action(board, players, player2)
-    @test count_resources(player1.player) == 4
+    @test PlayerApi.count_resources(player1.player) == 4
     
     players_public = [PlayerPublicView(p) for p in players]
     Catan.do_year_of_plenty_action(board, players_public, player1)
-    @test count_resources(player1.player) == 6
+    @test PlayerApi.count_resources(player1.player) == 6
 
     BoardApi.build_settlement!(board, player1.player.team, (2,5))
     players_public = [PlayerPublicView(p) for p in players]
@@ -355,37 +347,37 @@ function test_largest_army()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
     
-    add_devcard(player1.player, :Knight)
-    add_devcard(player1.player, :Knight)
-    add_devcard(player1.player, :Knight)
+    PlayerApi.add_devcard(player1.player, :Knight)
+    PlayerApi.add_devcard(player1.player, :Knight)
+    PlayerApi.add_devcard(player1.player, :Knight)
     
-    add_devcard(player2.player, :Knight)
-    add_devcard(player2.player, :Knight)
-    add_devcard(player2.player, :Knight)
-    add_devcard(player2.player, :Knight)
+    PlayerApi.add_devcard(player2.player, :Knight)
+    PlayerApi.add_devcard(player2.player, :Knight)
+    PlayerApi.add_devcard(player2.player, :Knight)
+    PlayerApi.add_devcard(player2.player, :Knight)
     
     # < 3 knights played, so no largest army assigned
-    play_devcard(player1.player, :Knight)
-    play_devcard(player1.player, :Knight)
+    PlayerApi.play_devcard(player1.player, :Knight)
+    PlayerApi.play_devcard(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player1.player) == 0
     
     # Player1 has 3 knights, so he gets 2 points
-    play_devcard(player1.player, :Knight)
+    PlayerApi.play_devcard(player1.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     
     # Player1 has largest army, and Player2 plays 3 knights, so Player 1 keeps LA
-    play_devcard(player2.player, :Knight)
-    play_devcard(player2.player, :Knight)
-    play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 2
     @test get_total_vp_count(board, player2.player) == 0
     
     # Player2 plays a 4th knight, successfully stealing the largest army from Player1
-    play_devcard(player2.player, :Knight)
+    PlayerApi.play_devcard(player2.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     @test get_total_vp_count(board, player1.player) == 0
     @test get_total_vp_count(board, player2.player) == 2
@@ -468,13 +460,13 @@ function test_ports()
     @test all([v == 4 for v in values(player1.player.ports)])
     @test length(keys(player1.player.ports)) == 5
 
-    add_port(player1.player, :Grain)
+    PlayerApi.add_port(player1.player, :Grain)
 
     @test player1.player.ports[:Grain] == 2
     @test player1.player.ports[:Wood] == 4
     
-    add_port(player1.player, :All)
-    add_port(player2.player, :All)
+    PlayerApi.add_port(player1.player, :All)
+    PlayerApi.add_port(player2.player, :All)
     
     @test all([v == 3 for v in values(player2.player.ports)])
     @test player1.player.ports[:Grain] == 2
@@ -586,15 +578,15 @@ function test_call_api()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
 
-    @test has_any_resources(player1.player) == false
-    @test has_any_resources(player2.player) == false
+    @test PlayerApi.has_any_resources(player1.player) == false
+    @test PlayerApi.has_any_resources(player2.player) == false
 
-    give_resource(player1.player, :Grain)
+    PlayerApi.give_resource(player1.player, :Grain)
 
-    @test has_any_resources(player1.player) == true
+    @test PlayerApi.has_any_resources(player1.player) == true
 
-    @test roll_dice(player1) <= 12
-    @test roll_dice(player2) >= 2
+    @test PlayerApi.roll_dice(player1) <= 12
+    @test PlayerApi.roll_dice(player2) >= 2
     
     players_public = [PlayerPublicView(p) for p in players]
     
@@ -633,7 +625,7 @@ function test_call_api()
     # Build a road attached to second settlement
     admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
     players_public = [PlayerPublicView(p) for p in players]
-    road_coords = Catan.choose_road_location(board, players_public, player1, admissible_roads)
+    road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     if road_coords == nothing
         print_board(board)
     end
@@ -660,32 +652,32 @@ function test_assign_largest_army()
 
     @test board.largest_army == nothing
 
-    Catan._add_devcard(player_blue.player, :Knight)
-    Catan._add_devcard(player_blue.player, :Knight)
-    Catan._add_devcard(player_blue.player, :Knight)
-    Catan._play_devcard(player_blue.player, :Knight)
-    Catan._play_devcard(player_blue.player, :Knight)
+    PlayerApi._add_devcard(player_blue.player, :Knight)
+    PlayerApi._add_devcard(player_blue.player, :Knight)
+    PlayerApi._add_devcard(player_blue.player, :Knight)
+    PlayerApi._play_devcard(player_blue.player, :Knight)
+    PlayerApi._play_devcard(player_blue.player, :Knight)
     decide_and_assign_largest_army!(board, players)
 
     @test board.largest_army == nothing
 
-    Catan._play_devcard(player_blue.player, :Knight)
+    PlayerApi._play_devcard(player_blue.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     
     @test board.largest_army == :Blue
     
-    Catan._add_devcard(player_green.player, :Knight)
-    Catan._add_devcard(player_green.player, :Knight)
-    Catan._add_devcard(player_green.player, :Knight)
-    Catan._play_devcard(player_green.player, :Knight)
-    Catan._play_devcard(player_green.player, :Knight)
-    Catan._play_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard(player_green.player, :Knight)
+    PlayerApi._play_devcard(player_green.player, :Knight)
+    PlayerApi._play_devcard(player_green.player, :Knight)
+    PlayerApi._play_devcard(player_green.player, :Knight)
     decide_and_assign_largest_army!(board, players)
 
     @test board.largest_army == :Blue
 
-    Catan._add_devcard(player_green.player, :Knight)
-    Catan._play_devcard(player_green.player, :Knight)
+    PlayerApi._add_devcard(player_green.player, :Knight)
+    PlayerApi._play_devcard(player_green.player, :Knight)
     decide_and_assign_largest_army!(board, players)
     
     @test board.largest_army == :Green

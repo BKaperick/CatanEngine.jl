@@ -1,13 +1,16 @@
-import Random
-include("../players/human_player.jl")
-include("../players/robot_player.jl")
-include("human_action_interface.jl")
-
 # Players API
 
 #
 # Meta-game Player API: for initializing and storing results for purposes of algorithm training
 #
+
+module PlayerApi
+using ..Catan: PlayerType,Player,HumanPlayer,RobotPlayer, log_action, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS
+#,MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
+import Random
+#include("../players/human_player.jl")
+#include("../players/robot_player.jl")
+#include("human_action_interface.jl")
 
 
 # Player API
@@ -169,3 +172,29 @@ function roll_dice(player::RobotPlayer)::Int
     return value
 end
 
+"""
+    can_pay_price(player::Player, cost::Dict)::Bool
+
+Returns `Bool` for whether the inputted `player` has sufficient resources to pay `cost`.
+"""
+function can_pay_price(player::Player, cost::Dict)::Bool
+    for resource in keys(cost)
+        if player.resources[resource] < cost[resource]
+            return false
+        end
+    end
+    return true
+end
+
+function pay_price(player::Player, cost::Dict)
+    resources = keys(cost)
+    for (r,amount) in cost
+        discard_cards(player, repeat([r], amount)...)
+    end
+end
+
+function pay_construction(player::Player, construction::Symbol)
+    cost = COSTS[construction]
+    pay_price(player, cost)
+end
+end

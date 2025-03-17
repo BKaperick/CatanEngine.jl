@@ -3,7 +3,8 @@ include("main.jl")
 
 export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!,
-BoardApi
+BoardApi, 
+PlayerApi
 
 # Player methods to implement
 export choose_accept_trade,

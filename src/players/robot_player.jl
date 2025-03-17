@@ -63,8 +63,8 @@ end
 
 function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
     stolen_good = choose_card_to_steal(from_player)
-    take_resource(from_player.player, stolen_good)
-    give_resource(to_player.player, stolen_good)
+    PlayerApi.take_resource(from_player.player, stolen_good)
+    PlayerApi.give_resource(to_player.player, stolen_good)
 end
 
 function choose_card_to_steal(player::RobotPlayer)::Symbol
@@ -116,7 +116,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         return (g, b, p) -> buy_devcard(g, p.player)
     end
     if :PlayDevCard in actions
-        devcards = get_admissible_devcards(player.player)
+        devcards = PlayerApi.get_admissible_devcards(player.player)
         card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
             return (g, b, p) -> do_play_devcard(b, g.players, p, card)
@@ -173,7 +173,7 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
     end
 
     if :PlayDevCard in actions
-        devcards = get_admissible_devcards(player.player)
+        devcards = PlayerApi.get_admissible_devcards(player.player)
         for (card,cnt) in devcards
             # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
             if card != :VictoryPoint

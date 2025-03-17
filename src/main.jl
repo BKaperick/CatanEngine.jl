@@ -5,10 +5,14 @@ include("io.jl")
 include("apis/board_api.jl")
 include("apis/player_api.jl")
 include("apis/game_api.jl")
+include("apis/human_action_interface.jl")
+include("players/human_player.jl")
+include("players/robot_player.jl")
 # include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
 import .BoardApi
+import .PlayerApi
 
 API_DICTIONARY = Dict(
                       # Game commands
@@ -31,12 +35,12 @@ API_DICTIONARY = Dict(
                       # Players commands
 
                       # Player commands
-                      "gr" => _give_resource,
-                      "tr" => _take_resource,
-                      "dc" => _discard_cards,
-                      "pd" => _play_devcard,
-                      "ad" => _add_devcard,
-                      "ap" => _add_port
+                      "gr" => PlayerApi._give_resource,
+                      "tr" => PlayerApi._take_resource,
+                      "dc" => PlayerApi._discard_cards,
+                      "pd" => PlayerApi._play_devcard,
+                      "ad" => PlayerApi._add_devcard,
+                      "ap" => PlayerApi._add_port
                      )
 
 
@@ -94,30 +98,10 @@ function get_adjacent_roads(roads, coord)
     return adjacent
 end
 
-"""
-    can_pay_price(player::Player, cost::Dict)::Bool
-
-Returns `Bool` for whether the inputted `player` has sufficient resources to pay `cost`.
-"""
-function can_pay_price(player::Player, cost::Dict)::Bool
-    for resource in keys(cost)
-        if player.resources[resource] < cost[resource]
-            return false
-        end
-    end
-    return true
-end
-function pay_price(player::Player, cost::Dict)
-    resources = keys(cost)
-    for (r,amount) in cost
-        discard_cards(player, repeat([r], amount)...)
-    end
-end
-
 function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
     if card != nothing
         do_devcard_action(board, players, player, card)
-        play_devcard(player.player, card)
+        PlayerApi.play_devcard(player.player, card)
         decide_and_assign_largest_army!(board, players)
     end
 end
@@ -169,25 +153,21 @@ end
 # TODO think about combining with choose_validate_build_X methods.
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
-    pay_construction(player, :City)
+    PlayerApi.pay_construction(player, :City)
     BoardApi.build_city!(board, player.team, coord)
 end
 function construct_settlement(board, player::Player, coord)
-    pay_construction(player, :Settlement)
+    PlayerApi.pay_construction(player, :Settlement)
     if haskey(board.coord_to_port, coord)
-        add_port(player, board.coord_to_port[coord])
+        PlayerApi.add_port(player, board.coord_to_port[coord])
     end
     BoardApi.build_settlement!(board, player.team, coord)
 end
 function construct_road(board, player::Player, coord1, coord2)
-    pay_construction(player, :Road)
+    PlayerApi.pay_construction(player, :Road)
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function pay_construction(player::Player, construction::Symbol)
-    cost = COSTS[construction]
-    pay_price(player, cost)
-end
 function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, amount::Int, resource_symbols...)
     from_goods = collect(resource_symbols[1:amount])
     to_goods = collect(resource_symbols[amount+1:end])
@@ -213,7 +193,7 @@ function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_pla
         if choose_accept_trade(board, player, from_player_public, from_goods, to_goods)
             @info "$(player.player.team) accepts the trade proposal"
             # We do this after the "choose" step to not leak information from player's hand
-            if has_enough_resources(player.player, to_goods_dict) 
+            if PlayerApi.has_enough_resources(player.player, to_goods_dict) 
                 push!(accepted, player.player)
                 push!(accepted_public, PlayerPublicView(player.player))
             end
@@ -238,12 +218,12 @@ end
 
 function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
     for resource in from_goods
-        take_resource(from_player, resource)
-        give_resource(to_player, resource)
+        PlayerApi.take_resource(from_player, resource)
+        PlayerApi.give_resource(to_player, resource)
     end
     for resource in to_goods
-        take_resource(to_player, resource)
-        give_resource(from_player, resource)
+        PlayerApi.take_resource(to_player, resource)
+        PlayerApi.give_resource(from_player, resource)
     end
 end
 
@@ -258,7 +238,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
         for (player,count) in player_and_counts
             #@info "$(player.team) harvests $count $resource"
             for i=1:count
-                give_resource(player, resource)
+                PlayerApi.give_resource(player, resource)
                 draw_resource(game, resource)
             end
         end
@@ -271,7 +251,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
             player = player_and_counts[1][1]
             @info "$(player.team) harvests $total_needed $resource"
             for i=1:total_remaining
-                give_resource(player, resource)
+                PlayerApi.give_resource(player, resource)
                 draw_resource(game, resource)
             end
         end
@@ -331,18 +311,18 @@ function do_road_building_action(board, players::Vector{PlayerPublicView}, playe
 end
 function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
-    give_resource(player.player, r1)
-    give_resource(player.player, r2)
+    PlayerApi.give_resource(player.player, r1)
+    PlayerApi.give_resource(player.player, r2)
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
     res = choose_monopoly_resource(board, players_public, player)
     for victim in players
-        @info "$(victim.player.team) gives $(count_resource(victim.player, res)) $res to $(player.player.team)"
-        for i in 1:count_resource(victim.player, res)
-            take_resource(victim.player, res)
-            give_resource(player.player, res)
+        @info "$(victim.player.team) gives $(PlayerApi.count_resource(victim.player, res)) $res to $(player.player.team)"
+        for i in 1:PlayerApi.count_resource(victim.player, res)
+            PlayerApi.take_resource(victim.player, res)
+            PlayerApi.give_resource(player.player, res)
         end
     end
 end
@@ -363,10 +343,10 @@ function do_robber_move(board, players::Vector{PlayerType}, player)
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
-        r_count = count_cards(player.player)
+        r_count = PlayerApi.count_cards(player.player)
         if r_count > 7
             resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
-            discard_cards(player.player, resources_to_discard...)
+            PlayerApi.discard_cards(player.player, resources_to_discard...)
         end
     end  
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
@@ -378,22 +358,22 @@ end
 
 function get_legal_actions(game, board, player)::Set{Symbol}
     actions = Set{Symbol}()
-    if has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
+    if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
         push!(actions, :ConstructCity)
     end
-    if has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
+    if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
         push!(actions, :ConstructSettlement)
     end
-    if has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
+    if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
         push!(actions, :ConstructRoad)
     end
-    if has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
+    if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
         push!(actions, :BuyDevCard)
     end
-    if can_play_dev_card(player)
+    if PlayerApi.can_play_dev_card(player)
         push!(actions, :PlayDevCard)
     end
-    if has_any_resources(player)
+    if PlayerApi.has_any_resources(player)
         push!(actions, :ProposeTrade)
     end
     return actions
@@ -406,7 +386,7 @@ function get_potential_theft_victims(board::Board, players::Vector{PlayerType}, 
         @info [p.player.team for p in players]
         @info team
         victim = [p for p in players if p.player.team == team][1]
-        if has_any_resources(victim.player) && (team != thief.player.team)
+        if PlayerApi.has_any_resources(victim.player) && (team != thief.player.team)
             @debug "vr: $(victim.player.resources)"
             push!(potential_victims, victim)
         end
@@ -420,14 +400,14 @@ end
 Called each turn except the first turn.  See `do_first_turn` for first turn behavior.
 """
 function do_turn(game::Game, board::Board, player::PlayerType)
-    if can_play_dev_card(player.player)
-        devcards = get_admissible_devcards(player)
+    if PlayerApi.can_play_dev_card(player.player)
+        devcards = PlayerApi.get_admissible_devcards(player)
         card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)
         
         do_play_devcard(board, game.players, player, card)
     end
     if !game.rolled_dice_already
-        value = roll_dice(player)
+        value = PlayerApi.roll_dice(player)
         handle_dice_roll(game, board, game.players, player, value)
     end
     
@@ -453,8 +433,8 @@ end
 
 function buy_devcard(game::Game, player::Player)
     card = draw_devcard(game)
-    pay_construction(player, :DevelopmentCard)
-    add_devcard(player, card)
+    PlayerApi.pay_construction(player, :DevelopmentCard)
+    PlayerApi.add_devcard(player, card)
 end
 
 function someone_has_won(game, board, players::Vector{PlayerType})::Bool
@@ -538,7 +518,7 @@ function do_first_turn_reverse(game, board, players)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
-            give_resource(player.player, resource)
+            PlayerApi.give_resource(player.player, resource)
         end
     end
 end
@@ -571,7 +551,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
 end
 
 function get_total_vp_count(board, player::Player)
-    return BoardApi.get_public_vp_count(board, player.team) + get_vp_count_from_dev_cards(player)
+    return BoardApi.get_public_vp_count(board, player.team) + PlayerApi.get_vp_count_from_dev_cards(player)
 end
 
 function print_player_stats(game, board, player::Player)

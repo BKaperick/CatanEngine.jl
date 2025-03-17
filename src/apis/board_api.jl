@@ -12,7 +12,6 @@ build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{I
 count_victory_points_from_board!(board)
 
 """
-
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
 MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
