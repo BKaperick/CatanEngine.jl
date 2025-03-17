@@ -461,7 +461,6 @@ function someone_has_won(game, board, players::Vector{PlayerType})::Bool
     return get_winner(game, board, players) != nothing
 end
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
-    board_points = BoardApi.count_victory_points_from_board(board) 
     winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)

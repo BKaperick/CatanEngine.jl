@@ -9,10 +9,8 @@ create_board(csvfile::String)
 build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})
 build_settlement!(board::Board, team::Symbol, coord::Tuple{Int, Int})
 build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
-count_victory_points_from_board(board)
+count_victory_points_from_board!(board)
 
-#TODO move to a separate player api
-harvest_resource(board::Board, team::Symbol, resource::Symbol, quantity::Int)
 """
 
 module BoardApi
@@ -202,32 +200,6 @@ function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_
     return 1 + max_val
 end
 
-function count_victory_points_from_board(board, team)
-    count = 0
-    for building in board.buildings
-        if building.team == team
-            if building.type == :Settlement
-                count += VP_AWARDS[:Settlement]
-            else
-                count += VP_AWARDS[:City]
-            end
-        end
-    end
-    if board.longest_road == team
-        count += 2
-    end
-    return count
-end
-
-function count_victory_points_from_board(board)
-    teams = [Set([b.team for b in board.buildings])...]
-    out = Dict()
-    for team in teams
-        out[team] = count_victory_points_from_board(board, team)
-    end
-    return out
-end
-
 function move_robber!(board::Board, tile)
     log_action("board mr", tile)
     _move_robber!(board, tile)
@@ -409,11 +381,23 @@ Returns all victory points publicly-visible for `team`.  I.e. Buildings,
 longest road, and largest army.  (Everything except dev card VPs)
 """
 function get_public_vp_count(board::Board, team::Symbol)::Int
-    points = BoardApi.count_victory_points_from_board(board, team)
-    if board.largest_army == team
-        points += 2
+    count = 0
+    for building in board.buildings
+        if building.team == team
+            if building.type == :Settlement
+                count += VP_AWARDS[:Settlement]
+            else
+                count += VP_AWARDS[:City]
+            end
+        end
     end
-    return points
+    if board.longest_road == team
+        count += 2
+    end
+    if board.largest_army == team
+        count += 2
+    end
+    return count
 end
 
 end

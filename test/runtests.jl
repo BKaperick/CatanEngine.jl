@@ -577,7 +577,7 @@ function test_board_api()
     @test BoardApi.count_settlements(board, :Test1) == 2
     @test BoardApi.count_cities(board, :Test1) == 1
     @test BoardApi.count_settlements(board, :Test2) == 0
-    @test BoardApi.count_victory_points_from_board(board, :Test1) == 4
+    @test BoardApi.get_public_vp_count(board, :Test1) == 4
 end
 
 function test_call_api()
