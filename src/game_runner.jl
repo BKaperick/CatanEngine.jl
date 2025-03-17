@@ -5,12 +5,11 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                choose_play_devcard,do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
                do_post_game_action,
-               COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS
+               COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS,PRINT_BOARD
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
-using ..Catan.GameApi: do_set_turn_order, get_players_to_play, finish_player_turn, finish_turn, start_turn, set_dice_false, can_draw_devcard
+using ..Catan.GameApi
 
-#initialize_and_do_game!(game::Game, map_file::String) = initialize_and_do_game!(game, map_file, SAVEFILE)
 function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_file)::Tuple{Board, Union{PlayerType, Nothing}}
     board = read_map(map_file)
     if SAVE_GAME_TO_FILE
@@ -26,18 +25,18 @@ end
 function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     if game.turn_num == 0
         # Here we need to pass the whole game so we can modify the players list order in-place
-        do_set_turn_order(game) 
+        GameApi.do_set_turn_order(game) 
         do_first_turn(game, board, game.players)
     end
 
     while ~someone_has_won(game, board, game.players)
-        start_turn(game)
+        GameApi.start_turn(game)
 
         # We can't just use game.players since we need to handle re-loading from a game paused mid-turn
-        for player in get_players_to_play(game)
+        for player in GameApi.get_players_to_play(game)
             do_turn(game, board, player)
         end
-        finish_turn(game)
+        GameApi.finish_turn(game)
 
         if game.turn_num >= 5000
             break
@@ -57,17 +56,17 @@ function do_first_turn(game::Game, board::Board, players)
     do_first_turn_reverse(game, board, players)
 end
 function do_first_turn_forward(game, board, players)
-    for player in get_players_to_play(game)
+    for player in GameApi.get_players_to_play(game)
         # TODO we really only need to re-calculate the player who just played,
         # but we can optimize later if needed
         players_public = PlayerPublicView.(players)
         do_first_turn_building!(board, players_public, player)
-        finish_player_turn(game, player.player.team)
+        GameApi.finish_player_turn(game, player.player.team)
     end
-    finish_turn(game)
+    GameApi.finish_turn(game)
 end
 function do_first_turn_reverse(game, board, players)
-    for player in reverse(get_players_to_play(game))
+    for player in reverse(GameApi.get_players_to_play(game))
         players_public = PlayerPublicView.(players)
         settlement = do_first_turn_building!(board, players_public, player)
         for tile in COORD_TO_TILES[settlement.coord]
@@ -106,9 +105,9 @@ function do_turn(game::Game, board::Board, player::PlayerType)
         end
     end
     @debug "setting dice false"
-    set_dice_false(game)
+    GameApi.set_dice_false(game)
     @debug "finishing player turn"
-    finish_player_turn(game, player.player.team)
+    GameApi.finish_player_turn(game, player.player.team)
 end
 
 function get_legal_actions(game, board, player)::Set{Symbol}
@@ -122,7 +121,7 @@ function get_legal_actions(game, board, player)::Set{Symbol}
     if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
         push!(actions, :ConstructRoad)
     end
-    if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && can_draw_devcard(game)
+    if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && GameApi.can_draw_devcard(game)
         push!(actions, :BuyDevCard)
     end
     if PlayerApi.can_play_devcard(player)

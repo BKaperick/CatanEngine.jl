@@ -18,6 +18,8 @@
 
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
+import .Trading
+
 get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
 
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
@@ -139,7 +141,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
+            return (g, b, p) -> Trading.propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
         end
     end
     return nothing
@@ -198,7 +200,7 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
         while rand_resource_to[1] == rand_resource_from[1]
             rand_resource_to = [get_random_resource()]
         end
-        push!(action_functions, (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
+        push!(action_functions, (g, b, p) -> Trading.propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
     end
 
     return action_functions

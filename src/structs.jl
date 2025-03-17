@@ -65,3 +65,6 @@ function Base.deepcopy(board::Board)
                     )
 end
 
+function choose_accept_trade(board::Board, player::Player, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+    return false
+end
