@@ -5,12 +5,36 @@ The human and robot choices about what to place and where are made elsewhere pri
 
 It supports 
 
-create_board(csvfile::String)
-build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})
-build_settlement!(board::Board, team::Symbol, coord::Tuple{Int, Int})
-build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
-count_victory_points_from_board!(board)
+# _assign_largest_army!(board::Board, team::Union{Symbol, Nothing})
+# _award_longest_road!(board) 
+# _build_city!(board, team, coord::Tuple{Int, Int})::Building
+# _build_road!(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
+# _build_settlement!(board, team, coord::Tuple{Int,Int})::Building
+# _move_robber!(board, tile)
 
+# assign_largest_army!(board::Board, team::Union{Symbol, Nothing})
+# build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
+# build_road!(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
+# build_settlement!(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
+# count_cities(board, team)
+# count_roads(board, team)
+# count_settlements(board, team)
+# create_board(csvfile::String)
+# get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int,Int}}
+# get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
+# get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int,Int}}
+# get_building_locations(board, team::Symbol)::Vector{Tuple}
+# get_city_locations(board, team::Symbol)::Vector{Tuple}
+# get_max_road_length(board, team)
+# get_public_vp_count(board::Board, team::Symbol)::Int
+# get_road_locations(board, team::Symbol)
+# get_settlement_locations(board, team::Symbol)::Vector{Tuple}
+# is_valid_city_placement(board, team, coord)::Bool
+# is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
+# is_valid_settlement_placement(board, team, coord, is_first_turn::Bool = false)::Bool
+# move_robber!(board::Board, tile)
+# print_board_stats(board::Board, team::Symbol)
+# recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
@@ -159,8 +183,8 @@ function get_max_road_length(board, team)
 
         # Note that `roads_seen` value updates within the recursived function 
         # are preserved so we won't revisit the existing ones
-        len_left = _recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
-        len_right = _recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
+        len_left = recursive_roads_skip_coord(roads_seen, current, current.coord1, skip_coords, coord_to_team_roads)
+        len_right = recursive_roads_skip_coord(roads_seen, current, current.coord2, skip_coords, coord_to_team_roads)
         
         # Subtract one since both left and right branch count the current road
         total_length = len_left + len_right - 1
@@ -172,13 +196,13 @@ function get_max_road_length(board, team)
 end
 
 """
-    _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
+    recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords::Set{Tuple{Int64,Int64}}, coord_to_roads)
 
 Returns the length of the longest unexplored branch starting from `root_coord`. 
 The length includes the current road, so minimum value is 1.
 We stop exploring if we reach a coord in `skip_coords`, which is used to stop counting in the case of intersecting opponent constructions.
 """
-function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
+function recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_coord::Tuple, skip_coords, coord_to_roads)
     coord_to_explore = current.coord1 == root_coord ? current.coord2 : current.coord1
     push!(roads_seen, current)
 
@@ -193,7 +217,7 @@ function _recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_
     
     max_val = 0
     for road in roads_to_explore
-        branch = _recursive_roads_skip_coord(roads_seen, road, coord_to_explore, skip_coords, coord_to_roads)
+        branch = recursive_roads_skip_coord(roads_seen, road, coord_to_explore, skip_coords, coord_to_roads)
         max_val = branch > max_val ? branch : max_val
     end
     return 1 + max_val
