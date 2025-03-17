@@ -18,9 +18,18 @@
 
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
+get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
+
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     return rand() > .5
 end
+
+function roll_dice(player::RobotPlayer)::Int
+    value = rand(1:6) + rand(1:6)
+    @info "$(player.player.team) rolled a $value"
+    return value
+end
+
 
 function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})::Union{Nothing,Vector{Tuple{Int, Int}}}
     if length(candidates) > 0
@@ -63,8 +72,8 @@ end
 
 function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
     stolen_good = choose_card_to_steal(from_player)
-    PlayerApi.take_resource(from_player.player, stolen_good)
-    PlayerApi.give_resource(to_player.player, stolen_good)
+    PlayerApi.take_resource!(from_player.player, stolen_good)
+    PlayerApi.give_resource!(to_player.player, stolen_good)
 end
 
 function choose_card_to_steal(player::RobotPlayer)::Symbol

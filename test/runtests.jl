@@ -21,7 +21,12 @@ choose_validate_build_settlement!,
 choose_validate_build_city!,
 choose_validate_build_road!,
 do_monopoly_action,
-harvest_resources
+harvest_resources,
+roll_dice,
+PLAYER_ACTIONS,
+MAX_SETTLEMENT,
+MAX_CITY,
+MAX_ROAD
 
 TEST_DATA_DIR = "data/"
 MAIN_DATA_DIR = "../data/"
@@ -267,12 +272,12 @@ function test_robber()
     victims = get_potential_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
-    PlayerApi.give_resource(player2.player, :Grain)
+    PlayerApi.give_resource!(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
-    PlayerApi.take_resource(player2.player, :Grain)
+    PlayerApi.take_resource!(player2.player, :Grain)
     
     victims = get_potential_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
@@ -315,11 +320,11 @@ function test_devcards()
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
 
-    PlayerApi.give_resource(player1.player, :Grain)
-    PlayerApi.give_resource(player1.player, :Stone)
-    PlayerApi.give_resource(player1.player, :Pasture)
-    PlayerApi.give_resource(player1.player, :Brick)
-    PlayerApi.give_resource(player1.player, :Wood)
+    PlayerApi.give_resource!(player1.player, :Grain)
+    PlayerApi.give_resource!(player1.player, :Stone)
+    PlayerApi.give_resource!(player1.player, :Pasture)
+    PlayerApi.give_resource!(player1.player, :Brick)
+    PlayerApi.give_resource!(player1.player, :Wood)
     
     do_monopoly_action(board, players, player2)
     @test PlayerApi.count_resources(player1.player) == 4
@@ -581,12 +586,12 @@ function test_call_api()
     @test PlayerApi.has_any_resources(player1.player) == false
     @test PlayerApi.has_any_resources(player2.player) == false
 
-    PlayerApi.give_resource(player1.player, :Grain)
+    PlayerApi.give_resource!(player1.player, :Grain)
 
     @test PlayerApi.has_any_resources(player1.player) == true
 
-    @test PlayerApi.roll_dice(player1) <= 12
-    @test PlayerApi.roll_dice(player2) >= 2
+    @test roll_dice(player1) <= 12
+    @test roll_dice(player2) >= 2
     
     players_public = [PlayerPublicView(p) for p in players]
     

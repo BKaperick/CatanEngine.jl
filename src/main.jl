@@ -2,12 +2,12 @@ using StatsBase, DocStringExtensions
 #include("structs.jl")
 include("constants.jl")
 include("io.jl")
-include("apis/board_api.jl")
-include("apis/player_api.jl")
-include("apis/game_api.jl")
 include("apis/human_action_interface.jl")
 include("players/human_player.jl")
 include("players/robot_player.jl")
+include("apis/board_api.jl")
+include("apis/player_api.jl")
+include("apis/game_api.jl")
 # include("board.jl")
 include("draw_board.jl")
 include("random_helper.jl")
@@ -35,8 +35,8 @@ API_DICTIONARY = Dict(
                       # Players commands
 
                       # Player commands
-                      "gr" => PlayerApi._give_resource,
-                      "tr" => PlayerApi._take_resource,
+                      "gr" => PlayerApi._give_resource!,
+                      "tr" => PlayerApi._take_resource!,
                       "dc" => PlayerApi._discard_cards,
                       "pd" => PlayerApi._play_devcard,
                       "ad" => PlayerApi._add_devcard,
@@ -218,12 +218,12 @@ end
 
 function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
     for resource in from_goods
-        PlayerApi.take_resource(from_player, resource)
-        PlayerApi.give_resource(to_player, resource)
+        PlayerApi.take_resource!(from_player, resource)
+        PlayerApi.give_resource!(to_player, resource)
     end
     for resource in to_goods
-        PlayerApi.take_resource(to_player, resource)
-        PlayerApi.give_resource(from_player, resource)
+        PlayerApi.take_resource!(to_player, resource)
+        PlayerApi.give_resource!(from_player, resource)
     end
 end
 
@@ -238,7 +238,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
         for (player,count) in player_and_counts
             #@info "$(player.team) harvests $count $resource"
             for i=1:count
-                PlayerApi.give_resource(player, resource)
+                PlayerApi.give_resource!(player, resource)
                 draw_resource(game, resource)
             end
         end
@@ -251,7 +251,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
             player = player_and_counts[1][1]
             @info "$(player.team) harvests $total_needed $resource"
             for i=1:total_remaining
-                PlayerApi.give_resource(player, resource)
+                PlayerApi.give_resource!(player, resource)
                 draw_resource(game, resource)
             end
         end
@@ -311,8 +311,8 @@ function do_road_building_action(board, players::Vector{PlayerPublicView}, playe
 end
 function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
-    PlayerApi.give_resource(player.player, r1)
-    PlayerApi.give_resource(player.player, r2)
+    PlayerApi.give_resource!(player.player, r1)
+    PlayerApi.give_resource!(player.player, r2)
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)
@@ -321,8 +321,8 @@ function do_monopoly_action(board, players::Vector{PlayerType}, player)
     for victim in players
         @info "$(victim.player.team) gives $(PlayerApi.count_resource(victim.player, res)) $res to $(player.player.team)"
         for i in 1:PlayerApi.count_resource(victim.player, res)
-            PlayerApi.take_resource(victim.player, res)
-            PlayerApi.give_resource(player.player, res)
+            PlayerApi.take_resource!(victim.player, res)
+            PlayerApi.give_resource!(player.player, res)
         end
     end
 end
@@ -401,13 +401,13 @@ Called each turn except the first turn.  See `do_first_turn` for first turn beha
 """
 function do_turn(game::Game, board::Board, player::PlayerType)
     if PlayerApi.can_play_dev_card(player.player)
-        devcards = PlayerApi.get_admissible_devcards(player)
+        devcards = get_admissible_devcards(player)
         card = choose_play_devcard(board, [PlayerPublicView(p) for p in game.players], player, devcards)
         
         do_play_devcard(board, game.players, player, card)
     end
     if !game.rolled_dice_already
-        value = PlayerApi.roll_dice(player)
+        value = roll_dice(player)
         handle_dice_roll(game, board, game.players, player, value)
     end
     
@@ -518,7 +518,7 @@ function do_first_turn_reverse(game, board, players)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
-            PlayerApi.give_resource(player.player, resource)
+            PlayerApi.give_resource!(player.player, resource)
         end
     end
 end

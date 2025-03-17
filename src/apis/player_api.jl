@@ -4,18 +4,42 @@ Players API
 
 Meta-game Player API: for initializing and storing results for purposes of algorithm training
 
+# Functions that modify player state, only called via API_DICTIONARY:
+
+_add_devcard(player::Player, devcard::Symbol)
+_add_port(player::Player, resource::Symbol)
+_discard_cards(player, resources...)
+_give_resource!(player::Player, resource::Symbol)
+_play_devcard(player::Player, devcard::Symbol)
+_take_resource!(player::Player, resource::Symbol)
+
+# Read-only helper functions, can be used from anywhere:
+
+add_devcard(player::Player, devcard::Symbol)
+add_port(player::Player, resource::Symbol)
+can_pay_price(player::Player, cost::Dict)::Bool
+can_play_dev_card(player::Player)::Bool
+count_cards(player::Player)
+count_resource(player::Player, resource::Symbol)::Int
+count_resources(player::Player)
+discard_cards(player, resources...)
+get_admissible_devcards(player::Player)
+get_vp_count_from_dev_cards(player::Player)
+give_resource!(player::Player, resource::Symbol)
+has_any_resources(player::Player)::Bool
+has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool
+pay_construction(player::Player, construction::Symbol)
+pay_price(player::Player, cost::Dict)
+play_devcard(player::Player, devcard::Symbol)
+take_resource!(player::Player, resource::Symbol)
+trade_resource_with_bank(player::Player, from_resource, to_resource)
 """
 module PlayerApi
-using ..Catan: PlayerType,Player, HumanPlayer, RobotPlayer, log_action, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS
+using ..Catan: Player, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
 
 # Player API
 
 
-# Since we don't know which card the human took, we just give them the option to play anything
-function get_admissible_devcards(player::HumanPlayer)
-    return deepcopy(DEVCARD_COUNTS)
-end
-get_admissible_devcards(player::RobotPlayer) = get_admissible_devcards(player.player)
 function get_admissible_devcards(player::Player)
     if ~can_play_dev_card(player)
         return 
@@ -29,9 +53,9 @@ end
 function trade_resource_with_bank(player::Player, from_resource, to_resource)
     rate = player.ports[from_resource]
     for r in 1:rate
-        take_resource(player, from_resource)
+        take_resource!(player, from_resource)
     end
-    give_resource(player, to_resource)
+    give_resource!(player, to_resource)
 end
 
 function can_play_dev_card(player::Player)::Bool
@@ -112,7 +136,7 @@ function discard_cards(player, resources...)
 end
 function _discard_cards(player, resources...)
     for r in resources
-        _take_resource(player, r)
+        _take_resource!(player, r)
     end
 end
 
@@ -138,33 +162,27 @@ function _add_port(player::Player, resource::Symbol)
     end
 end
 
-function give_resource(player::Player, resource::Symbol)
+function give_resource!(player::Player, resource::Symbol)
     log_action(":$(player.team) gr", resource)
-    _give_resource(player, resource)
+    _give_resource!(player, resource)
 end
-function _give_resource(player::Player, resource::Symbol)
+function _give_resource!(player::Player, resource::Symbol)
     if haskey(player.resources, resource)
         player.resources[resource] += 1
     else
         player.resources[resource] = 1
     end
 end
-function take_resource(player::Player, resource::Symbol)
+function take_resource!(player::Player, resource::Symbol)
     log_action(":$(player.team) tr", resource)
-    _take_resource(player, resource)
+    _take_resource!(player, resource)
 end
-function _take_resource(player::Player, resource::Symbol)
+function _take_resource!(player::Player, resource::Symbol)
     if haskey(player.resources, resource) && player.resources[resource] > 0
         player.resources[resource] -= 1
     else
         @debug "$(player.team) has insufficient $(resource) cards"
     end
-end
-
-function roll_dice(player::RobotPlayer)::Int
-    value = rand(1:6) + rand(1:6)
-    @info "$(player.player.team) rolled a $value"
-    return value
 end
 
 """

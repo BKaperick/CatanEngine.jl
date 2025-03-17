@@ -1,5 +1,10 @@
 # Human Player API
 
+# Since we don't know which card the human took, we just give them the option to play anything
+function get_admissible_devcards(player::HumanPlayer)
+    return deepcopy(DEVCARD_COUNTS)
+end
+
 function roll_dice(player::HumanPlayer)::Int
     parse_int(player.io, "Dice roll:")
 end
