@@ -6,9 +6,9 @@ The human and robot choices about what to place and where are made elsewhere pri
 It supports 
 
 create_board(csvfile::String)
-build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})
-build_settlement(board::Board, team::Symbol, coord::Tuple{Int, Int})
-build_road(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
+build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})
+build_settlement!(board::Board, team::Symbol, coord::Tuple{Int, Int})
+build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})
 count_victory_points_from_board(board)
 
 #TODO move to a separate player api
@@ -60,12 +60,12 @@ function get_road_locations(board, team::Symbol)
     [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
 end
 
-function build_city(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
+function build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
     log_action("board bc", team, coord)
     @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
-    _build_city(board, team, coord)
+    _build_city!(board, team, coord)
 end
-function _build_city(board, team, coord::Tuple{Int, Int})::Building
+function _build_city!(board, team, coord::Tuple{Int, Int})::Building
     
     # Remove current settlement
     current_settlement = nothing
@@ -83,24 +83,24 @@ function _build_city(board, team, coord::Tuple{Int, Int})::Building
     return city
 end
 
-function build_settlement(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
+function build_settlement!(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
     log_action("board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
-    _build_settlement(board, team, coord)
+    _build_settlement!(board, team, coord)
 end
-function _build_settlement(board, team, coord::Tuple{Int,Int})::Building
+function _build_settlement!(board, team, coord::Tuple{Int,Int})::Building
     building = Building(coord, :Settlement, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
     return building
 end
 
-function build_road(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
+function build_road!(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
     log_action("board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
-    _build_road(board, team, coord1, coord2)
+    _build_road!(board, team, coord1, coord2)
 end
-function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
+function _build_road!(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
     road = Road(coord1, coord2, team)
     push!(board.roads, road)
     for coord in [coord1, coord2]
@@ -110,14 +110,14 @@ function _build_road(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple
             board.coord_to_roads[coord] = Set([road])
         end
     end
-    _award_longest_road(board)
+    _award_longest_road!(board)
     return road
 end
 
 #TODO is this a bug?
-#_build_road(board, team, human_coords::String) = _build_settlement(board, team, get_coords_from_human_tile_description(human_coords)...)
+#_build_road!(board, team, human_coords::String) = _build_settlement!(board, team, get_coords_from_human_tile_description(human_coords)...)
 
-function _award_longest_road(board) 
+function _award_longest_road!(board) 
     teams = [Set([r.team for r in board.roads])...]
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
@@ -228,11 +228,11 @@ function count_victory_points_from_board(board)
     return out
 end
 
-function move_robber(board::Board, tile)
+function move_robber!(board::Board, tile)
     log_action("board mr", tile)
-    _move_robber(board, tile)
+    _move_robber!(board, tile)
 end
-function _move_robber(board, tile)
+function _move_robber!(board, tile)
     board.robber_tile = tile
 end
     

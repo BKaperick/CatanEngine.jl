@@ -22,10 +22,10 @@ API_DICTIONARY = Dict(
                       "ft" => _finish_turn,
 
                       # Board commands
-                      "bc" => BoardApi._build_city,
-                      "bs" => BoardApi._build_settlement,
-                      "br" => BoardApi._build_road,
-                      "mr" => BoardApi._move_robber,
+                      "bc" => BoardApi._build_city!,
+                      "bs" => BoardApi._build_settlement!,
+                      "br" => BoardApi._build_road!,
+                      "mr" => BoardApi._move_robber!,
                       "la" => BoardApi._assign_largest_army!,
 
                       # Players commands
@@ -124,7 +124,7 @@ end
 
 function decide_and_assign_largest_army!(board, players)
     la_team = decide_largest_army(board, players)
-    BoardApi.assign_largest_army(board, la_team)
+    BoardApi.assign_largest_army!(board, la_team)
 end
 
 function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{Nothing, Symbol}
@@ -170,18 +170,18 @@ end
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
 function construct_city(board, player::Player, coord)
     pay_construction(player, :City)
-    BoardApi.build_city(board, player.team, coord)
+    BoardApi.build_city!(board, player.team, coord)
 end
 function construct_settlement(board, player::Player, coord)
     pay_construction(player, :Settlement)
     if haskey(board.coord_to_port, coord)
         add_port(player, board.coord_to_port[coord])
     end
-    BoardApi.build_settlement(board, player.team, coord)
+    BoardApi.build_settlement!(board, player.team, coord)
 end
 function construct_road(board, player::Player, coord1, coord2)
     pay_construction(player, :Road)
-    BoardApi.build_road(board, player.team, coord1, coord2)
+    BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
 function pay_construction(player::Player, construction::Symbol)
@@ -326,8 +326,8 @@ function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerTyp
 end
 
 function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
-    choose_validate_build_road(board, players, player, false)
-    choose_validate_build_road(board, players, player, false)
+    choose_validate_build_road!(board, players, player, false)
+    choose_validate_build_road!(board, players, player, false)
 end
 function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1, r2 = choose_year_of_plenty_resources(board, players, player)
@@ -349,7 +349,7 @@ end
 
 function do_knight_action(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
         chosen_victim = choose_robber_victim(board, player, potential_victims...)
@@ -359,7 +359,7 @@ end
 
 function do_robber_move(board, players::Vector{PlayerType}, player)
     players_public = [PlayerPublicView(p) for p in players]
-    new_tile = BoardApi.move_robber(board, choose_place_robber(board, players_public, player))
+    new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
     for p in players
         
@@ -490,27 +490,27 @@ function initialize_and_do_game!(game::Game, map_file::String, in_progress_game_
     return board, winner
 end
 
-function choose_validate_build_settlement(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_settlement!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     if coord != nothing
-        BoardApi.build_settlement(board, player.player.team, coord)
+        BoardApi.build_settlement!(board, player.player.team, coord)
     end
 end
 
-function choose_validate_build_city(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
+function choose_validate_build_city!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
     coord = choose_building_location(board, players, player, candidates, :City)
     if coord != nothing
-        BoardApi.build_city(board, player.player.team, coord)
+        BoardApi.build_city!(board, player.player.team, coord)
     end
 end
 
-function choose_validate_build_road(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
-        BoardApi.build_road(board, player.player.team, coord[1], coord[2])
+        BoardApi.build_road!(board, player.player.team, coord[1], coord[2])
     end
 end
 
@@ -525,8 +525,8 @@ function do_first_turn_forward(game, board, players)
         # TODO we really only need to re-calculate the player who just played,
         # but we can optimize later if needed
         players_public = [PlayerPublicView(p) for p in players]
-        choose_validate_build_settlement(board, players_public, player, true)
-        choose_validate_build_road(board, players_public, player, true)
+        choose_validate_build_settlement!(board, players_public, player, true)
+        choose_validate_build_road!(board, players_public, player, true)
         finish_player_turn(game, player.player.team)
     end
     finish_turn(game)
@@ -534,8 +534,8 @@ end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(get_players_to_play(game))
         players_public = [PlayerPublicView(p) for p in players]
-        settlement = choose_validate_build_settlement(board, players_public, player, true)
-        choose_validate_build_road(board, players_public, player, true)
+        settlement = choose_validate_build_settlement!(board, players_public, player, true)
+        choose_validate_build_road!(board, players_public, player, true)
         
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
