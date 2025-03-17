@@ -36,9 +36,7 @@ API_DICTIONARY = Dict(
                       "dc" => _discard_cards,
                       "pd" => _play_devcard,
                       "ad" => _add_devcard,
-                      "ap" => _add_port,
-                      "rl" => _remove_largest_army,
-                      "_deprecated_la" => _assign_largest_army,
+                      "ap" => _add_port
                      )
 
 
@@ -123,6 +121,12 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
         assign_largest_army!(board, players)
     end
 end
+
+function assign_largest_army!(board, players)
+    la_team = decide_largest_army(board, players)
+    BoardApi._assign_largest_army(board, la_team)
+end
+
 
 # TODO think about combining with choose_validate_build_X methods.
 # For now, we can just keep player input unvalidated to ensure smoother gameplay
@@ -534,7 +538,7 @@ function print_player_stats(game, board, player::Player)
     total_points = get_total_vp_count(board, player)
     @info "$(player.team) has $total_points points on turn $(game.turn_num) ($public_points points were public)"
     BoardApi.print_board_stats(board, player.team)
-    if player.has_largest_army
+    if board.largest_army == player.team
         @info "Largest Army ($(player.dev_cards_used[:Knight]) knights)"
     end
     if board.longest_road == player.team

@@ -190,7 +190,7 @@ function roll_dice(player::RobotPlayer)::Int
     return value
 end
 
-function assign_largest_army!(board::Board, players::Vector{PlayerType})
+function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{Nothing, Symbol}
     
     # Gather all players who've played at least three Knights
     max_ct = 3
@@ -221,37 +221,11 @@ function assign_largest_army!(board::Board, players::Vector{PlayerType})
     # So we transfer directly to them and exit
     if length(admissible) == 1 
         winner = admissible[1][1].player
-        _transfer_largest_army(board, old_winner, winner)
-        return
+        return winner.team
     
     # Don't need to do anything else, as the current holder keeps it, and never should happen that
     # there are multiple, since this assign gets called often enough
     elseif length(admissible) > 1 && old_winner == nothing
         @assert false
     end
-end
-
-function _transfer_largest_army(board::Board, old_winner::Union{Player, Nothing}, new_winner::Union{Player, Nothing})
-    # Don't fill up log with removing and re-adding LargestArmy to same player
-    if old_winner != nothing && new_winner != nothing && new_winner.team == old_winner.team
-        return
-    end
-
-    if old_winner != nothing
-        log_action(":$(old_winner.team) rl")
-        _remove_largest_army(old_winner)
-    end
-
-    if new_winner != nothing
-        log_action(":$(new_winner.team) _deprecated_la")
-        _assign_largest_army(board, new_winner)
-    end
-end
-
-function _assign_largest_army(board::Board, player::Player)
-    BoardApi._assign_largest_army(board, player.team)
-    player.has_largest_army = true
-end
-function _remove_largest_army(player::Player)
-    player.has_largest_army = false
 end

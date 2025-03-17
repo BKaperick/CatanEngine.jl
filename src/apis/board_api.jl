@@ -390,9 +390,12 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
     return road_coords
 end
 
-function _assign_largest_army(board::Board, team::Symbol)
-    log_action("board la :$team")
-    board.largest_army = team
+function _assign_largest_army(board::Board, team::Union{Symbol, Nothing})
+    # Noop if team already has largest army
+    if board.largest_army != team && team != nothing
+        log_action("board la :$team")
+        board.largest_army = team
+    end
 end
 
 """

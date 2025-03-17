@@ -14,7 +14,6 @@ mutable struct Player
     ports::Dict{Symbol, Int}
     played_dev_card_this_turn::Bool
     bought_dev_card_this_turn::Union{Nothing,Symbol}
-    has_largest_army::Bool
 end
 
 function Player(team::Symbol)
@@ -25,7 +24,7 @@ function Player(team::Symbol)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing, false)
+    return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing)
 end
 
 """
@@ -41,7 +40,6 @@ mutable struct PlayerPublicView
     ports::Dict{Symbol, Int}
     played_dev_card_this_turn::Bool
     bought_dev_card_this_turn::Union{Nothing,Symbol}
-    has_largest_army::Bool
     
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
@@ -57,7 +55,6 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     player.ports,
     player.played_dev_card_this_turn,
     player.bought_dev_card_this_turn,
-    player.has_largest_army,
 
     # Resource count
     sum(values(player.resources)), 
@@ -111,8 +108,7 @@ function Base.deepcopy(player::Player)
         deepcopy(player.dev_cards_used),
         deepcopy(player.ports),
         player.played_dev_card_this_turn,
-        player.bought_dev_card_this_turn,
-        player.has_largest_army
+        player.bought_dev_card_this_turn
     )
 end
 

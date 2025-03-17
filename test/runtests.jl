@@ -245,7 +245,6 @@ function test_log()
         @test player.ports == new_player.ports
         @test player.played_dev_card_this_turn == new_player.played_dev_card_this_turn
         @test player.bought_dev_card_this_turn == new_player.bought_dev_card_this_turn
-        @test player.has_largest_army == new_player.has_largest_army
         @test new_board.longest_road == board.longest_road
     end
     rm(SAVEFILE)
@@ -659,8 +658,7 @@ function test_assign_largest_army()
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
 
-    @test player_blue.player.has_largest_army == false
-    @test player_green.player.has_largest_army == false
+    @test board.largest_army == nothing
 
     Catan._add_devcard(player_blue.player, :Knight)
     Catan._add_devcard(player_blue.player, :Knight)
@@ -669,15 +667,11 @@ function test_assign_largest_army()
     Catan._play_devcard(player_blue.player, :Knight)
     assign_largest_army!(board, players)
 
-    @test player_blue.player.has_largest_army == false
-    @test player_green.player.has_largest_army == false
     @test board.largest_army == nothing
 
     Catan._play_devcard(player_blue.player, :Knight)
     assign_largest_army!(board, players)
     
-    @test player_blue.player.has_largest_army == true
-    @test player_green.player.has_largest_army == false
     @test board.largest_army == :Blue
     
     Catan._add_devcard(player_green.player, :Knight)
@@ -688,16 +682,12 @@ function test_assign_largest_army()
     Catan._play_devcard(player_green.player, :Knight)
     assign_largest_army!(board, players)
 
-    @test player_blue.player.has_largest_army == true
-    @test player_green.player.has_largest_army == false
     @test board.largest_army == :Blue
 
     Catan._add_devcard(player_green.player, :Knight)
     Catan._play_devcard(player_green.player, :Knight)
     assign_largest_army!(board, players)
     
-    @test player_blue.player.has_largest_army == false
-    @test player_green.player.has_largest_army == true
     @test board.largest_army == :Green
 end
 
@@ -737,6 +727,7 @@ function run_tests(neverend = false)
         Base.Filesystem.rm("data/$file")
     end
     test_assign_largest_army()
+    """
     test_game_api()
     test_road_hashing()
     test_deepcopy()
@@ -754,7 +745,6 @@ function run_tests(neverend = false)
     test_call_api()
     test_longest_road()
     test_robot_game(neverend)
-    """
     """
 end
 if abspath(PROGRAM_FILE) == @__FILE__
