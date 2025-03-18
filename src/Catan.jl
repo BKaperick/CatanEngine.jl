@@ -1,4 +1,30 @@
 module Catan
+
+using DocStringExtensions
+using Logging
+using Random
+
+include("constants.jl")
+include("random_helper.jl")
+
+include("players/structs.jl")
+include("structs.jl")
+
+include("parsing.jl")
+include("io.jl")
+
+include("apis/player_api.jl")
+import .PlayerApi
+include("players/human_player.jl")
+include("players/robot_player.jl")
+include("apis/board_api.jl")
+import .BoardApi
+include("apis/game_api.jl")
+import .GameApi
+include("apis/human_action_interface.jl")
+include("trading.jl")
+include("draw_board.jl")
+
 include("main.jl")
 include("game_runner.jl")
 import .GameRunner

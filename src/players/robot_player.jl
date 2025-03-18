@@ -18,8 +18,6 @@
 
 # choose_card_to_steal(player::RobotPlayer)::Symbol
 
-#include("../trading.jl")
-
 get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
 
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool

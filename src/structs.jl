@@ -1,4 +1,3 @@
-include("players/structs.jl")
 
 mutable struct Game
     devcards::Dict{Symbol,Int}
@@ -45,8 +44,8 @@ mutable struct Board
     largest_army::Union{Nothing, Symbol}
 end
 
-Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, initialize_empty_board(DIMS), [], [], robber_tile, initialize_empty_board(DIMS), nothing, nothing)
-
+Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, BoardApi.initialize_empty_board(DIMS), nothing, nothing)
+Board(csvfile) = BoardApi.Board(csvfile)
 
 function Base.deepcopy(board::Board)
     return Board(

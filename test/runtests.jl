@@ -8,7 +8,6 @@ using Catan
 using Catan: 
 get_coord_from_human_tile_description,
 get_road_coords_from_human_tile_description,
-get_neighbors,
 read_map,
 load_gamestate!,
 reset_savefile,
@@ -197,10 +196,10 @@ end
 @test get_road_coords_from_human_tile_description("ccc") == [(1,7),(1,6)]
 @test get_road_coords_from_human_tile_description("aaa") == [(1,2),(1,1)]
 
-@assert get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
-@assert get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
-@assert get_neighbors((1,7)) == Set([(1,6),(2,8)])
+@assert BoardApi.get_neighbors((3,10)) == Set([(3,9),(3,11),(2,9)])
+@assert BoardApi.get_neighbors((6,3)) == Set([(6,2),(6,4),(5,4)])
+@assert BoardApi.get_neighbors((1,7)) == Set([(1,6),(2,8)])
+@assert BoardApi.get_neighbors((1,7)) == Set([(1,6),(2,8)])
 
 function test_misc()
     random_sample_resources(Dict([:Brick => 0]), 1) == nothing
@@ -548,9 +547,9 @@ end
 
 function test_board_api()
 
-    @test length(get_neighbors((3,8))) == 3
-    @test length(get_neighbors((3,11))) == 2
-    @test length(get_neighbors((4,1))) == 2
+    @test length(BoardApi.get_neighbors((3,8))) == 3
+    @test length(BoardApi.get_neighbors((3,11))) == 2
+    @test length(BoardApi.get_neighbors((4,1))) == 2
 
     board = read_map(SAMPLE_MAP)
     BoardApi.build_settlement!(board, :Test1, (1,1))

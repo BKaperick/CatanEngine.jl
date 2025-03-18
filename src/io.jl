@@ -1,9 +1,3 @@
-using Logging
-using Random
-include("board.jl")
-include("parsing.jl")
-include("structs.jl")
-
 function get_parsed_file_lines(file_str)
     [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
 end
