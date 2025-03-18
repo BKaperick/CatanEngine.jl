@@ -45,9 +45,7 @@ macro api_name(x)
     API_DICTIONARY[string(x)] = x
 end
 
-function create_board(csvfile::String)
-    read_map(csvfile)
-end
+Board(csvfile::String) = read_map(csvfile)
 
 function count_settlements(board, team)
     return length(get_settlement_locations(board, team))
