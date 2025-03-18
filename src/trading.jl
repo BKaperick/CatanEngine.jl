@@ -1,4 +1,3 @@
-module Trading
 using ..Catan: Board, PlayerType, Player, PlayerPublicView,
                choose_accept_trade, choose_who_to_trade_with
 using ..Catan.PlayerApi
@@ -60,6 +59,4 @@ function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{
         PlayerApi.take_resource!(to_player, resource)
         PlayerApi.give_resource!(from_player, resource)
     end
-end
-
 end

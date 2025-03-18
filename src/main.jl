@@ -3,18 +3,17 @@ using DocStringExtensions
 include("constants.jl")
 include("random_helper.jl")
 include("io.jl")
+include("apis/player_api.jl")
 include("players/human_player.jl")
 include("players/robot_player.jl")
 include("apis/board_api.jl")
 include("apis/game_api.jl")
-include("apis/player_api.jl")
 include("apis/human_action_interface.jl")
 include("trading.jl")
 include("draw_board.jl")
 import .BoardApi
 import .PlayerApi
 import .GameApi
-import .Trading
 
 API_DICTIONARY = Dict(
                       # Game commands
