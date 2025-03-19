@@ -349,9 +349,10 @@ function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicV
     end
 end
 
-function do_first_turn_building!(board, players::Vector{PlayerPublicView}, player::PlayerType)
-    settlement = choose_validate_build_settlement!(board, players, player, true)
-    choose_validate_build_road!(board, players, player, true)
+function do_first_turn_building!(board, players::Vector{PlayerType}, player::PlayerType)
+    players_public = PlayerPublicView.(players)
+    settlement = choose_validate_build_settlement!(board, players_public, player, true)
+    choose_validate_build_road!(board, players_public, player, true)
     return settlement
 end
 

@@ -40,6 +40,7 @@ module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
 MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
 include("../board.jl")
+include("../draw_board.jl")
 
 macro api_name(x)
     API_DICTIONARY[string(x)] = x

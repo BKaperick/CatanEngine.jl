@@ -23,7 +23,6 @@ include("apis/game_api.jl")
 import .GameApi
 include("apis/human_action_interface.jl")
 include("trading.jl")
-include("draw_board.jl")
 
 include("main.jl")
 include("game_runner.jl")

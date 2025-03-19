@@ -57,23 +57,21 @@ function do_first_turn(game::Game, board::Board, players)
 end
 function do_first_turn_forward(game, board, players)
     for player in GameApi.get_players_to_play(game)
-        # TODO we really only need to re-calculate the player who just played,
-        # but we can optimize later if needed
-        players_public = PlayerPublicView.(players)
-        do_first_turn_building!(board, players_public, player)
+        do_first_turn_building!(board, players, player)
         GameApi.finish_player_turn(game, player.player.team)
     end
     GameApi.finish_turn(game)
 end
 function do_first_turn_reverse(game, board, players)
     for player in reverse(GameApi.get_players_to_play(game))
-        players_public = PlayerPublicView.(players)
-        settlement = do_first_turn_building!(board, players_public, player)
+        settlement = do_first_turn_building!(board, players, player)
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
             PlayerApi.give_resource!(player.player, resource)
         end
+        GameApi.finish_player_turn(game, player.player.team)
     end
+    GameApi.finish_turn(game)
 end
 
 """
@@ -144,7 +142,7 @@ function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,Pla
         if player_points >= 10
             @info "WINNER $player_points ($player)"
             if PRINT_BOARD
-                print_board(board)
+                BoardApi.print_board(board)
             end
             print_player_stats(game, board, player.player)
             winner = player

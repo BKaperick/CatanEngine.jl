@@ -179,7 +179,7 @@ function load_gamestate!(game, board, file)
         execute_api_call(game, board, line)
     end
     if PRINT_BOARD
-        print_board(board)
+        BoardApi.print_board(board)
     end
 end
 
