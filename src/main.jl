@@ -150,25 +150,6 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
     end
 end
 
-
-# TODO think about combining with choose_validate_build_X methods.
-# For now, we can just keep player input unvalidated to ensure smoother gameplay
-function construct_city(board, player::Player, coord)
-    PlayerApi.pay_construction(player, :City)
-    BoardApi.build_city!(board, player.team, coord)
-end
-function construct_settlement(board, player::Player, coord)
-    PlayerApi.pay_construction(player, :Settlement)
-    if haskey(board.coord_to_port, coord)
-        PlayerApi.add_port!(player, board.coord_to_port[coord])
-    end
-    BoardApi.build_settlement!(board, player.team, coord)
-end
-function construct_road(board, player::Player, coord1, coord2)
-    PlayerApi.pay_construction(player, :Road)
-    BoardApi.build_road!(board, player.team, coord1, coord2)
-end
-
 function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
     total_remaining = game.resources[resource]
     player_and_counts = [(player, t == :Settlement ? 1 : 2) for (player, t) in player_and_types]
@@ -276,31 +257,34 @@ function do_monopoly_action(board, players::Vector{PlayerType}, player)
 end
 
 function do_knight_action(board, players::Vector{PlayerType}, player)
-    players_public = PlayerPublicView.(players)
-    new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
-    potential_victims = get_potential_theft_victims(board, players, player, new_tile)
-    if length(potential_victims) > 0
-        chosen_victim = choose_robber_victim(board, player, potential_victims...)
-        steal_random_resource(chosen_victim, player)
-    end
+    do_robber_move_theft(board, players, player)
 end
 
 function do_robber_move(board, players::Vector{PlayerType}, player)
+    for p in players
+        do_robber_move_discard(board, player)
+    end
+    do_robber_move_theft(board, players, player)
+end
+
+function do_robber_move_discard(board, player::PlayerType)
+    r_count = PlayerApi.count_cards(player.player)
+    if r_count > 7
+        resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
+        PlayerApi.discard_cards!(player.player, resources_to_discard...)
+    end
+end
+
+function do_robber_move_theft(board, players, player::PlayerType)
     players_public = PlayerPublicView.(players)
     new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
-    for p in players
-        
-        r_count = PlayerApi.count_cards(player.player)
-        if r_count > 7
-            resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
-            PlayerApi.discard_cards!(player.player, resources_to_discard...)
-        end
-    end  
     potential_victims = get_potential_theft_victims(board, players, player, new_tile)
     if length(potential_victims) > 0
-        chosen_victim = choose_robber_victim(board, player, potential_victims...)
-        steal_random_resource(chosen_victim, player)
+        from_player = choose_robber_victim(board, player, potential_victims...)
+        stolen_good = steal_random_resource(from_player, player)
+        PlayerApi.take_resource!(from_player.player, stolen_good)
+        PlayerApi.give_resource!(player.player, stolen_good)
     end
 end
 
@@ -356,6 +340,57 @@ function do_first_turn_building!(board, players::Vector{PlayerType}, player::Pla
     return settlement
 end
 
+function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::Player, actions::Set{Symbol})
+    action_functions = []
+    
+    if :ConstructCity in actions
+        candidates = BoardApi.get_admissible_city_locations(board, player.team)
+        for coord in candidates
+            push!(action_functions, (g, b, p) -> construct_city(b, p.player, coord))
+        end
+    end
+    if :ConstructSettlement in actions
+        candidates = BoardApi.get_admissible_settlement_locations(board, player.team)
+        for coord in candidates
+            push!(action_functions, (g, b, p) -> construct_settlement(b, p.player, coord))
+        end
+    end
+    if :ConstructRoad in actions
+        candidates = BoardApi.get_admissible_road_locations(board, player.team)
+        for coord in candidates
+            push!(action_functions, (g, b, p) -> construct_road(b, p.player, coord[1], coord[2]))
+        end
+    end
+
+    if :BuyDevCard in actions
+        push!(action_functions, (g, b, p) -> buy_devcard(g, p.player))
+    end
+
+    if :PlayDevCard in actions
+        devcards = PlayerApi.get_admissible_devcards(player)
+        for (card,cnt) in devcard
+            # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
+            if card != :VictoryPoint
+                push!(action_functions, (g, b, p) -> do_play_devcard(b, g.players, p, card))
+            end
+        end
+    end
+
+    if :ProposeTrade in actions
+        sampled = random_sample_resources(player.resources, 1)
+        rand_resource_from = [sampled...]
+        rand_resource_to = [get_random_resource()]
+        while rand_resource_to[1] == rand_resource_from[1]
+            rand_resource_to = [get_random_resource()]
+        end
+        push!(action_functions, (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
+    end
+
+    return action_functions
+end
+
+
+
 """
     initialize_player(board::Board, player::PlayerType)
 
@@ -363,4 +398,7 @@ This function is useful to do any one-time computations of the player as soon
 as the board is generated.
 """
 function initialize_player(board::Board, player::PlayerType)
+    initialize_player(board, player.player)
+end
+function initialize_player(board::Board, player::Player)
 end

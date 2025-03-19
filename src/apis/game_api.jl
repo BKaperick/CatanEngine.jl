@@ -1,5 +1,6 @@
 module GameApi
 using ..Catan: Game, roll_dice, log_action
+using StatsBase
 import Random
 include("../random_helper.jl")
 

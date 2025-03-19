@@ -86,21 +86,21 @@ function choose_next_action(board, players, player::HumanPlayer, actions)
     return (game, b, p) -> func(game, b, p, action_and_args[2:end]...)
 end
 
-function steal_random_resource(from_player, to_player)
+function choose_steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
     input(stdin, "Press Enter when $(to_player.player.team) is ready to see the message")
     @info "$(to_player.player.team) stole $stolen_good from $(from_player.player.team)"
     input(stdin, "Press Enter again when you are ready to hide the message")
     run(`clear`)
-    take_resource(from_player.player, stolen_good)
-    give_resource(to_player.player, stolen_good)
+    return stolen_good
 end
-function steal_random_resource(from_player::HumanPlayer, to_player::HumanPlayer)
+
+function choose_steal_random_resource(from_player::HumanPlayer, to_player::HumanPlayer)
     stolen_good = choose_card_to_steal(from_player)
     @info "$(to_player.player.team) stole something from $(from_player.player.team)"
-    take_resource(from_player.player, stolen_good)
-    give_resource(to_player.player, stolen_good)
+    return stolen_good
 end
+
 function choose_who_to_trade_with(board, player::HumanPlayer, players)
     parse_team(player.io, "$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
 end

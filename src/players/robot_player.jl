@@ -1,24 +1,56 @@
-#mutable struct DefaultRobotPlayer <: RobotPlayer
-#    player::Player
-#end
+# mutable struct DefaultRobotPlayer <: RobotPlayer
+#     player::Player
+# end
+# 
+#  Robot Player API.  Your RobotPlayer type must implement these methods.  If any are not implemented, it falls back to the existing implementation
+# 
+# choose_accept_trade(board::Board, player::RobotPlayer, 
+#     from_player::PlayerPublicView, from_goods::Vector{Symbol}, 
+#     to_goods::Vector{Symbol})::Bool
 #
-# Robot Player API.  Your RobotPlayer type must implement these methods.  If any are not implemented, it falls back to the existing implementation
+# choose_building_location(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, 
+#     building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
 #
-# choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-# choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, building_type::Symbol, candidates::Vector{Tuple}, is_first_turn::Bool = false)::Tuple
-# choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
-# choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
-# choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
-# choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
-# choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
-# choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, is_first_turn::Bool = false)::Union{Nothing,Vector{Tuple}}
-# choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
-# choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
-# choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Tuple{Symbol, Symbol}
-
 # choose_card_to_steal(player::RobotPlayer)::Symbol
+#
+# choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
+#
+# choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer)::Symbol
+#
+# choose_next_action(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer, actions::Set{Symbol})
+#
+# choose_place_robber(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer)::Symbol
+#
+# choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
+#
+# choose_road_location(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}}
+#     )::Union{Nothing,Vector{Tuple{Int, Int}}}
+#
+# choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...
+#     )::PlayerType
+#
+# choose_who_to_trade_with(board::Board, player::RobotPlayer, 
+#     players::Vector{PlayerPublicView})::Symbol
+#
+# choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer)::Tuple{Symbol, Symbol}
+#
+# get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, 
+#     player::RobotPlayer, actions::Set{Symbol})
+#
+# roll_dice(player::RobotPlayer)::Int
+#
+# steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
+#
 
 get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
+
 
 function choose_accept_trade(board::Board, player::RobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     return rand() > .5
@@ -72,8 +104,6 @@ end
 
 function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
     stolen_good = choose_card_to_steal(from_player)
-    PlayerApi.take_resource!(from_player.player, stolen_good)
-    PlayerApi.give_resource!(to_player.player, stolen_good)
 end
 
 function choose_card_to_steal(player::RobotPlayer)::Symbol
@@ -104,33 +134,35 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
 end
 
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
-    if :ConstructCity in actions
+
+    rand_action = sample(collect(actions), 1)
+    if :ConstructCity in rand_action
         candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
         return (g, b, p) -> construct_city(b, p.player, coord)
     end
-    if :ConstructSettlement in actions
+    if :ConstructSettlement in rand_action
         candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, false)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
         return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
-    if :ConstructRoad in actions
+    if :ConstructRoad in rand_action
         candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
         return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
-    if :BuyDevCard in actions
+    if :BuyDevCard in rand_action
         return (g, b, p) -> buy_devcard(g, p.player)
     end
-    if :PlayDevCard in actions
+    if :PlayDevCard in rand_action
         devcards = PlayerApi.get_admissible_devcards(player.player)
         card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
             return (g, b, p) -> do_play_devcard(b, g.players, p, card)
         end
-    elseif :ProposeTrade in actions
+    elseif :ProposeTrade in rand_action
         if rand() > .8
             sampled = random_sample_resources(player.player.resources, 1)
             rand_resource_from = [sampled...]
@@ -155,52 +187,6 @@ function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Ve
 end
 
 function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
-    #legal_actions = get_legal_actions(game, board, player) # ::Set{Symbol}
-    action_functions = []
-    
-    if :ConstructCity in actions
-        candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_city(b, p.player, coord))
-        end
-    end
-    if :ConstructSettlement in actions
-        candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_settlement(b, p.player, coord))
-        end
-    end
-    if :ConstructRoad in actions
-        candidates = BoardApi.get_admissible_road_locations(board, player.player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_road(b, p.player, coord[1], coord[2]))
-        end
-    end
-
-    if :BuyDevCard in actions
-        push!(action_functions, (g, b, p) -> buy_devcard(g, p.player))
-    end
-
-    if :PlayDevCard in actions
-        devcards = PlayerApi.get_admissible_devcards(player.player)
-        for (card,cnt) in devcards
-            # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
-            if card != :VictoryPoint
-                push!(action_functions, (g, b, p) -> do_play_devcard(b, g.players, p, card))
-            end
-        end
-    end
-
-    if :ProposeTrade in actions
-        sampled = random_sample_resources(player.player.resources, 1)
-        rand_resource_from = [sampled...]
-        rand_resource_to = [get_random_resource()]
-        while rand_resource_to[1] == rand_resource_from[1]
-            rand_resource_to = [get_random_resource()]
-        end
-        push!(action_functions, (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
-    end
-
-    return action_functions
+    get_legal_action_functions(board, players, player.player, actions)
 end
 

@@ -3,6 +3,7 @@ module Catan
 using DocStringExtensions
 using Logging
 using Random
+using StatsBase
 
 include("constants.jl")
 include("random_helper.jl")
@@ -25,6 +26,7 @@ include("apis/human_action_interface.jl")
 include("trading.jl")
 
 include("main.jl")
+include("actions.jl")
 include("game_runner.jl")
 import .GameRunner
 
