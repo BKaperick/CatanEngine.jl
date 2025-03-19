@@ -13,7 +13,7 @@ load_gamestate!,
 reset_savefile,
 random_sample_resources,
 decide_and_assign_largest_army!,
-get_potential_theft_victims,
+get_admissible_theft_victims,
 choose_road_location,
 choose_validate_build_settlement!,
 choose_validate_build_city!,
@@ -264,20 +264,20 @@ function test_robber()
     BoardApi.build_settlement!(board, :Test1, (1,1))
     BoardApi.build_settlement!(board, :Test2, (1,3))
 
-    victims = get_potential_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
     
-    victims = get_potential_theft_victims(board, players, player1, :S)
+    victims = get_admissible_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
     PlayerApi.give_resource!(player2.player, :Grain)
     
-    victims = get_potential_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
     PlayerApi.take_resource!(player2.player, :Grain)
     
-    victims = get_potential_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
 end
 
