@@ -5,7 +5,7 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                choose_play_devcard,do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
                do_post_game_action,
-               COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS,PRINT_BOARD
+               COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS, PRINT_BOARD, MAX_TURNS
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
 using ..Catan.GameApi
@@ -38,7 +38,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
         end
         GameApi.finish_turn(game)
 
-        if game.turn_num >= 5000
+        if game.turn_num >= MAX_TURNS
             break
         end
     end

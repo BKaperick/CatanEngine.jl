@@ -49,7 +49,8 @@ choose_road_location,
 choose_robber_victim,
 choose_who_to_trade_with,
 choose_year_of_plenty_resources,
-choose_card_to_steal
+choose_card_to_steal,
+do_post_came_action
 
 PLAYER_ACTIONS,
 MAX_SETTLEMENT,

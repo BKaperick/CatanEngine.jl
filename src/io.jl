@@ -195,7 +195,13 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     end
 end
 
-function do_post_game_action(board::Board, players::Vector{PlayerType}, winner::Union{PlayerType, Nothing})
+function do_post_game_action(board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
+    println("base implementation of do_post_game_action")
+end
+function do_post_game_action(board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
+    for player in players
+        do_post_game_action(board, players, player, winner)
+    end
 end
 
 """

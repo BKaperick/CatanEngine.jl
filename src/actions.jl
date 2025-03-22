@@ -172,7 +172,7 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
 
     if :PlayDevCard in actions
         devcards = PlayerApi.get_admissible_devcards(player)
-        for (card,cnt) in devcard
+        for (card,cnt) in devcards
             # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
             if card != :VictoryPoint
                 push!(action_functions, (g, b, p) -> do_play_devcard(b, g.players, p, card))
