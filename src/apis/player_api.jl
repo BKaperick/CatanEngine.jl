@@ -34,7 +34,7 @@ take_resource!(player::Player, resource::Symbol)
 trade_resource_with_bank(player::Player, from_resource, to_resource)
 """
 module PlayerApi
-using ..Catan: Player, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
+using ..Catan: Player, PlayerPublicView, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
 
 # Player API
 
@@ -115,6 +115,10 @@ function has_any_resources(player::Player)::Bool
         end
     end
     return false
+end
+
+function has_any_resources(player::PlayerPublicView)::Bool
+    return player.resource_count > 0
 end
 
 function has_enough_resources(player::Player, resources::Dict{Symbol,Int})::Bool

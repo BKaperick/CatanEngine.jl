@@ -1,3 +1,13 @@
+ALL_ACTIONS = Set([
+:ConstructSettlement,
+:ConstructCity,
+:ConstructRoad,
+:ProposeTrade,
+:BuyDevCard,
+:PlayDevCard,
+:PlaceRobber
+])
+
 """
 PLAYER_ACTIONS = Dict([
     :ConstructSettlement    => act_construct_settlement,
@@ -5,7 +15,8 @@ PLAYER_ACTIONS = Dict([
     :ConstructRoad          => act_construct_road,
     :ProposeTrade           => act_propose_trade_goods,
     :BuyDevCard             => act_buy_devcard,
-    :PlayDevCard            => act_play_devcard
+    :PlayDevCard            => act_play_devcard,
+    :PlaceRobber            => do_robber_move_theft 
    ])
 
 
@@ -120,24 +131,25 @@ function do_robber_move_theft(board, players, player::PlayerType)
     players_public = PlayerPublicView.(players)
     new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
-    admissible_victims = get_admissible_theft_victims(board, players, player, new_tile)
+    admissible_victims = get_admissible_theft_victims(board, players_public, player, new_tile)
     if length(admissible_victims) > 0
-        from_player = choose_robber_victim(board, player, admissible_victims...)
+        from_player_view = choose_robber_victim(board, player, admissible_victims...)
+        from_player = [p for p in players if p.player.team == from_player_view.team][1]
         stolen_good = steal_random_resource(from_player, player)
         PlayerApi.take_resource!(from_player.player, stolen_good)
         PlayerApi.give_resource!(player.player, stolen_good)
     end
 end
 
-function get_admissible_theft_victims(board::Board, players::Vector{PlayerType}, thief::PlayerType, new_tile)
+function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublicView}, thief::PlayerType, new_tile)
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
-        @info [p.player.team for p in players]
+        @info [p.team for p in players]
         @info team
-        victim = [p for p in players if p.player.team == team][1]
-        if PlayerApi.has_any_resources(victim.player) && (team != thief.player.team)
-            @debug "vr: $(victim.player.resources)"
+        victim = [p for p in players if p.team == team][1]
+        if PlayerApi.has_any_resources(victim) && (team != thief.player.team)
+            @debug "vr: $(victim.resource_count)"
             push!(admissible_victims, victim)
         end
     end
@@ -188,6 +200,10 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
             rand_resource_to = [get_random_resource()]
         end
         push!(action_functions, (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
+    end
+
+    if :PlaceRobber in actions
+        push!(action_functions, (g, b, p) -> do_robber_move_theft(b, g.players, p))
     end
 
     return action_functions

@@ -2,7 +2,7 @@
 #     player::Player
 # end
 # 
-#  Robot Player API.  Your RobotPlayer type must implement these methods.  If any are not implemented, it falls back to the existing implementation
+#  Robot Player API.  Your RobotPlayer type can implement these methods.  If any are not implemented, it falls back to the existing implementation
 # 
 # choose_accept_trade(board::Board, player::RobotPlayer, 
 #     from_player::PlayerPublicView, from_goods::Vector{Symbol}, 
@@ -43,10 +43,6 @@
 #
 # get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, 
 #     player::RobotPlayer, actions::Set{Symbol})
-#
-# roll_dice(player::RobotPlayer)::Int
-#
-# steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
 #
 
 get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
@@ -117,9 +113,9 @@ end
 function choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Tuple{Symbol, Symbol}
     return get_random_resource(),get_random_resource()
 end
-function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerType
+function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerPublicView
     max_ind = sample(collect(potential_victims), 1)[1]
-    @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.player.team) player"
+    @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.team) player"
     return max_ind
 end
 
