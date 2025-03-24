@@ -28,6 +28,7 @@ function reset_savefile(path)
     global SAVEFILE = path
 
     if SAVE_GAME_TO_FILE
+        println("init file $SAVEFILE")
         io = open(SAVEFILE, "w"); write(io,""); close(io)
     end
     global SAVEFILEIO = open(SAVEFILE, "a")
@@ -37,7 +38,9 @@ end
 VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,
-                  :Road => 0
+                  :Road => 0,
+                  :LargestArmy => 2,
+                  :LongestRoad => 2
                  ])
 
 HUMAN_ACTIONS = Dict(

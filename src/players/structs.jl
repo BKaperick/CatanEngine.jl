@@ -5,7 +5,6 @@ abstract type PlayerType end
 mutable struct Player
     # Private fields (can't be directly accessed by other players)
     resources::Dict{Symbol,Int}
-    vp_count::Int
     devcards::Dict{Symbol,Int}
     
     # Public fields (can be used by other players to inform their moves)
@@ -24,7 +23,7 @@ function Player(team::Symbol)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(Dict(), 0, Dict(), team, Dict(), default_ports, false, nothing)
+    return Player(Dict(), Dict(), team, Dict(), default_ports, false, nothing)
 end
 
 """
@@ -44,7 +43,6 @@ mutable struct PlayerPublicView
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
     devcards_count::Int
-    visible_vp_count::Int
 end
 
 PlayerPublicView(player::PlayerPublicView) = player;
@@ -59,10 +57,7 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     # Resource count
     sum(values(player.resources)), 
     # Dev cards count
-    sum(values(player.devcards)),
-    
-    # Total victory points minus the ones that are hidden from view (only case is a dev card awarding one)
-    player.vp_count - sum([item.second for item in player.devcards if item.first == :VictoryPoint])
+    sum(values(player.devcards))
    )
 
 
@@ -102,7 +97,6 @@ end
 function Base.deepcopy(player::Player)
     return Player(
         deepcopy(player.resources),
-        player.vp_count,
         deepcopy(player.devcards),
         player.team,
         deepcopy(player.devcards_used),

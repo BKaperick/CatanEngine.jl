@@ -27,9 +27,13 @@ MAX_SETTLEMENT,
 MAX_CITY,
 MAX_ROAD,
 TEST_DATA_DIR,
-MAIN_DATA_DIR
+MAIN_DATA_DIR,
+setup_players,
+setup_and_do_robot_game,
+test_automated_game,
+reset_savefile_with_timestamp,
+SAVEFILE
 
-SAVEFILE = "$(TEST_DATA_DIR)_test_save_$(Dates.format(now(), "HHMMSS")).txt"
 reset_savefile(SAVEFILE)
 
 Catan.SAVE_GAME_TO_FILE = true
@@ -48,20 +52,6 @@ logger_io = open("$(TEST_DATA_DIR)oneoff_test_log.txt","w+")
 logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
-global counter = 1
-
-function reset_test_savefile(file_name)
-    global SAVEFILE = file_name
-    reset_savefile(file_name)
-    return SAVEFILE, Catan.SAVEFILEIO
-end
-
-function reset_savefile_with_timestamp(name)
-    global SAVEFILE = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
-    global counter += 1
-    reset_savefile(SAVEFILE)
-    return SAVEFILE, Catan.SAVEFILEIO
-end
 
 function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
@@ -119,51 +109,6 @@ function test_set_starting_player()
     @test new_game.players[1].player.team == :cyan
 
     #players: green, red, 
-end
-
-function setup_players()
-    # Configure players and table configuration
-    team_and_playertype = [
-                          (:blue, DefaultRobotPlayer),
-                          (:cyan, DefaultRobotPlayer),
-                          (:green, DefaultRobotPlayer),
-                          #(:red, DefaultRobotPlayer)
-                          (:red, DefaultRobotPlayer)
-    ]
-    setup_players(team_and_playertype)
-end
-
-function setup_players(team_and_playertype::Vector)
-    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
-    return players
-end
-
-function setup_and_do_robot_game(savefile::Union{Nothing, String} = nothing)
-    players = setup_players()
-    setup_and_do_robot_game(players, savefile)
-end
-
-function setup_and_do_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, String} = nothing)
-    players = setup_players(team_and_playertype)
-    return setup_and_do_robot_game(players, savefile)
-end
-
-"""
-    setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
-
-If no savefile is passed, we use the standard format "test_robot_game_savefile_yyyyMMdd_HHmmss.txt".
-If a savefile is passed, we use it to save the game state.  If the file is nonempty, the game will replay
-up until the end of the save file and then continue to write ongoing game states to the file.
-"""
-function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
-    game = Game(players)
-    if (savefile == nothing)
-        reset_savefile_with_timestamp("test_robot_game_savefile")
-    else
-        reset_test_savefile(savefile)
-    end
-    board, winner = GameRunner.initialize_and_do_game!(game, SAMPLE_MAP, SAVEFILE)
-    return board, game
 end
 
 @test get_coord_from_human_tile_description("ab") == (1,3)
@@ -234,7 +179,6 @@ function test_log()
         new_player = new_game.players[i].player
         @test player.team == new_player.team
         @test player.resources == new_player.resources
-        @test player.vp_count == new_player.vp_count
         @test player.devcards == new_player.devcards
         @test player.devcards_used == new_player.devcards_used
         @test player.ports == new_player.ports
@@ -690,32 +634,6 @@ end
 function test_robot_game(neverend)
     players = setup_players()
     test_automated_game(neverend, players)
-end
-function test_automated_game(neverend, players)
-    if neverend
-        while true
-            # Play the game once
-            println("starting game")
-            try
-                setup_and_do_robot_game(players)
-            catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
-            end
-
-            # Then immediately try to replay the game from its save file
-            println("replaying game from $SAVEFILE")
-            try
-                setup_and_do_robot_game(players, SAVEFILE)
-            catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
-            end
-
-            # Now move the latest save file to a special `last_save` file for easy retrieval
-        end
-    else
-        println("starting game")
-        setup_and_do_robot_game()
-    end
 end
 
 function test_trading()
