@@ -131,6 +131,10 @@ function do_robber_move_theft(board, players, player::PlayerType)
     players_public = PlayerPublicView.(players)
     new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
     @info "$(player.player.team) moves robber to $new_tile"
+    do_robber_move_theft(board, players, player, new_tile)
+end
+function do_robber_move_theft(board, players, player::PlayerType, new_tile::Symbol)
+    players_public = PlayerPublicView.(players)
     admissible_victims = get_admissible_theft_victims(board, players_public, player, new_tile)
     if length(admissible_victims) > 0
         from_player_view = choose_robber_victim(board, player, admissible_victims...)
@@ -203,7 +207,10 @@ function get_legal_action_functions(board::Board, players::Vector{PlayerPublicVi
     end
 
     if :PlaceRobber in actions
-        push!(action_functions, (g, b, p) -> do_robber_move_theft(b, g.players, p))
+        # Get candidates
+        for new_tile = BoardApi.get_admissible_robber_tiles(board)
+            push!(action_functions, (g, b, p) -> do_robber_move_theft(b, g.players, p, new_tile))
+        end
     end
 
     return action_functions

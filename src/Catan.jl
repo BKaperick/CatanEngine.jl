@@ -30,6 +30,8 @@ include("actions.jl")
 include("game_runner.jl")
 import .GameRunner
 
+include("../test/helper.jl")
+
 export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!,
 BoardApi, 
@@ -50,6 +52,7 @@ choose_robber_victim,
 choose_who_to_trade_with,
 choose_year_of_plenty_resources,
 choose_card_to_steal,
+
 do_post_came_action
 
 PLAYER_ACTIONS,

@@ -130,7 +130,6 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
 end
 
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
-
     rand_action = sample(collect(actions), 1)
     if :ConstructCity in rand_action
         candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
@@ -158,7 +157,8 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         if card != nothing
             return (g, b, p) -> do_play_devcard(b, g.players, p, card)
         end
-    elseif :ProposeTrade in rand_action
+    end
+    if :ProposeTrade in rand_action
         if rand() > .8
             sampled = random_sample_resources(player.player.resources, 1)
             rand_resource_from = [sampled...]
