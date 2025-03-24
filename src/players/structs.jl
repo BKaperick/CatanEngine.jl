@@ -38,7 +38,6 @@ mutable struct PlayerPublicView
     devcards_used::Dict{Symbol,Int}
     ports::Dict{Symbol, Int}
     played_devcard_this_turn::Bool
-    bought_devcard_this_turn::Union{Nothing,Symbol}
     
     # Aggregated fields pertaining to the publicly-known info about the private fields
     resource_count::Int
@@ -52,7 +51,6 @@ PlayerPublicView(player::Player) = PlayerPublicView(
     player.devcards_used,
     player.ports,
     player.played_devcard_this_turn,
-    player.bought_devcard_this_turn,
 
     # Resource count
     sum(values(player.resources)), 
