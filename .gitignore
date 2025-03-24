@@ -2,5 +2,7 @@
 _test*
 Manifest.toml
 test/data/oneoff_test_log.txt
+data/
 .CondaPkg
 .CondaPkg/*
+data/_temp_map_file.csv
