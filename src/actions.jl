@@ -14,8 +14,10 @@ PLAYER_ACTIONS = Dict([
     :ConstructCity          => act_construct_city,
     :ConstructRoad          => act_construct_road,
     :ProposeTrade           => act_propose_trade_goods,
-    :BuyDevCard             => act_buy_devcard,
     :PlayDevCard            => act_play_devcard,
+
+    # Probabilistic actions
+    :BuyDevCard             => act_buy_devcard,
     :PlaceRobber            => do_robber_move_theft 
    ])
 
@@ -67,6 +69,20 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
         do_devcard_action(board, players, player, card)
         PlayerApi.play_devcard!(player.player, card)
         decide_and_assign_largest_army!(board, players)
+    end
+end
+
+# TODO is this needed to give players all the options?
+function get_devcard_options(board, card::Symbol)
+    if card == :Knight
+        options = BoardApi.get_admissible_robber_tiles(board)
+        return options
+    elseif card in Set([:Monopoly, :YearOfPlenty])
+        return collect(RESOURCES)
+    elseif card == :RoadBuilding
+        do_road_building_action(board, players_public, player)
+    else
+        @assert false
     end
 end
 
@@ -160,58 +176,37 @@ function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublic
     return admissible_victims
 end
 
-function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::Player, actions::Set{Symbol})
-    action_functions = []
-    
-    if :ConstructCity in actions
-        candidates = BoardApi.get_admissible_city_locations(board, player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_city(b, p.player, coord))
-        end
+function options_construct_city(board::Board, player::Player, candidates::Vector{Tuple{Int,Int}})
+    for candidate in candidates
     end
-    if :ConstructSettlement in actions
-        candidates = BoardApi.get_admissible_settlement_locations(board, player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_settlement(b, p.player, coord))
-        end
+end
+function with_options(action::Function, candidates::Vector)
+    actions = []
+    for c in candidates
+        return [action(c) for c in candidates]
     end
-    if :ConstructRoad in actions
-        candidates = BoardApi.get_admissible_road_locations(board, player.team)
-        for coord in candidates
-            push!(action_functions, (g, b, p) -> construct_road(b, p.player, coord[1], coord[2]))
-        end
-    end
+    return actions
+end
 
-    if :BuyDevCard in actions
-        push!(action_functions, (g, b, p) -> buy_devcard(g, p.player))
+function get_legal_actions(game, board, player)::Set{Symbol}
+    actions = Set{Symbol}()
+    if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
+        push!(actions, :ConstructCity)
     end
-
-    if :PlayDevCard in actions
-        devcards = PlayerApi.get_admissible_devcards(player)
-        for (card,cnt) in devcards
-            # TODO how do we stop them playing devcards first turn they get them?  Is this correctly handled in get_admissible call?
-            if card != :VictoryPoint
-                push!(action_functions, (g, b, p) -> do_play_devcard(b, g.players, p, card))
-            end
-        end
+    if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
+        push!(actions, :ConstructSettlement)
     end
-
-    if :ProposeTrade in actions
-        sampled = random_sample_resources(player.resources, 1)
-        rand_resource_from = [sampled...]
-        rand_resource_to = [get_random_resource()]
-        while rand_resource_to[1] == rand_resource_from[1]
-            rand_resource_to = [get_random_resource()]
-        end
-        push!(action_functions, (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
+    if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
+        push!(actions, :ConstructRoad)
     end
-
-    if :PlaceRobber in actions
-        # Get candidates
-        for new_tile = BoardApi.get_admissible_robber_tiles(board)
-            push!(action_functions, (g, b, p) -> do_robber_move_theft(b, g.players, p, new_tile))
-        end
+    if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && GameApi.can_draw_devcard(game)
+        push!(actions, :BuyDevCard)
     end
-
-    return action_functions
+    if PlayerApi.can_play_devcard(player)
+        push!(actions, :PlayDevCard)
+    end
+    if PlayerApi.has_any_resources(player)
+        push!(actions, :ProposeTrade)
+    end
+    return actions
 end

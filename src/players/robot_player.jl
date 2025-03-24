@@ -181,8 +181,3 @@ function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Ve
     @info "$(player.player.team) decided it is wisest to do business with $(max_ind.team) player"
     return max_ind.team
 end
-
-function get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
-    get_legal_action_functions(board, players, player.player, actions)
-end
-

@@ -4,7 +4,7 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                do_first_turn_building!,
                choose_play_devcard,do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
-               do_post_game_action,
+               do_post_game_action, get_legal_actions,
                COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS, PRINT_BOARD, MAX_TURNS
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
@@ -106,29 +106,6 @@ function do_turn(game::Game, board::Board, player::PlayerType)
     GameApi.set_dice_false(game)
     @debug "finishing player turn"
     GameApi.finish_player_turn(game, player.player.team)
-end
-
-function get_legal_actions(game, board, player)::Set{Symbol}
-    actions = Set{Symbol}()
-    if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
-        push!(actions, :ConstructCity)
-    end
-    if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
-        push!(actions, :ConstructSettlement)
-    end
-    if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
-        push!(actions, :ConstructRoad)
-    end
-    if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && GameApi.can_draw_devcard(game)
-        push!(actions, :BuyDevCard)
-    end
-    if PlayerApi.can_play_devcard(player)
-        push!(actions, :PlayDevCard)
-    end
-    if PlayerApi.has_any_resources(player)
-        push!(actions, :ProposeTrade)
-    end
-    return actions
 end
 
 function someone_has_won(game, board, players::Vector{PlayerType})::Bool

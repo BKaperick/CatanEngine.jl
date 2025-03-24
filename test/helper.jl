@@ -125,5 +125,5 @@ function test_player_implementation(T::Type) #where T <: PlayerType
     choose_robber_victim(board, player, players[2], players[3])
     choose_who_to_trade_with(board, player, players)
     choose_year_of_plenty_resources(board, players, player)
-    get_legal_action_functions(board, players, player, actions)
+    #get_legal_action_functions(board, players, player, actions)
 end
