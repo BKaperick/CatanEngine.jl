@@ -18,6 +18,7 @@ choose_road_location,
 choose_validate_build_settlement!,
 choose_validate_build_city!,
 choose_validate_build_road!,
+do_robber_move_theft,
 do_monopoly_action,
 harvest_resources,
 roll_dice,
@@ -209,21 +210,24 @@ function test_robber()
     BoardApi.build_settlement!(board, :Test2, (1,3))
     
 
-    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
     
-    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1, :S)
+    victims = get_admissible_theft_victims(board, players, player1, :S)
     @test length(victims) == 0
 
     PlayerApi.give_resource!(player2.player, :Grain)
     
-    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 1
     
     PlayerApi.take_resource!(player2.player, :Grain)
     
-    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1, :A)
+    victims = get_admissible_theft_victims(board, players, player1, :A)
     @test length(victims) == 0
+
+    do_robber_move_theft(board, Vector{PlayerType}(), player1, :S, nothing)
+    @test board.robber_tile == :S
 end
 
 function test_max_construction()

@@ -149,7 +149,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
     if :BuyDevCard in rand_action
-        return (g, b, p) -> buy_devcard(g, p.player)
+        return (g, b, p) -> draw_devcard(g, p.player)
     end
     if :PlayDevCard in rand_action
         devcards = PlayerApi.get_admissible_devcards(player.player)

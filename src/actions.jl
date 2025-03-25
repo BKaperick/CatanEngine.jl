@@ -58,10 +58,9 @@ end
 # DEVCARD ACTIONS
 #
 
-function buy_devcard(game::Game, player::Player)
+function draw_devcard(game::Game, player::Player)
     card = GameApi.draw_devcard(game)
-    PlayerApi.pay_construction(player, :DevelopmentCard)
-    PlayerApi.add_devcard!(player, card)
+    PlayerApi.buy_devcard(player, card)
 end
 
 function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
@@ -143,33 +142,44 @@ function do_robber_move_discard(board, player::PlayerType)
     end
 end
 
-function do_robber_move_theft(board, players, player::PlayerType)
+function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
-    new_tile = BoardApi.move_robber!(board, choose_place_robber(board, players_public, player))
-    @info "$(player.player.team) moves robber to $new_tile"
-    do_robber_move_theft(board, players, player, new_tile)
+    new_robber_tile = choose_place_robber(board, players_public, player)
+    @info "$(player.player.team) moves robber to $new_robber_tile"
+    players_public = PlayerPublicView.(players)
+    admissible_victims = get_admissible_theft_victims(board, players, player, new_robber_tile)
+    do_robber_move_theft(board, admissible_victims, player, new_robber_tile)
 end
-function do_robber_move_theft(board, players, player::PlayerType, new_tile::Symbol)
-    players_public = PlayerPublicView.(players)
-    admissible_victims = get_admissible_theft_victims(board, players_public, player, new_tile)
+
+function do_robber_move_theft(board, admissible_victims::Vector{PlayerType}, 
+        player::PlayerType, new_robber_tile::Symbol)
+    stolen_good = nothing
+    victim = nothing
     if length(admissible_victims) > 0
-        from_player_view = choose_robber_victim(board, player, admissible_victims...)
-        from_player = [p for p in players if p.player.team == from_player_view.team][1]
-        stolen_good = steal_random_resource(from_player, player)
-        PlayerApi.take_resource!(from_player.player, stolen_good)
+        admissible_victims_public = PlayerPublicView.(admissible_victims)
+        from_player_view = choose_robber_victim(board, player, admissible_victims_public...)
+        victim = [p for p in admissible_victims if p.player.team == from_player_view.team][1]
+        stolen_good = steal_random_resource(victim, player)
+    end
+    do_robber_move_theft(board, player, victim, new_robber_tile, stolen_good)
+end
+
+function do_robber_move_theft(board, player::PlayerType, victim::Union{PlayerType, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
+    BoardApi.move_robber!(board, new_robber_tile)
+    if victim != nothing && stolen_good != nothing
+        PlayerApi.take_resource!(victim.player, stolen_good)
         PlayerApi.give_resource!(player.player, stolen_good)
     end
 end
 
-function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublicView}, thief::PlayerType, new_tile)
+function get_admissible_theft_victims(board::Board, players::Vector{PlayerType}, thief::PlayerType, new_tile)::Vector{PlayerType}
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
-        @info [p.team for p in players]
+        @info [p.player.team for p in players]
         @info team
-        victim = [p for p in players if p.team == team][1]
-        if PlayerApi.has_any_resources(victim) && (team != thief.player.team)
-            @debug "vr: $(victim.resource_count)"
+        victim = [p for p in players if p.player.team == team][1]
+        if PlayerApi.has_any_resources(victim.player) && (team != thief.player.team)
             push!(admissible_victims, victim)
         end
     end

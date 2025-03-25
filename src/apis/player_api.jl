@@ -67,6 +67,12 @@ function get_vp_count_from_devcards(player::Player)
     end
     return 0
 end
+
+function buy_devcard(player::Player, card::Symbol)
+    pay_construction(player, :DevelopmentCard)
+    add_devcard!(player, card)
+end
+
 function add_devcard!(player::Player, devcard::Symbol)
     log_action(":$(player.team) ad", devcard)
     _add_devcard!(player, devcard)

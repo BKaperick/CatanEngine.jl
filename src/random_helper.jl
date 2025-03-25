@@ -1,7 +1,8 @@
 function has_any_elements(sym_dict::Dict{Symbol, Int})
     return sum(values(sym_dict)) > 0
 end
-function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)::Union{Nothing,Vector{Symbol}}
+
+function random_sample_resources(resources::Dict{Symbol, Int}, count::Int, replace=false)::Union{Nothing,Vector{Symbol}}
     items = Vector{Symbol}()
     for (r,c) in resources
         if c > 0
@@ -12,7 +13,7 @@ function random_sample_resources(resources::Dict{Symbol, Int}, count::Int)::Unio
     if length(items) == 0
         return nothing
     end
-    return sample(items, count, replace=false)
+    return sample(items, count, replace=replace)
 end
 
 function get_random_tile(board)::Symbol
