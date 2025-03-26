@@ -209,24 +209,23 @@ function test_robber()
     BoardApi.build_settlement!(board, :Test1, (1,1))
     BoardApi.build_settlement!(board, :Test2, (1,3))
     
-
-    victims = get_admissible_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1.player, :A)
     @test length(victims) == 0
     
-    victims = get_admissible_theft_victims(board, players, player1, :S)
+    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1.player, :S)
     @test length(victims) == 0
 
     PlayerApi.give_resource!(player2.player, :Grain)
     
-    victims = get_admissible_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1.player, :A)
     @test length(victims) == 1
     
     PlayerApi.take_resource!(player2.player, :Grain)
     
-    victims = get_admissible_theft_victims(board, players, player1, :A)
+    victims = get_admissible_theft_victims(board, PlayerPublicView.(players), player1.player, :A)
     @test length(victims) == 0
 
-    do_robber_move_theft(board, Vector{PlayerType}(), player1, :S, nothing)
+    do_robber_move_theft(board, Vector{PlayerType}(), player1, nothing, :S, nothing)
     @test board.robber_tile == :S
 end
 
