@@ -254,3 +254,6 @@ function initialize_player(board::Board, player::PlayerType)
 end
 function initialize_player(board::Board, player::Player)
 end
+
+function do_post_action_step(board::Board, player::PlayerType)
+end

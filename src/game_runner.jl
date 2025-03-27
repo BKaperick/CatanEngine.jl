@@ -4,8 +4,9 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                do_first_turn_building!,
                choose_play_devcard,do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
-               do_post_game_action, get_legal_actions,
+               do_post_action_step, do_post_game_action, get_legal_actions,
                COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS, PRINT_BOARD, MAX_TURNS
+
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
 using ..Catan.GameApi
@@ -100,6 +101,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
         next_action = choose_next_action(board, PlayerPublicView.(game.players), player, actions)
         if next_action != nothing
             next_action(game, board, player)
+            do_post_action_step(board, player)
         end
     end
     @debug "setting dice false"

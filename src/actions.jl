@@ -68,6 +68,7 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
         do_devcard_action(board, players, player, card)
         PlayerApi.play_devcard!(player.player, card)
         decide_and_assign_largest_army!(board, players)
+        # Note: longest road is assigned within the build road call
     end
 end
 

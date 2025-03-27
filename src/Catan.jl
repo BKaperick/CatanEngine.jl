@@ -54,6 +54,7 @@ choose_year_of_plenty_resources,
 choose_card_to_steal,
 
 do_post_game_action,
+do_post_action
 
 PLAYER_ACTIONS,
 MAX_SETTLEMENT,
