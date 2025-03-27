@@ -129,33 +129,33 @@ function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, pl
     return nothing
 end
 
-function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{Symbol})::Tuple
     rand_action = sample(collect(actions), 1)
     if :ConstructCity in rand_action
         candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
-        return (g, b, p) -> construct_city(b, p.player, coord)
+        return (coord, (g, b, p) -> construct_city(b, p.player, coord))
     end
     if :ConstructSettlement in rand_action
         candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, false)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
-        return (g, b, p) -> construct_settlement(b, p.player, coord)
+        return (coord, (g, b, p) -> construct_settlement(b, p.player, coord))
     end
     if :ConstructRoad in rand_action
         candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
+        return ((coord1, coord2), (g, b, p) -> construct_road(b, p.player, coord1, coord2))
     end
     if :BuyDevCard in rand_action
-        return (g, b, p) -> draw_devcard(g, p.player)
+        return (nothing, (g, b, p) -> draw_devcard(g, p.player))
     end
     if :PlayDevCard in rand_action
         devcards = PlayerApi.get_admissible_devcards(player.player)
         card = choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (g, b, p) -> do_play_devcard(b, g.players, p, card)
+            return (nothing, (g, b, p) -> do_play_devcard(b, g.players, p, card))
         end
     end
     if :ProposeTrade in rand_action
@@ -167,10 +167,10 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
+            return ((rand_resource_from, rand_resource_to), (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to))
         end
     end
-    return nothing
+    return (nothing, nothing)
 end
 
 function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol

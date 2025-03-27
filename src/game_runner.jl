@@ -98,7 +98,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
             @info "no legal actions"
             break
         end
-        next_action = choose_next_action(board, PlayerPublicView.(game.players), player, actions)
+        next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, actions)
         if next_action != nothing
             next_action(game, board, player)
             do_post_action_step(board, player)
