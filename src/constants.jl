@@ -1,11 +1,6 @@
 using Dates
 using Logging
 
-logger = ConsoleLogger(stderr, Logging.Debug)
-#logger = ConsoleLogger(stderr, Logging.Info)
-#logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
-global_logger(logger)
-
 
 DATA_DIR = "/home/bryan/Projects/Catan/CatanEngine.jl/data"
 
