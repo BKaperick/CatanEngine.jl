@@ -141,6 +141,15 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
     end
 end
 
+function harvest_one_resource!(game, player::Player, resource::Symbol, count::Int)
+    @info "$(player.team) harvests $count $resource"
+    for i=1:count
+        if GameApi.can_draw_resource(game, resource)
+            PlayerApi.give_resource!(player, resource)
+            GameApi.draw_resource(game, resource)
+        end
+    end
+end
 function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
     total_remaining = game.resources[resource]
     player_and_counts = [(player, t == :Settlement ? 1 : 2) for (player, t) in player_and_types]
@@ -150,11 +159,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
     end
     if total_needed <= total_remaining
         for (player,count) in player_and_counts
-            #@info "$(player.team) harvests $count $resource"
-            for i=1:count
-                PlayerApi.give_resource!(player, resource)
-                GameApi.draw_resource(game, resource)
-            end
+            harvest_one_resource!(game, player, resource, count)
         end
     else
         # If multiple people harvest, but there aren't enough resources,
@@ -162,12 +167,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
         # If only one person needs it, then we give them the rest
         num_teams = length(Set([x[1].team for x in player_and_counts]))
         if num_teams == 1
-            player = player_and_counts[1][1]
-            @info "$(player.team) harvests $total_needed $resource"
-            for i=1:total_remaining
-                PlayerApi.give_resource!(player, resource)
-                GameApi.draw_resource(game, resource)
-            end
+            harvest_one_resource!(game, player_and_counts[1][1], resource, total_remaining)
         end
     end
 end

@@ -195,11 +195,11 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
     end
 end
 
-function do_post_game_action(board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
+function do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
-function do_post_game_action(board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
+function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
     for player in players
-        do_post_game_action(board, players, player, winner)
+        do_post_game_action(game, board, players, player, winner)
     end
 end
 

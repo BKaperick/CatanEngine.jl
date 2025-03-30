@@ -50,13 +50,64 @@ function trade_goods(players, from_player::Player, to_player_team::Symbol, amoun
     return trade_goods(from_player, to_player, from_goods, to_goods)
 end
 
-function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+function flatten(d::Dict)
+    vcat([repeat(r,c) for (r,c) in collect(d)]...)
+end
+
+function trade_goods(from_player::Player, to_player::Player, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
+    from_goods_flat = flatten(from_goods)
+    to_goods_flat = flatten(to_goods)
+    trade_goods(from_player, to_player, from_goods, to_goods)
+end
+
+function trade_goods(from_player, to_player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+    trade_goods_from_player(from_player, from_goods, to_goods)
+    trade_goods_to_player(to_player, from_goods, to_goods)
+end
+function trade_goods(from_player::PlayerPublicView, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+    trade_goods()
+end
+
+function trade_goods_from_player(from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
     for resource in from_goods
         PlayerApi.take_resource!(from_player, resource)
+    end
+    for resource in to_goods
+        PlayerApi.give_resource!(from_player, resource)
+    end
+end
+
+function trade_goods_to_player(to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+    for resource in from_goods
         PlayerApi.give_resource!(to_player, resource)
     end
     for resource in to_goods
         PlayerApi.take_resource!(to_player, resource)
-        PlayerApi.give_resource!(from_player, resource)
     end
+end
+
+function trade_goods_to_player(to_player::Player, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
+    from_goods_flat = flatten(from_goods)
+    to_goods_flat = flatten(to_goods)
+    trade_goods_to_player(to_player, from_goods_flat, to_goods_flat)
+end
+
+"""
+    `trade_goods_from_player(from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})`
+
+This implementation is useful in when a player is evaluating whether they should accept a trade.  To see the 
+"""
+function trade_goods_from_player(from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+    from_player.resource_count - length(from_goods) + length(to_goods)
+end
+
+function trade_goods_from_player(from_player::Player, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
+    from_goods_flat = flatten(from_goods)
+    to_goods_flat = flatten(to_goods)
+    trade_goods_from_player(from_player, from_goods_flat, to_goods_flat)
+end
+function trade_goods_from_player(from_player::PlayerPublicView, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
+    from_goods_flat = flatten(from_goods)
+    to_goods_flat = flatten(to_goods)
+    trade_goods_from_player(from_player, from_goods_flat, to_goods_flat)
 end

@@ -2,7 +2,7 @@ module GameRunner
 using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
                read_map, load_gamestate!, initialize_player,
                do_first_turn_building!,
-               choose_play_devcard,do_play_devcard,get_admissible_devcards, 
+               do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
                do_post_action_step, do_post_game_action, get_legal_actions,
                COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS, PRINT_BOARD, MAX_TURNS
@@ -46,7 +46,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     winner = get_winner(game, board, game.players)
 
     # Post game steps (writing features, updating models, etc)
-    do_post_game_action(board, game.players, winner)
+    do_post_game_action(game, board, game.players, winner)
     return winner
 end
 
@@ -75,35 +75,40 @@ function do_first_turn_reverse(game, board, players)
     GameApi.finish_turn(game)
 end
 
+function do_action_from_legal_actions(game, board, player, legal_actions::Set{Symbol})::Bool
+    @debug "actions for $player: $legal_actions"
+    if length(legal_actions) == 0
+        @info "no legal actions"
+        return false
+    end
+    next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
+    if next_action != nothing
+        next_action(game, board, player)
+        do_post_action_step(board, player)
+        return true
+    end
+    return false
+end
+
 """
     `do_turn(game::Game, board::Board, player::PlayerType)`
 
 Called each turn except the first turn.  See `do_first_turn` for first turn behavior.
 """
 function do_turn(game::Game, board::Board, player::PlayerType)
+
+    # Player is only allowed to play a dev card before rolling the dice
     if PlayerApi.can_play_devcard(player.player)
-        devcards = get_admissible_devcards(player)
-        card = choose_play_devcard(board, PlayerPublicView.(game.players), player, devcards)
-        
-        do_play_devcard(board, game.players, player, card)
+        do_action_from_legal_actions(game, board, player, Set([:PlayDevCard]))
     end
+
     decide_and_roll_dice!(game, board, player)
     
-    next_action = "tmp"
-    while next_action != nothing
+    actions = get_legal_actions(game, board, player.player)
+    while do_action_from_legal_actions(game, board, player, actions)
         actions = get_legal_actions(game, board, player.player)
-
-        @debug "actions for $player: $actions"
-        if length(actions) == 0
-            @info "no legal actions"
-            break
-        end
-        next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, actions)
-        if next_action != nothing
-            next_action(game, board, player)
-            do_post_action_step(board, player)
-        end
     end
+
     @debug "setting dice false"
     GameApi.set_dice_false(game)
     @debug "finishing player turn"

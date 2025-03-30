@@ -120,7 +120,6 @@ function test_player_implementation(T::Type) #where T <: PlayerType
     choose_monopoly_resource(board, players, player)
     choose_next_action(board, players, player, actions)
     choose_place_robber(board, players, player)
-    choose_play_devcard(board, players, player, devcards)
     choose_road_location(board, players, player, road_candidates)
     choose_robber_victim(board, player, players[2], players[3])
     choose_who_to_trade_with(board, player, players)

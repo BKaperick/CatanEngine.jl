@@ -67,13 +67,6 @@ function choose_card_to_steal(player::HumanPlayer)::Symbol
     parse_resources(player.io, "$(player.player.team) lost his:")[1]
 end
 
-function choose_play_devcard(board, players, player::HumanPlayer, devcards::Dict)
-    p = parse_devcard(player.io, "Will $(player.player.team) play a devcard before rolling? (Enter to skip):")
-    if p == :nothing
-        return nothing
-    end
-end
-
 function choose_next_action(board, players, player::HumanPlayer, actions)
     header = "What does $(player.player.team) do next?\n"
     full_options = string(header, [ACTION_TO_DESCRIPTION[a] for a in actions]..., "\n[E]nd turn")

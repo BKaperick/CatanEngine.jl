@@ -1,8 +1,8 @@
 using Dates
 using Logging
 
-#logger = ConsoleLogger(stderr, Logging.Debug)
-logger = ConsoleLogger(stderr, Logging.Info)
+logger = ConsoleLogger(stderr, Logging.Debug)
+#logger = ConsoleLogger(stderr, Logging.Info)
 #logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
 global_logger(logger)
 
@@ -18,7 +18,7 @@ MAX_ROAD = 14
 MAX_RESOURCE = 25
 
 # Max turns until the game is declared a draw
-MAX_TURNS = 5000
+MAX_TURNS = 10000
 
 function reset_savefile(path, io)
     global SAVEFILE = path

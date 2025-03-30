@@ -12,8 +12,6 @@
 #     player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, 
 #     building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
 #
-# choose_card_to_steal(player::RobotPlayer)::Symbol
-#
 # choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
 #
 # choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, 
@@ -24,9 +22,6 @@
 #
 # choose_place_robber(board::Board, players::Vector{PlayerPublicView}, 
 #     player::RobotPlayer)::Symbol
-#
-# choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
 #
 # choose_road_location(board::Board, players::Vector{PlayerPublicView}, 
 #     player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}}
@@ -119,7 +114,7 @@ function choose_robber_victim(board::Board, player::RobotPlayer, potential_victi
     return max_ind
 end
 
-function choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
+function _choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
     if sum(values(devcards)) > 0 && (rand() > .5)
         card = random_sample_resources(devcards, 1)[1]
         if card != :VictoryPoint
@@ -153,9 +148,9 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     end
     if :PlayDevCard in rand_action
         devcards = PlayerApi.get_admissible_devcards(player.player)
-        card = choose_play_devcard(board, players, player, devcards)
+        card = _choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (nothing, (g, b, p) -> do_play_devcard(b, g.players, p, card))
+            return (card, (g, b, p) -> do_play_devcard(b, g.players, p, card))
         end
     end
     if :ProposeTrade in rand_action
