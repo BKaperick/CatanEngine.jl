@@ -92,13 +92,13 @@ function do_devcard_action(game, board, players::Vector{PlayerType}, player::Pla
     elseif card == :YearOfPlenty
         do_year_of_plenty_action(game, board, players_public, player)
     elseif card == :RoadBuilding
-        do_road_building_action(game, board, players_public, player)
+        do_road_building_action(board, players_public, player)
     else
         @assert false
     end
 end
 
-function do_road_building_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
+function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     choose_validate_build_road!(board, players, player, false)
     choose_validate_build_road!(board, players, player, false)
 end

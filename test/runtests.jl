@@ -15,8 +15,7 @@ random_sample_resources,
 decide_and_assign_largest_army!,
 get_admissible_theft_victims,
 choose_road_location,
-choose_validate_build_settlement!,
-choose_validate_build_city!,
+first_turn_build_settlement!,
 choose_validate_build_road!,
 do_robber_move_theft,
 do_monopoly_action,
@@ -33,7 +32,8 @@ setup_players,
 setup_and_do_robot_game,
 test_automated_game,
 reset_savefile_with_timestamp,
-SAVEFILE
+SAVEFILE,
+RESOURCES
 
 reset_savefile(SAVEFILE)
 
@@ -72,7 +72,7 @@ function test_deepcopy()
     game.players[1].player.team = :newcolor
     @test game2.players[1].player.team == :blue
     game.players[1].player.resources[:Wood] = 50
-    @test !haskey(game2.players[1].player.resources, :Wood)
+    @test !haskey(game2.players[1].player.resources, :Wood) || game2.players[1].player.resources[:Wood] == 0
 end
 
 function test_set_starting_player()
@@ -259,12 +259,20 @@ function test_max_construction()
     @test BoardApi.count_roads(board, player1.player.team) == MAX_ROAD
 end
 
+function test_resource_conservation(game)
+    for r in RESOURCES
+        println(r)
+        @test game.resources[r] + sum([p.player.resources[r] for p in game.players]) == 25
+    end
+end
+
 # API Tests
 function test_devcards()
     board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
+    game = Game(players)
 
     PlayerApi.give_resource!(player1.player, :Grain)
     PlayerApi.give_resource!(player1.player, :Stone)
@@ -276,8 +284,9 @@ function test_devcards()
     @test PlayerApi.count_resources(player1.player) == 4
     
     players_public = PlayerPublicView.(players)
-    Catan.do_year_of_plenty_action(board, players_public, player1)
+    Catan.do_year_of_plenty_action(game, board, players_public, player1)
     @test PlayerApi.count_resources(player1.player) == 6
+    #test_resource_conservation(game) 
 
     BoardApi.build_settlement!(board, player1.player.team, (2,5))
     players_public = PlayerPublicView.(players)
@@ -467,10 +476,10 @@ function test_game_api()
         # 4*(0+2) = 8
         harvest_resources(game, board, players, 8)
     end
-    @test haskey(p1.player.resources, :Stone)
-    @test haskey(p1.player.resources, :Pasture)
-    @test haskey(p2.player.resources, :Stone)
-    @test haskey(p2.player.resources, :Brick)
+    @test haskey(p1.player.resources, :Stone) && p1.player.resources[:Stone] > 0
+    @test haskey(p1.player.resources, :Pasture) && p1.player.resources[:Pasture] > 0
+    @test haskey(p2.player.resources, :Stone) && p2.player.resources[:Stone] > 0
+    @test haskey(p2.player.resources, :Brick) && p2.player.resources[:Brick] > 0
     
     @test p1.player.resources[:Pasture] == 8
     @test p1.player.resources[:Stone] == 16
@@ -486,8 +495,8 @@ function test_game_api()
     @test p1.player.resources[:Stone] == 16
     @test p2.player.resources[:Stone] == 8
     @test p2.player.resources[:Brick] == 25
-    @test ~haskey(p1.player.resources, :Brick)
-    @test ~haskey(p2.player.resources, :Wood)
+    @test ~haskey(p1.player.resources, :Brick) || p1.player.resources[:Brick] == 0
+    @test ~haskey(p2.player.resources, :Wood) || p2.player.resources[:Wood] == 0
     
     @test game.resources[:Pasture] == 0
     @test game.resources[:Stone] == 1
@@ -544,7 +553,7 @@ function test_call_api()
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    settlement = choose_validate_build_settlement!(game, board, players_public, player1, true)
+    settlement = first_turn_build_settlement!(board, players_public, player1)
     loc_settlement = settlement.coord
     @test loc_settlement != nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
@@ -552,7 +561,9 @@ function test_call_api()
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    city = choose_validate_build_city!(game, board, players_public, player1)
+    candidates = BoardApi.get_admissible_city_locations(board, player1.player.team)
+    coord = choose_building_location(board, players_public, player1, candidates, :City)
+    city = BoardApi.build_city!(board, player1.player.team, coord)
     loc_city = city.coord
     @test loc_settlement == loc_city
     
@@ -569,7 +580,7 @@ function test_call_api()
 
     # Build second settlement
     players_public = [PlayerPublicView(p) for p in players]
-    settlement = Catan.choose_validate_build_settlement!(game, board, players_public, player1, true)
+    settlement = Catan.first_turn_build_settlement!(board, players_public, player1)
     loc_settlement = settlement.coord
     @test loc_settlement != nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
