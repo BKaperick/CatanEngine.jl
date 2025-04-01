@@ -178,7 +178,7 @@ end
 function give_resource!(player::Player, resource::Symbol)
     if resource in RESOURCES
         #println(":$(player.team) harvests $resource")
-        @info ":$(player.team) harvests $resource"
+        #@info ":$(player.team) harvests $resource"
         log_action(":$(player.team) gr", resource)
         _give_resource!(player, resource)
     else

@@ -143,8 +143,10 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
 end
 
 function harvest_one_resource!(game, player::Player, resource::Symbol, count::Int)
-    if game.resources[resource] + sum([p.player.resources[resource] for p in game.players]) != 25
-        @warn "$resource: $(game.resources[resource]) + $(sum([p.player.resources[resource] for p in game.players])) != 25..."
+    for r in RESOURCES
+        if game.resources[r] + sum([p.player.resources[r] for p in game.players]) != 25
+            @warn "$r: $(game.resources[r]) + $(sum([p.player.resources[r] for p in game.players])) != 25..."
+        end
     end
     @info "$(player.team) harvests $count $resource (allowed? $(GameApi.can_draw_resource(game, resource)) - game $(game.unique_id) has $(game.resources[resource]) $resource)"
     for i=1:count
@@ -215,34 +217,26 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
     GameApi.set_dice_true(game)
 end
 
-function choose_validate_build_settlement!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
-    candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, is_first_turn)
+function first_turn_build_settlement!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
+    candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, true)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     if coord != nothing
-        construct_settlement(game, board, player.player, coord, is_first_turn)
+        BoardApi.build_settlement!(board, player.player.team, coord)
     end
 end
 
-function choose_validate_build_city!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
-    candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
-    coord = choose_building_location(board, players, player, candidates, :City)
-    if coord != nothing
-        construct_city(game, board, player.player, coord)
-    end
-end
-
-function choose_validate_build_road!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
-        construct_road(game, board, player.player, coord[1], coord[2], is_first_turn)
+        BoardApi.build_road!(board, player.player.team, coord[1], coord[2])
     end
 end
 
 function do_first_turn_building!(game, board, players::Vector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
-    settlement = choose_validate_build_settlement!(game, board, players_public, player, true)
-    choose_validate_build_road!(game, board, players_public, player, true)
+    settlement = first_turn_build_settlement!(board, players_public, player)
+    choose_validate_build_road!(board, players_public, player, true)
     return settlement
 end
 

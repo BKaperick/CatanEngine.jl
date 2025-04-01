@@ -82,21 +82,8 @@ function do_play_devcard(game, board::Board, players, player, card::Union{Nothin
     end
 end
 
-# TODO is this needed to give players all the options?
-function get_devcard_options(board, card::Symbol)
-    if card == :Knight
-        options = BoardApi.get_admissible_robber_tiles(board)
-        return options
-    elseif card in Set([:Monopoly, :YearOfPlenty])
-        return collect(RESOURCES)
-    elseif card == :RoadBuilding
-        do_road_building_action(board, players_public, player)
-    else
-        @assert false
-    end
-end
-
 function do_devcard_action(game, board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+    @info "$(player.player.team) does devcard $card action"
     players_public = PlayerPublicView.(players)
     if card == :Knight
         do_knight_action(board, players, player)
@@ -112,8 +99,8 @@ function do_devcard_action(game, board, players::Vector{PlayerType}, player::Pla
 end
 
 function do_road_building_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
-    choose_validate_build_road!(game, board, players, player, false)
-    choose_validate_build_road!(game, board, players, player, false)
+    choose_validate_build_road!(board, players, player, false)
+    choose_validate_build_road!(board, players, player, false)
 end
 
 function do_year_of_plenty_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
@@ -122,7 +109,7 @@ function do_year_of_plenty_action(game, board, players::Vector{PlayerPublicView}
     GameApi.draw_resource!(game, r1)
     r2 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r2)
-    GameApi.draw_resource!(game, r1)
+    GameApi.draw_resource!(game, r2)
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)

@@ -41,9 +41,10 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
         end
         GameApi.finish_turn(game)
 
-        println("turn num $(game.turn_num)")
+        @info "turn num $(game.turn_num)"
+        @info "game $(game.unique_id): $(sort(["$r - $c" for (r,c) in game.resources]))"
         for player in game.players
-            @info "$(player.player.team): $(sort(["$r - $c" for (r,c) in player.player.resources]))"
+            #@info "$(player.player.team): $(sort(["$r - $c" for (r,c) in player.player.resources]))"
         end
 
         if game.turn_num >= MAX_TURNS
