@@ -129,19 +129,19 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     if :ConstructCity in rand_action
         candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
-        return (coord, (g, b, p) -> construct_city(b, p.player, coord))
+        return (coord, (g, b, p) -> construct_city(g, b, p.player, coord))
     end
     if :ConstructSettlement in rand_action
         candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, false)
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
-        return (coord, (g, b, p) -> construct_settlement(b, p.player, coord))
+        return (coord, (g, b, p) -> construct_settlement(g, b, p.player, coord))
     end
     if :ConstructRoad in rand_action
         candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
-        return ((coord1, coord2), (g, b, p) -> construct_road(b, p.player, coord1, coord2))
+        return ((coord1, coord2), (g, b, p) -> construct_road(g, b, p.player, coord1, coord2))
     end
     if :BuyDevCard in rand_action
         return (nothing, (g, b, p) -> draw_devcard(g, p.player))

@@ -176,6 +176,7 @@ function _add_port!(player::Player, resource::Symbol)
 end
 
 function give_resource!(player::Player, resource::Symbol)
+    #println(":$(player.team) harvests $resource")
     log_action(":$(player.team) gr", resource)
     _give_resource!(player, resource)
 end

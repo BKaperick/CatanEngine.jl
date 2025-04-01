@@ -33,18 +33,21 @@ ACTIONS_DICTIONARY = Dict(
 # CONSTRUCTION ACTIONS
 #
 
-function construct_road(board, player::Player, coord1, coord2)
+function construct_road(game, board, player::Player, coord1, coord2)
     PlayerApi.pay_construction(player, :Road)
+    GameApi.pay_construction!(game, :Road)
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function construct_city(board, player::Player, coord)
+function construct_city(game, board, player::Player, coord)
     PlayerApi.pay_construction(player, :City)
+    GameApi.pay_construction!(game, :City)
     BoardApi.build_city!(board, player.team, coord)
 end
-function construct_settlement(board, player::Player, coord)
+function construct_settlement(game, board, player::Player, coord)
     PlayerApi.pay_construction(player, :Settlement)
     check_add_port(board, player, coord)
+    GameApi.pay_construction!(game, :Settlement)
     BoardApi.build_settlement!(board, player.team, coord)
 end
 
@@ -61,6 +64,7 @@ end
 function draw_devcard(game::Game, player::Player)
     card = GameApi.draw_devcard(game)
     PlayerApi.buy_devcard(player, card)
+    GameApi.pay_construction!(game, :DevelopmentCard)
 end
 
 function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})

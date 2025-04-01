@@ -38,7 +38,7 @@ It supports
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
-MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS
+MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS
 include("../board.jl")
 include("../draw_board.jl")
 

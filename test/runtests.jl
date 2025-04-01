@@ -408,6 +408,7 @@ function test_ports()
     board = read_map(SAMPLE_MAP)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
+    game = Game([player1, player2])
     @test all([v == 4 for v in values(player1.player.ports)])
     @test length(keys(player1.player.ports)) == 5
 
@@ -423,7 +424,7 @@ function test_ports()
     @test player1.player.ports[:Grain] == 2
     @test player1.player.ports[:Wood] == 3
 
-    Catan.construct_settlement(board, player1.player, (3,2))
+    Catan.construct_settlement(game, board, player1.player, (3,2))
     
     @test player1.player.ports[:Brick] == 2
 end

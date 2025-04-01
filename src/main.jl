@@ -5,6 +5,7 @@ API_DICTIONARY = Dict(
                       "df" => GameApi._reset_dice_false,
                       "dd" => GameApi._draw_devcard,
                       "dr" => GameApi._draw_resource,
+                      "pr" => GameApi._give_resource!,
                       "ss" => GameApi._set_starting_player,
                       "st" => GameApi._start_turn,
                       "fp" => GameApi._finish_player_turn,
@@ -143,6 +144,7 @@ end
 
 function harvest_one_resource!(game, player::Player, resource::Symbol, count::Int)
     @info "$(player.team) harvests $count $resource"
+    #println("$(player.team) harvests $count $resource (allowed? $(GameApi.can_draw_resource(game, resource)))")
     for i=1:count
         if GameApi.can_draw_resource(game, resource)
             PlayerApi.give_resource!(player, resource)
@@ -189,6 +191,7 @@ function harvest_resources(game, board, players, dice_value)
             end
         end
     end
+    #println(resource_to_harvest_targets)
     for r in collect(keys(resource_to_harvest_targets))
         harvest_one_resource(game, players, resource_to_harvest_targets[r], r)
     end
