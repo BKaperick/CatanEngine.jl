@@ -75,11 +75,11 @@ end
 function can_draw_resource(game::Game, resource::Symbol)
     return game.resources[resource] > 0
 end
-function draw_resource(game::Game, resource::Symbol)
+function draw_resource!(game::Game, resource::Symbol)
     log_action("game dr :$resource")
-    _draw_resource(game, resource)
+    _draw_resource!(game, resource)
 end
-function _draw_resource(game::Game, resource::Symbol)
+function _draw_resource!(game::Game, resource::Symbol)
     game.resources[resource] -= 1
     return resource 
 end
@@ -88,6 +88,9 @@ function give_resource!(game::Game, resource::Symbol)
     _give_resource!(game, resource)
 end
 function _give_resource!(game::Game, resource::Symbol)
+    if game.resources[resource] == 25
+        @warn "game $(game.unique_id) has too much $resource"
+    end
     game.resources[resource] += 1
     return resource 
 end

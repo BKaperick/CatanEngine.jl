@@ -34,7 +34,7 @@ take_resource!(player::Player, resource::Symbol)
 trade_resource_with_bank(player::Player, from_resource, to_resource)
 """
 module PlayerApi
-using ..Catan: Player, PlayerPublicView, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
+using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action
 
 # Player API
 
@@ -176,9 +176,14 @@ function _add_port!(player::Player, resource::Symbol)
 end
 
 function give_resource!(player::Player, resource::Symbol)
-    #println(":$(player.team) harvests $resource")
-    log_action(":$(player.team) gr", resource)
-    _give_resource!(player, resource)
+    if resource in RESOURCES
+        #println(":$(player.team) harvests $resource")
+        @info ":$(player.team) harvests $resource"
+        log_action(":$(player.team) gr", resource)
+        _give_resource!(player, resource)
+    else
+        #@warn "giving $(player.team) $resource"
+    end
 end
 function _give_resource!(player::Player, resource::Symbol)
     if haskey(player.resources, resource)

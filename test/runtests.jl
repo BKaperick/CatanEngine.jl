@@ -529,6 +529,7 @@ function test_call_api()
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
+    game = Game(players)
 
     @test PlayerApi.has_any_resources(player1.player) == false
     @test PlayerApi.has_any_resources(player2.player) == false
@@ -543,7 +544,7 @@ function test_call_api()
     players_public = [PlayerPublicView(p) for p in players]
     
     # Build first settlement
-    settlement = choose_validate_build_settlement!(board, players_public, player1, true)
+    settlement = choose_validate_build_settlement!(game, board, players_public, player1, true)
     loc_settlement = settlement.coord
     @test loc_settlement != nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
@@ -551,14 +552,14 @@ function test_call_api()
     
     # Upgrade it to a city
     players_public = [PlayerPublicView(p) for p in players]
-    city = choose_validate_build_city!(board, players_public, player1)
+    city = choose_validate_build_city!(game, board, players_public, player1)
     loc_city = city.coord
     @test loc_settlement == loc_city
     
     # Build a road attached to first settlement
     players_public = [PlayerPublicView(p) for p in players]
     
-    #Equiv: choose_validate_build_road!(board, players_public, player1, true)
+    #Equiv: choose_validate_build_road!(game, board, players_public, player1, true)
     admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
     road_coords = choose_road_location(board, players_public, player1, admissible_roads)
     BoardApi.build_road!(board, player1.player.team, road_coords[1], road_coords[2])
@@ -568,7 +569,7 @@ function test_call_api()
 
     # Build second settlement
     players_public = [PlayerPublicView(p) for p in players]
-    settlement = Catan.choose_validate_build_settlement!(board, players_public, player1, true)
+    settlement = Catan.choose_validate_build_settlement!(game, board, players_public, player1, true)
     loc_settlement = settlement.coord
     @test loc_settlement != nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)

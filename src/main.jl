@@ -4,7 +4,7 @@ API_DICTIONARY = Dict(
                       "dt" => GameApi._reset_dice_true,
                       "df" => GameApi._reset_dice_false,
                       "dd" => GameApi._draw_devcard,
-                      "dr" => GameApi._draw_resource,
+                      "dr" => GameApi._draw_resource!,
                       "pr" => GameApi._give_resource!,
                       "ss" => GameApi._set_starting_player,
                       "st" => GameApi._start_turn,
@@ -143,12 +143,14 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
 end
 
 function harvest_one_resource!(game, player::Player, resource::Symbol, count::Int)
-    @info "$(player.team) harvests $count $resource"
-    #println("$(player.team) harvests $count $resource (allowed? $(GameApi.can_draw_resource(game, resource)))")
+    if game.resources[resource] + sum([p.player.resources[resource] for p in game.players]) != 25
+        @warn "$resource: $(game.resources[resource]) + $(sum([p.player.resources[resource] for p in game.players])) != 25..."
+    end
+    @info "$(player.team) harvests $count $resource (allowed? $(GameApi.can_draw_resource(game, resource)) - game $(game.unique_id) has $(game.resources[resource]) $resource)"
     for i=1:count
         if GameApi.can_draw_resource(game, resource)
             PlayerApi.give_resource!(player, resource)
-            GameApi.draw_resource(game, resource)
+            GameApi.draw_resource!(game, resource)
         end
     end
 end
@@ -208,39 +210,39 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
     if value != 7
         harvest_resources(game, board, players, value)
     else
-        do_robber_move(board, players, player)
+        do_robber_move(game, board, players, player)
     end
     GameApi.set_dice_true(game)
 end
 
-function choose_validate_build_settlement!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_settlement!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, is_first_turn)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     if coord != nothing
-        BoardApi.build_settlement!(board, player.player.team, coord)
+        construct_settlement(game, board, player.player, coord, is_first_turn)
     end
 end
 
-function choose_validate_build_city!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
+function choose_validate_build_city!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     candidates = BoardApi.get_admissible_city_locations(board, player.player.team)
     coord = choose_building_location(board, players, player, candidates, :City)
     if coord != nothing
-        BoardApi.build_city!(board, player.player.team, coord)
+        construct_city(game, board, player.player, coord)
     end
 end
 
-function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_road!(game, board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
-        BoardApi.build_road!(board, player.player.team, coord[1], coord[2])
+        construct_road(game, board, player.player, coord[1], coord[2], is_first_turn)
     end
 end
 
-function do_first_turn_building!(board, players::Vector{PlayerType}, player::PlayerType)
+function do_first_turn_building!(game, board, players::Vector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
-    settlement = choose_validate_build_settlement!(board, players_public, player, true)
-    choose_validate_build_road!(board, players_public, player, true)
+    settlement = choose_validate_build_settlement!(game, board, players_public, player, true)
+    choose_validate_build_road!(game, board, players_public, player, true)
     return settlement
 end
 

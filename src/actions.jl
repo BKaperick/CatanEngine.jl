@@ -33,21 +33,27 @@ ACTIONS_DICTIONARY = Dict(
 # CONSTRUCTION ACTIONS
 #
 
-function construct_road(game, board, player::Player, coord1, coord2)
-    PlayerApi.pay_construction(player, :Road)
-    GameApi.pay_construction!(game, :Road)
+function construct_road(game, board, player::Player, coord1, coord2, first_turn = false)
+    if ~first_turn
+        PlayerApi.pay_construction(player, :Road)
+        GameApi.pay_construction!(game, :Road)
+    end
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function construct_city(game, board, player::Player, coord)
-    PlayerApi.pay_construction(player, :City)
-    GameApi.pay_construction!(game, :City)
+function construct_city(game, board, player::Player, coord, first_turn = false)
+    if ~first_turn
+        PlayerApi.pay_construction(player, :City)
+        GameApi.pay_construction!(game, :City)
+    end
     BoardApi.build_city!(board, player.team, coord)
 end
-function construct_settlement(game, board, player::Player, coord)
-    PlayerApi.pay_construction(player, :Settlement)
+function construct_settlement(game, board, player::Player, coord, first_turn = false)
+    if ~first_turn
+        PlayerApi.pay_construction(player, :Settlement)
+        GameApi.pay_construction!(game, :Settlement)
+    end
     check_add_port(board, player, coord)
-    GameApi.pay_construction!(game, :Settlement)
     BoardApi.build_settlement!(board, player.team, coord)
 end
 
@@ -67,9 +73,9 @@ function draw_devcard(game::Game, player::Player)
     GameApi.pay_construction!(game, :DevelopmentCard)
 end
 
-function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
+function do_play_devcard(game, board::Board, players, player, card::Union{Nothing,Symbol})
     if card != nothing
-        do_devcard_action(board, players, player, card)
+        do_devcard_action(game, board, players, player, card)
         PlayerApi.play_devcard!(player.player, card)
         decide_and_assign_largest_army!(board, players)
         # Note: longest road is assigned within the build road call
@@ -90,31 +96,33 @@ function get_devcard_options(board, card::Symbol)
     end
 end
 
-function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+function do_devcard_action(game, board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
     players_public = PlayerPublicView.(players)
     if card == :Knight
         do_knight_action(board, players, player)
     elseif card == :Monopoly
         do_monopoly_action(board, players, player)
     elseif card == :YearOfPlenty
-        do_year_of_plenty_action(board, players_public, player)
+        do_year_of_plenty_action(game, board, players_public, player)
     elseif card == :RoadBuilding
-        do_road_building_action(board, players_public, player)
+        do_road_building_action(game, board, players_public, player)
     else
         @assert false
     end
 end
 
-function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
-    choose_validate_build_road!(board, players, player, false)
-    choose_validate_build_road!(board, players, player, false)
+function do_road_building_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
+    choose_validate_build_road!(game, board, players, player, false)
+    choose_validate_build_road!(game, board, players, player, false)
 end
 
-function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
+function do_year_of_plenty_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r1)
+    GameApi.draw_resource!(game, r1)
     r2 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r2)
+    GameApi.draw_resource!(game, r1)
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)
@@ -133,19 +141,20 @@ function do_knight_action(board, players::Vector{PlayerType}, player)
     do_robber_move_theft(board, players, player)
 end
 
-function do_robber_move(board, players::Vector{PlayerType}, player)
+function do_robber_move(game, board, players::Vector{PlayerType}, player)
     for p in players
-        do_robber_move_discard(board, player)
+        do_robber_move_discard(game, board, player)
     end
     do_robber_move_theft(board, players, player)
 end
 
-function do_robber_move_discard(board, player::PlayerType)
+function do_robber_move_discard(game, board, player::PlayerType)
     r_count = PlayerApi.count_cards(player.player)
     if r_count > 7
         for i = 1:Int(floor(r_count / 2))
             resource = choose_one_resource_to_discard(board, player)
             PlayerApi.discard_cards!(player.player, resource)
+            GameApi.give_resource!(game, resource)
         end
     end
 end
@@ -188,8 +197,6 @@ function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublic
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
-        @info [p.team for p in players]
-        @info team
         victim = [p for p in players if p.team == team][1]
         if PlayerApi.has_any_resources(victim) && (team != thief.team)
             push!(admissible_victims, victim)

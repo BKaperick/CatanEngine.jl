@@ -150,7 +150,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         devcards = PlayerApi.get_admissible_devcards(player.player)
         card = _choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (card, (g, b, p) -> do_play_devcard(b, g.players, p, card))
+            return (card, (g, b, p) -> do_play_devcard(g, b, g.players, p, card))
         end
     end
     if :ProposeTrade in rand_action
