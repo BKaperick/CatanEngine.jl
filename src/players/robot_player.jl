@@ -12,7 +12,7 @@
 #     player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, 
 #     building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
 #
-# choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
+# choose_one_resource_to_discard(player::RobotPlayer)::Symbol
 #
 # choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, 
 #     player::RobotPlayer)::Symbol
@@ -68,8 +68,8 @@ function choose_building_location(board::Board, players::Vector{PlayerPublicView
     return nothing
 end
 
-function choose_cards_to_discard(player::RobotPlayer, amount::Int)::Vector{Symbol}
-    return random_sample_resources(player.player.resources, amount)
+function choose_one_resource_to_discard(board::Board, player::RobotPlayer)::Symbol
+    return random_sample_resources(player.player.resources, 1)[1]
 end
 
 function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
@@ -105,8 +105,8 @@ function choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView
     return get_random_resource()
 end
 
-function choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Tuple{Symbol, Symbol}
-    return get_random_resource(),get_random_resource()
+function choose_resource_to_draw(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
+    return get_random_resource()
 end
 function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...)::PlayerPublicView
     max_ind = sample(collect(potential_victims), 1)[1]

@@ -9,8 +9,8 @@ function roll_dice(player::HumanPlayer)::Int
     parse_int(player.io, "Dice roll:")
 end
 
-function choose_cards_to_discard(player::HumanPlayer, amount)
-    return parse_resources(player.io, "$(player.player.team) discards: ")
+function choose_one_resource_to_discard(board, player::HumanPlayer)
+    return parse_resources(player.io, "$(player.player.team) discards: ")[1]
 end
 
 function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int,Int}}, building_type::Symbol, is_first_turn = false)::Union{Nothing, Tuple{Int, Int}}
@@ -47,8 +47,8 @@ function choose_place_robber(board::Board, players::Vector{PlayerType}, player::
     parse_tile(player.io, "$(player.player.team) places the Robber:")
 end
 
-function choose_year_of_plenty_resources(board, players, player::HumanPlayer)
-    parse_resources(player.io, "$(player.player.team) choose two resources for free:")
+function choose_resource_to_draw(board, players, player::HumanPlayer)
+    parse_resources(player.io, "$(player.player.team) choose two resources for free:")[1]
     return
 end
 

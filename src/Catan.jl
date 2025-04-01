@@ -48,14 +48,14 @@ GameRunner
 # Player methods to implement
 export choose_accept_trade,
 choose_building_location,
-choose_cards_to_discard,
+choose_one_resource_to_discard,
 choose_monopoly_resource,
 choose_place_robber,
 choose_next_action,
 choose_road_location,
 choose_robber_victim,
 choose_who_to_trade_with,
-choose_year_of_plenty_resources,
+choose_resource_to_draw,
 choose_card_to_steal,
 
 do_post_game_action,

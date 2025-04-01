@@ -107,8 +107,9 @@ function do_road_building_action(board, players::Vector{PlayerPublicView}, playe
 end
 
 function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
-    r1, r2 = choose_year_of_plenty_resources(board, players, player)
+    r1 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r1)
+    r2 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r2)
 end
 
@@ -138,8 +139,10 @@ end
 function do_robber_move_discard(board, player::PlayerType)
     r_count = PlayerApi.count_cards(player.player)
     if r_count > 7
-        resources_to_discard = choose_cards_to_discard(player, Int(floor(r_count / 2)))
-        PlayerApi.discard_cards!(player.player, resources_to_discard...)
+        for i = 1:Int(floor(r_count / 2))
+            resource = choose_one_resource_to_discard(board, player)
+            PlayerApi.discard_cards!(player.player, resource)
+        end
     end
 end
 
@@ -172,7 +175,7 @@ function do_robber_move_theft(board, players::Vector{PlayerType}, player::Player
     BoardApi.move_robber!(board, new_robber_tile)
     victim = victim_public != nothing ? [p.player for p in players if p.player.team == victim_public.team][1] : nothing
     if victim != nothing && stolen_good != nothing
-        PlayerApi.take_resource!(victim.player, stolen_good)
+        PlayerApi.take_resource!(victim, stolen_good)
         PlayerApi.give_resource!(player.player, stolen_good)
     end
 end

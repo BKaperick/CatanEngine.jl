@@ -58,7 +58,11 @@ function trade_resource_with_bank(player::Player, from_resource, to_resource)
 end
 
 function can_play_devcard(player::Player)::Bool
-    return sum(values(player.devcards)) > 0 && ~player.played_devcard_this_turn
+    total_num_devcards = sum(values(player.devcards))
+    if haskey(player.devcards, :VictoryPoint) && total_num_devcards == player.devcards[:VictoryPoint]
+        return false
+    end
+    return total_num_devcards > 0 && ~player.played_devcard_this_turn
 end
 
 function get_vp_count_from_devcards(player::Player)

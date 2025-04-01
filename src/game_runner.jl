@@ -152,7 +152,7 @@ function print_player_stats(game, board, player::Player)
     @info player
 end
 
-function get_total_vp_count(board, player::Player)
+function get_total_vp_count(board, player)
     return BoardApi.get_public_vp_count(board, player.team) + PlayerApi.get_vp_count_from_devcards(player)
 end
 end
