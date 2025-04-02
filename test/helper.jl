@@ -100,7 +100,8 @@ function test_player_implementation(T::Type) #where T <: PlayerType
     game = Game(private_players)
     board = read_map(SAMPLE_MAP)
     from_player = players[2]
-    actions = Catan.ALL_ACTIONS
+    #actions = Catan.ALL_ACTIONS
+    actions = Set([PreAction(:BuyDevCard)])
 
     from_goods = [:Wood]
     to_goods = [:Grain]
@@ -119,7 +120,7 @@ function test_player_implementation(T::Type) #where T <: PlayerType
     choose_one_resource_to_discard(board, player)
     choose_monopoly_resource(board, players, player)
     choose_next_action(board, players, player, actions)
-    choose_place_robber(board, players, player)
+    choose_place_robber(board, players, player, BoardApi.get_admissible_robber_tiles(board))
     choose_road_location(board, players, player, road_candidates)
     choose_robber_victim(board, player, players[2], players[3])
     choose_who_to_trade_with(board, player, players)

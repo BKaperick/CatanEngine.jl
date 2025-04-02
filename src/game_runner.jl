@@ -1,8 +1,7 @@
 module GameRunner
-using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView,
+using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction,
                read_map, load_gamestate!, initialize_player,
                do_first_turn_building!,
-               do_play_devcard,get_admissible_devcards, 
                decide_and_roll_dice!,choose_next_action,
                do_post_action_step, do_post_game_action, get_legal_actions,
                COORD_TO_TILES, SAVE_GAME_TO_FILE, COSTS, PRINT_BOARD, MAX_TURNS, RESOURCES
@@ -86,7 +85,7 @@ function do_first_turn_reverse(game, board, players)
     GameApi.finish_turn(game)
 end
 
-function do_action_from_legal_actions(game, board, player, legal_actions::Set{Symbol})::Bool
+function do_action_from_legal_actions(game, board, player, legal_actions::Set{PreAction})::Bool
     @debug "actions for $player: $legal_actions"
     if length(legal_actions) == 0
         @info "no legal actions"
@@ -110,7 +109,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
 
     # Player is only allowed to play a dev card before rolling the dice
     if PlayerApi.can_play_devcard(player.player)
-        do_action_from_legal_actions(game, board, player, Set([:PlayDevCard]))
+        do_action_from_legal_actions(game, board, player, Set([PreAction(:PlayDevCard, PlayerApi.get_admissible_devcards(player.player))]))
     end
 
     decide_and_roll_dice!(game, board, player)

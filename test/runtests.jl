@@ -660,9 +660,9 @@ function test_trading()
     players_public = PlayerPublicView.(players)
     PlayerApi.give_resource!(player1.player, :Grain)
     PlayerApi.give_resource!(player2.player, :Brick)
-    actions = Set([:ProposeTrade])
+    actions = Set([PreAction(:ProposeTrade)])
     next_action = choose_next_action(board::Board, players_public, player1, actions)
-    #@test next_action != nothing 
+    @test next_action != nothing 
 end
 
 function run_tests(neverend = false)

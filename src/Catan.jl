@@ -43,7 +43,8 @@ export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerP
 BoardApi, 
 PlayerApi,
 GameApi,
-GameRunner
+GameRunner,
+PreAction
 
 # Player methods to implement
 export choose_accept_trade,

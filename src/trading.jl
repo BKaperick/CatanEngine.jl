@@ -121,3 +121,7 @@ function trade_goods_from_player(from_player::PlayerPublicView, from_goods::Dict
     to_goods_flat = flatten(to_goods)
     trade_goods_from_player(from_player, from_goods_flat, to_goods_flat)
 end
+
+function choose_accept_trade(board::Board, player::Player, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+    return false
+end

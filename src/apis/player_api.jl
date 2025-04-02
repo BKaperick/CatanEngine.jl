@@ -40,14 +40,21 @@ using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, DE
 
 
 function get_admissible_devcards(player::Player)
+    return collect(keys(get_admissible_devcards_with_counts(player)))
+end
+function get_admissible_devcards_with_counts(player::Player)
     if ~can_play_devcard(player)
         return 
     end
+    
+    # Non-playable card :VictoryPoint
     out = deepcopy(player.devcards)
+    out[:VictoryPoint] = 0
+
     if player.bought_devcard_this_turn != nothing
         out[player.bought_devcard_this_turn] -= 1
     end
-    return out
+    return Dict((c,cc) for (c,cc) in out if cc > 0)
 end
 function trade_resource_with_bank(player::Player, from_resource, to_resource)
     rate = player.ports[from_resource]

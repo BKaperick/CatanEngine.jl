@@ -43,7 +43,7 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
     return road_coords
 end
 
-function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer)
+function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer, candidates::Vector{Symbol})
     parse_tile(player.io, "$(player.player.team) places the Robber:")
 end
 
@@ -69,7 +69,7 @@ end
 
 function choose_next_action(board, players, player::HumanPlayer, actions)
     header = "What does $(player.player.team) do next?\n"
-    full_options = string(header, [ACTION_TO_DESCRIPTION[a] for a in actions]..., "\n[E]nd turn")
+    full_options = string(header, [ACTION_TO_DESCRIPTION[a.name] for a in actions]..., "\n[E]nd turn")
     action_and_args = parse_action(player.io, full_options)
     if action_and_args == :EndTurn
         return nothing

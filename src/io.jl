@@ -198,7 +198,7 @@ end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
-    BoardApi.print_board(board)
+    #BoardApi.print_board(board)
     for player in players
         do_post_game_action(game, board, players, player, winner)
     end

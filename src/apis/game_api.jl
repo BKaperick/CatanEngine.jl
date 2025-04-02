@@ -89,7 +89,8 @@ function give_resource!(game::Game, resource::Symbol)
 end
 function _give_resource!(game::Game, resource::Symbol)
     if game.resources[resource] == 25
-        @warn "game $(game.unique_id) has too much $resource"
+        @info "game $(game.unique_id) has too much $resource"
+        #@warn "game $(game.unique_id) has too much $resource"
     end
     game.resources[resource] += 1
     return resource 

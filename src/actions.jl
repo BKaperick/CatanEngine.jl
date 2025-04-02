@@ -148,7 +148,8 @@ end
 
 function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
-    new_robber_tile = choose_place_robber(board, players_public, player)
+    candidate_tiles = BoardApi.get_admissible_robber_tiles(board) 
+    new_robber_tile = choose_place_robber(board, players_public, player, candidate_tiles)
     @info "$(player.player.team) moves robber to $new_robber_tile"
     players_public = PlayerPublicView.(players)
     admissible_victims_public = get_admissible_theft_victims(board, players_public, player.player, new_robber_tile)
@@ -204,25 +205,32 @@ function with_options(action::Function, candidates::Vector)
     return actions
 end
 
-function get_legal_actions(game, board, player)::Set{Symbol}
-    actions = Set{Symbol}()
-    if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(BoardApi.get_admissible_city_locations(board, player.team)) > 0
-        push!(actions, :ConstructCity)
+function get_legal_actions(game, board, player::Player)::Set{PreAction}
+    actions = Set{PreAction}()
+
+    admissible_cities = BoardApi.get_admissible_city_locations(board, player.team)
+    if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(admissible_cities) > 0
+        push!(actions, PreAction(:ConstructCity, admissible_cities))
     end
-    if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(BoardApi.get_admissible_settlement_locations(board, player.team)) > 0
-        push!(actions, :ConstructSettlement)
+
+    admissible_settlements = BoardApi.get_admissible_settlement_locations(board, player.team)
+    if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(admissible_settlements) > 0
+        push!(actions, PreAction(:ConstructSettlement, admissible_settlements))
     end
-    if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(BoardApi.get_admissible_road_locations(board, player.team)) > 0
-        push!(actions, :ConstructRoad)
+
+    admissible_roads = BoardApi.get_admissible_road_locations(board, player.team)
+    if PlayerApi.has_enough_resources(player, COSTS[:Road]) && length(admissible_roads) > 0
+        push!(actions, PreAction(:ConstructRoad, admissible_roads))
     end
+
     if PlayerApi.has_enough_resources(player, COSTS[:DevelopmentCard]) && GameApi.can_draw_devcard(game)
-        push!(actions, :BuyDevCard)
+        push!(actions, PreAction(:BuyDevCard))
     end
     if PlayerApi.can_play_devcard(player)
-        push!(actions, :PlayDevCard)
+        push!(actions, PreAction(:PlayDevCard, PlayerApi.get_admissible_devcards(player)))
     end
     if PlayerApi.has_any_resources(player)
-        push!(actions, :ProposeTrade)
+        push!(actions, PreAction(:ProposeTrade))
     end
     return actions
 end

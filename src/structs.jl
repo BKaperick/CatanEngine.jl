@@ -65,6 +65,13 @@ function Base.deepcopy(board::Board)
                     )
 end
 
-function choose_accept_trade(board::Board, player::Player, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
-    return false
+struct PreAction 
+    name::Symbol
+    admissible_args::Set
+end
+
+PreAction(name::Symbol) = PreAction(name, Set([]))
+
+function PreAction(name::Symbol, admissible_args::Vector)
+    PreAction(name, Set(admissible_args))
 end
