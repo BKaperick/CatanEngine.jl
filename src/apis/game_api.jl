@@ -1,5 +1,5 @@
 module GameApi
-using ..Catan: Game, roll_dice, log_action, COSTS
+using ..Catan: Game, roll_dice, log_action  
 using StatsBase
 import Random
 include("../random_helper.jl")
@@ -72,30 +72,6 @@ function _draw_devcard(game::Game, card::Symbol)
     return card
 end
 
-function can_draw_resource(game::Game, resource::Symbol)
-    return game.resources[resource] > 0
-end
-function draw_resource!(game::Game, resource::Symbol)
-    log_action("game dr :$resource")
-    _draw_resource!(game, resource)
-end
-function _draw_resource!(game::Game, resource::Symbol)
-    game.resources[resource] -= 1
-    return resource 
-end
-function give_resource!(game::Game, resource::Symbol)
-    log_action("game pr :$resource")
-    _give_resource!(game, resource)
-end
-function _give_resource!(game::Game, resource::Symbol)
-    if game.resources[resource] == 25
-        @info "game $(game.unique_id) has too much $resource"
-        #@warn "game $(game.unique_id) has too much $resource"
-    end
-    game.resources[resource] += 1
-    return resource 
-end
-
 function set_starting_player(game, index)
     log_action("game ss", index)
     _set_starting_player(game, index)
@@ -105,19 +81,5 @@ function _set_starting_player(game::Game, index)
     game.players = circshift(game.players, length(game.players) - index + 1)
     @debug "After: $([p.player.team for p in game.players])"
     game.turn_order_set = true
-end
-
-"""
-    `pay_construction!(game::Game, symbol::Symbol)`
-
-When a player constructs something, we give the resources back to the game
-"""
-function pay_construction!(game::Game, symbol::Symbol)
-    resources = COSTS[symbol]
-    for (r,c) in resources
-        for i=1:c
-            give_resource!(game, r)
-        end
-    end
 end
 end

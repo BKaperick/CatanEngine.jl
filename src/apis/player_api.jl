@@ -51,7 +51,7 @@ function get_admissible_devcards_with_counts(player::Player)
     out = deepcopy(player.devcards)
     out[:VictoryPoint] = 0
 
-    if player.bought_devcard_this_turn != nothing
+    if player.bought_devcard_this_turn !== nothing
         out[player.bought_devcard_this_turn] -= 1
     end
     return Dict((c,cc) for (c,cc) in out if cc > 0)

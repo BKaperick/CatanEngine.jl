@@ -126,7 +126,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         return ((coord1, coord2), (g, b, p) -> construct_road(g, b, p.player, coord1, coord2))
     end
     if name == :BuyDevCard
-        return (nothing, (g, b, p) -> draw_devcard(g, p.player))
+        return (nothing, (g, b, p) -> draw_devcard(g, b, p.player))
     end
     if name == :PlayDevCard
         devcards = PlayerApi.get_admissible_devcards_with_counts(player.player)

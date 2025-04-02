@@ -41,7 +41,7 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
         GameApi.finish_turn(game)
 
         @info "turn num $(game.turn_num)"
-        @info "game $(game.unique_id): $(sort(["$r - $c" for (r,c) in game.resources]))"
+        @info "game $(game.unique_id): $(sort(["$r - $c" for (r,c) in board.resources]))"
         for player in game.players
             #@info "$(player.player.team): $(sort(["$r - $c" for (r,c) in player.player.resources]))"
         end
@@ -78,7 +78,7 @@ function do_first_turn_reverse(game, board, players)
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
             PlayerApi.give_resource!(player.player, resource)
-            GameApi.draw_resource!(game, resource)
+            BoardApi.draw_resource!(board, resource)
         end
         GameApi.finish_player_turn(game, player.player.team)
     end

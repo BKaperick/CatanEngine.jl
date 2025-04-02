@@ -38,7 +38,7 @@ It supports
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
-MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS
+MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS
 include("../board.jl")
 include("../draw_board.jl")
 
@@ -424,5 +424,39 @@ end
 
 function get_admissible_robber_tiles(board::Board)::Vector{Symbol}
     [t for t in collect(keys(board.tile_to_dicevalue)) if t != board.robber_tile]
+end
+
+function can_draw_resource(board::Board, resource::Symbol)
+    return board.resources[resource] > 0
+end
+function draw_resource!(board::Board, resource::Symbol)
+    log_action("board dr :$resource")
+    _draw_resource!(board, resource)
+end
+function _draw_resource!(board::Board, resource::Symbol)
+    board.resources[resource] -= 1
+    return resource 
+end
+function give_resource!(board::Board, resource::Symbol)
+    log_action("board pr :$resource")
+    _give_resource!(board, resource)
+end
+function _give_resource!(board::Board, resource::Symbol)
+    board.resources[resource] += 1
+    return resource 
+end
+
+"""
+    `pay_construction!(game::Game, symbol::Symbol)`
+
+When a player constructs something, we give the resources back to the game
+"""
+function pay_construction!(board::Board, symbol::Symbol)
+    resources = COSTS[symbol]
+    for (r,c) in resources
+        for i=1:c
+            give_resource!(board, r)
+        end
+    end
 end
 end

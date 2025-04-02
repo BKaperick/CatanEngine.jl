@@ -1,7 +1,6 @@
 
 mutable struct Game
     devcards::Dict{Symbol,Int}
-    resources::Dict{Symbol,Int}
     players::Vector{PlayerType}
     # This field is needed in order to reload a game that was saved and quit in the middle of a turn
     already_played_this_turn::Set{Symbol}
@@ -12,7 +11,7 @@ mutable struct Game
     unique_id::Int
 end
 
-Game(players) = Game(deepcopy(DEVCARD_COUNTS), Dict([(r, MAX_RESOURCE) for r in collect(keys(RESOURCE_TO_COUNT))]), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)))
+Game(players) = Game(deepcopy(DEVCARD_COUNTS), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)))
 
 struct Road
     coord1::Tuple{Int,Int}
@@ -39,12 +38,19 @@ mutable struct Board
     roads::Array{Road,1}
     robber_tile::Symbol
     spaces::Vector
+    resources::Dict{Symbol,Int}
     # Team of player with the longest road card (is nothing if no player has a road at least 5 length)
     longest_road::Union{Nothing, Symbol}
     largest_army::Union{Nothing, Symbol}
 end
 
-Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, BoardApi.initialize_empty_board(DIMS), nothing, nothing)
+Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, 
+      robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, 
+      dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
+      BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, 
+      BoardApi.initialize_empty_board(DIMS), 
+      Dict([(r, MAX_RESOURCE) for r in RESOURCES]), 
+      nothing, nothing)
 Board(csvfile) = BoardApi.Board(csvfile)
 
 function Base.deepcopy(board::Board)
@@ -60,6 +66,7 @@ function Base.deepcopy(board::Board)
                  deepcopy(board.roads),
                  board.robber_tile,
                  deepcopy(board.spaces),
+                 deepcopy(board.resources),
                  board.longest_road,
                  board.largest_army
                     )

@@ -4,8 +4,6 @@ API_DICTIONARY = Dict(
                       "dt" => GameApi._reset_dice_true,
                       "df" => GameApi._reset_dice_false,
                       "dd" => GameApi._draw_devcard,
-                      "dr" => GameApi._draw_resource!,
-                      "pr" => GameApi._give_resource!,
                       "ss" => GameApi._set_starting_player,
                       "st" => GameApi._start_turn,
                       "fp" => GameApi._finish_player_turn,
@@ -17,6 +15,8 @@ API_DICTIONARY = Dict(
                       "br" => BoardApi._build_road!,
                       "mr" => BoardApi._move_robber!,
                       "la" => BoardApi._assign_largest_army!,
+                      "dr" => BoardApi._draw_resource!,
+                      "pr" => BoardApi._give_resource!,
 
                       # Players commands
 
@@ -142,22 +142,17 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
     end
 end
 
-function harvest_one_resource!(game, player::Player, resource::Symbol, count::Int)
-    for r in RESOURCES
-        if game.resources[r] + sum([p.player.resources[r] for p in game.players]) != 25
-            @warn "$r: $(game.resources[r]) + $(sum([p.player.resources[r] for p in game.players])) != 25..."
-        end
-    end
-    @info "$(player.team) harvests $count $resource (allowed? $(GameApi.can_draw_resource(game, resource)) - game $(game.unique_id) has $(game.resources[resource]) $resource)"
+function harvest_one_resource!(board::Board, player::Player, resource::Symbol, count::Int)
+    @info "$(player.team) harvests $count $resource"
     for i=1:count
-        if GameApi.can_draw_resource(game, resource)
+        if BoardApi.can_draw_resource(board, resource)
             PlayerApi.give_resource!(player, resource)
-            GameApi.draw_resource!(game, resource)
+            BoardApi.draw_resource!(board, resource)
         end
     end
 end
-function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
-    total_remaining = game.resources[resource]
+function harvest_one_resource(board, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
+    total_remaining = board.resources[resource]
     player_and_counts = [(player, t == :Settlement ? 1 : 2) for (player, t) in player_and_types]
     total_needed = sum([x[2] for x in player_and_counts])
     if total_needed == 0
@@ -165,7 +160,7 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
     end
     if total_needed <= total_remaining
         for (player,count) in player_and_counts
-            harvest_one_resource!(game, player, resource, count)
+            harvest_one_resource!(board, player, resource, count)
         end
     else
         # If multiple people harvest, but there aren't enough resources,
@@ -173,14 +168,14 @@ function harvest_one_resource(game, players, player_and_types::Vector{Tuple{Play
         # If only one person needs it, then we give them the rest
         num_teams = length(Set([x[1].team for x in player_and_counts]))
         if num_teams == 1
-            harvest_one_resource!(game, player_and_counts[1][1], resource, total_remaining)
+            harvest_one_resource!(board, player_and_counts[1][1], resource, total_remaining)
         end
     end
 end
 
-function harvest_resources(game, board, players, dice_value)
+function harvest_resources(board, players, dice_value)
     # Dict of resource -> (player -> count)
-    resource_to_harvest_targets = Dict([(r, Vector{Tuple{Player, Symbol}}()) for r in collect(keys(RESOURCE_TO_COUNT))]) 
+    resource_to_harvest_targets = Dict([(r, Vector{Tuple{Player, Symbol}}()) for r in RESOURCES]) 
     for tile in board.dicevalue_to_tiles[dice_value]
         resource = board.tile_to_resource[tile]
         # Don't harvest Desert, and don't harvest the robber resource
@@ -197,7 +192,7 @@ function harvest_resources(game, board, players, dice_value)
     end
     #println(resource_to_harvest_targets)
     for r in collect(keys(resource_to_harvest_targets))
-        harvest_one_resource(game, players, resource_to_harvest_targets[r], r)
+        harvest_one_resource(board, players, resource_to_harvest_targets[r], r)
     end
 end
 function decide_and_roll_dice!(game, board, player::PlayerType)
@@ -210,9 +205,9 @@ end
 function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
-        harvest_resources(game, board, players, value)
+        harvest_resources(board, players, value)
     else
-        do_robber_move(game, board, players, player)
+        do_robber_move(board, players, player)
     end
     GameApi.set_dice_true(game)
 end

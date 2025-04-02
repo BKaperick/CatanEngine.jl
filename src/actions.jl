@@ -36,7 +36,7 @@ ACTIONS_DICTIONARY = Dict(
 function construct_road(game, board, player::Player, coord1, coord2, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Road)
-        GameApi.pay_construction!(game, :Road)
+        BoardApi.pay_construction!(board, :Road)
     end
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
@@ -44,14 +44,14 @@ end
 function construct_city(game, board, player::Player, coord, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :City)
-        GameApi.pay_construction!(game, :City)
+        BoardApi.pay_construction!(board, :City)
     end
     BoardApi.build_city!(board, player.team, coord)
 end
 function construct_settlement(game, board, player::Player, coord, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Settlement)
-        GameApi.pay_construction!(game, :Settlement)
+        BoardApi.pay_construction!(board, :Settlement)
     end
     check_add_port(board, player, coord)
     BoardApi.build_settlement!(board, player.team, coord)
@@ -67,10 +67,10 @@ end
 # DEVCARD ACTIONS
 #
 
-function draw_devcard(game::Game, player::Player)
+function draw_devcard(game::Game, board::Board, player::Player)
     card = GameApi.draw_devcard(game)
     PlayerApi.buy_devcard(player, card)
-    GameApi.pay_construction!(game, :DevelopmentCard)
+    BoardApi.pay_construction!(board, :DevelopmentCard)
 end
 
 function do_play_devcard(game, board::Board, players, player, card::Union{Nothing,Symbol})
@@ -106,10 +106,10 @@ end
 function do_year_of_plenty_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r1)
-    GameApi.draw_resource!(game, r1)
+    BoardApi.draw_resource!(board, r1)
     r2 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r2)
-    GameApi.draw_resource!(game, r2)
+    BoardApi.draw_resource!(board, r2)
 end
 
 function do_monopoly_action(board, players::Vector{PlayerType}, player)
@@ -128,20 +128,20 @@ function do_knight_action(board, players::Vector{PlayerType}, player)
     do_robber_move_theft(board, players, player)
 end
 
-function do_robber_move(game, board, players::Vector{PlayerType}, player)
+function do_robber_move(board, players::Vector{PlayerType}, player)
     for p in players
-        do_robber_move_discard(game, board, player)
+        do_robber_move_discard(board, player)
     end
     do_robber_move_theft(board, players, player)
 end
 
-function do_robber_move_discard(game, board, player::PlayerType)
+function do_robber_move_discard(board, player::PlayerType)
     r_count = PlayerApi.count_cards(player.player)
     if r_count > 7
         for i = 1:Int(floor(r_count / 2))
             resource = choose_one_resource_to_discard(board, player)
             PlayerApi.discard_cards!(player.player, resource)
-            GameApi.give_resource!(game, resource)
+            BoardApi.give_resource!(board, resource)
         end
     end
 end

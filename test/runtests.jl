@@ -259,10 +259,10 @@ function test_max_construction()
     @test BoardApi.count_roads(board, player1.player.team) == MAX_ROAD
 end
 
-function test_resource_conservation(game)
+function test_resource_conservation(game, board)
     for r in RESOURCES
         println(r)
-        @test game.resources[r] + sum([p.player.resources[r] for p in game.players]) == 25
+        @test board.resources[r] + sum([p.player.resources[r] for p in game.players]) == 25
     end
 end
 
@@ -453,9 +453,9 @@ function test_game_api()
     game = Game(players)
     board = read_map(SAMPLE_MAP_2)
 
-    @test game.resources[:Pasture] == 25
-    @test game.resources[:Brick] == 25
-    @test game.resources[:Stone] == 25
+    @test board.resources[:Pasture] == 25
+    @test board.resources[:Brick] == 25
+    @test board.resources[:Stone] == 25
 
 
     p1 = players[1]
@@ -472,9 +472,9 @@ function test_game_api()
     
     for i=1:4
         # 4*(4+2) = 24
-        harvest_resources(game, board, players, 9)
+        harvest_resources(board, players, 9)
         # 4*(0+2) = 8
-        harvest_resources(game, board, players, 8)
+        harvest_resources(board, players, 8)
     end
     @test haskey(p1.player.resources, :Stone) && p1.player.resources[:Stone] > 0
     @test haskey(p1.player.resources, :Pasture) && p1.player.resources[:Pasture] > 0
@@ -486,9 +486,9 @@ function test_game_api()
     @test p2.player.resources[:Stone] == 8
     @test p2.player.resources[:Brick] == 8
 
-    harvest_resources(game, board, players, 9)
+    harvest_resources(board, players, 9)
     for i=1:9
-        harvest_resources(game, board, players, 8)
+        harvest_resources(board, players, 8)
     end
     
     @test p1.player.resources[:Pasture] == 25
@@ -498,9 +498,9 @@ function test_game_api()
     @test ~haskey(p1.player.resources, :Brick) || p1.player.resources[:Brick] == 0
     @test ~haskey(p2.player.resources, :Wood) || p2.player.resources[:Wood] == 0
     
-    @test game.resources[:Pasture] == 0
-    @test game.resources[:Stone] == 1
-    @test game.resources[:Brick] == 0
+    @test board.resources[:Pasture] == 0
+    @test board.resources[:Stone] == 1
+    @test board.resources[:Brick] == 0
 end
 
 function test_board_api()
