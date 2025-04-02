@@ -284,7 +284,7 @@ function test_devcards()
     @test PlayerApi.count_resources(player1.player) == 4
     
     players_public = PlayerPublicView.(players)
-    Catan.do_year_of_plenty_action(game, board, players_public, player1)
+    Catan.do_year_of_plenty_action(board, players_public, player1)
     @test PlayerApi.count_resources(player1.player) == 6
     #test_resource_conservation(game) 
 
@@ -433,7 +433,7 @@ function test_ports()
     @test player1.player.ports[:Grain] == 2
     @test player1.player.ports[:Wood] == 3
 
-    Catan.construct_settlement(game, board, player1.player, (3,2))
+    Catan.construct_settlement(board, player1.player, (3,2))
     
     @test player1.player.ports[:Brick] == 2
 end

@@ -33,7 +33,7 @@ ACTIONS_DICTIONARY = Dict(
 # CONSTRUCTION ACTIONS
 #
 
-function construct_road(game, board, player::Player, coord1, coord2, first_turn = false)
+function construct_road(board, player::Player, coord1, coord2, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Road)
         BoardApi.pay_construction!(board, :Road)
@@ -41,14 +41,14 @@ function construct_road(game, board, player::Player, coord1, coord2, first_turn 
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function construct_city(game, board, player::Player, coord, first_turn = false)
+function construct_city(board, player::Player, coord, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :City)
         BoardApi.pay_construction!(board, :City)
     end
     BoardApi.build_city!(board, player.team, coord)
 end
-function construct_settlement(game, board, player::Player, coord, first_turn = false)
+function construct_settlement(board, player::Player, coord, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Settlement)
         BoardApi.pay_construction!(board, :Settlement)
@@ -73,16 +73,16 @@ function draw_devcard(game::Game, board::Board, player::Player)
     BoardApi.pay_construction!(board, :DevelopmentCard)
 end
 
-function do_play_devcard(game, board::Board, players, player, card::Union{Nothing,Symbol})
-    if card != nothing
-        do_devcard_action(game, board, players, player, card)
+function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
+    if card !== nothing
+        do_devcard_action(board, players, player, card)
         PlayerApi.play_devcard!(player.player, card)
         decide_and_assign_largest_army!(board, players)
         # Note: longest road is assigned within the build road call
     end
 end
 
-function do_devcard_action(game, board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
     @info "$(player.player.team) does devcard $card action"
     players_public = PlayerPublicView.(players)
     if card == :Knight
@@ -90,7 +90,7 @@ function do_devcard_action(game, board, players::Vector{PlayerType}, player::Pla
     elseif card == :Monopoly
         do_monopoly_action(board, players, player)
     elseif card == :YearOfPlenty
-        do_year_of_plenty_action(game, board, players_public, player)
+        do_year_of_plenty_action(board, players_public, player)
     elseif card == :RoadBuilding
         do_road_building_action(board, players_public, player)
     else
@@ -103,7 +103,7 @@ function do_road_building_action(board, players::Vector{PlayerPublicView}, playe
     choose_validate_build_road!(board, players, player, false)
 end
 
-function do_year_of_plenty_action(game, board, players::Vector{PlayerPublicView}, player::PlayerType)
+function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
     r1 = choose_resource_to_draw(board, players, player)
     PlayerApi.give_resource!(player.player, r1)
     BoardApi.draw_resource!(board, r1)

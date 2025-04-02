@@ -113,17 +113,17 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     candidates = collect(rand_action.admissible_args)
     if name == :ConstructCity
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
-        return (coord, (g, b, p) -> construct_city(g, b, p.player, coord))
+        return (coord, (g, b, p) -> construct_city(b, p.player, coord))
     end
     if name == :ConstructSettlement
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
-        return (coord, (g, b, p) -> construct_settlement(g, b, p.player, coord))
+        return (coord, (g, b, p) -> construct_settlement(b, p.player, coord))
     end
     if name == :ConstructRoad
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
-        return ((coord1, coord2), (g, b, p) -> construct_road(g, b, p.player, coord1, coord2))
+        return ((coord1, coord2), (g, b, p) -> construct_road(b, p.player, coord1, coord2))
     end
     if name == :BuyDevCard
         return (nothing, (g, b, p) -> draw_devcard(g, b, p.player))
@@ -132,7 +132,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         devcards = PlayerApi.get_admissible_devcards_with_counts(player.player)
         card = _choose_play_devcard(board, players, player, devcards)
         if card != nothing
-            return (card, (g, b, p) -> do_play_devcard(g, b, g.players, p, card))
+            return (card, (g, b, p) -> do_play_devcard(b, g.players, p, card))
         end
     end
     if name == :ProposeTrade
