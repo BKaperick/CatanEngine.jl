@@ -206,7 +206,7 @@ function with_options(action::Function, candidates::Vector)
 end
 
 function get_legal_actions(game, board, player::Player)::Set{PreAction}
-    actions = Set{PreAction}()
+    actions = Set{PreAction}([PreAction(:DoNothing)])
 
     admissible_cities = BoardApi.get_admissible_city_locations(board, player.team)
     if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(admissible_cities) > 0

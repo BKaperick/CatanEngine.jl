@@ -77,8 +77,10 @@ function do_first_turn_reverse(game, board, players)
         settlement = do_first_turn_building!(game, board, players, player)
         for tile in COORD_TO_TILES[settlement.coord]
             resource = board.tile_to_resource[tile]
-            PlayerApi.give_resource!(player.player, resource)
-            BoardApi.draw_resource!(board, resource)
+            if resource != :Desert
+                PlayerApi.give_resource!(player.player, resource)
+                BoardApi.draw_resource!(board, resource)
+            end
         end
         GameApi.finish_player_turn(game, player.player.team)
     end
