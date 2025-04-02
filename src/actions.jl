@@ -161,20 +161,21 @@ end
 function do_robber_move_theft(board, admissible_victims::Vector{PlayerType}, 
         player::PlayerType, new_robber_tile::Symbol)
     stolen_good = nothing
-    victim = nothing
+    victim_team = nothing
     if length(admissible_victims) > 0
         admissible_victims_public = PlayerPublicView.(admissible_victims)
         from_player_view = choose_robber_victim(board, player, admissible_victims_public...)
-        victim = [p for p in admissible_victims if p.player.team == from_player_view.team][1]
+        #victim = [p for p in admissible_victims if p.player.team == from_player_view.team][1]
+        victim_team = from_player_view.team
         stolen_good = steal_random_resource(victim, player)
     end
-    victim_public = victim != nothing ? PlayerPublicView(victim) : victim
-    do_robber_move_theft(board, admissible_victims, player, victim_public, new_robber_tile, stolen_good)
+    #victim_public = victim != nothing ? PlayerPublicView(victim).team : victim
+    do_robber_move_theft(board, admissible_victims, player, victim_team, new_robber_tile, stolen_good)
 end
 
-function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType, victim_public::Union{PlayerPublicView, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
+function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType, victim_team::Union{Symbol, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
     BoardApi.move_robber!(board, new_robber_tile)
-    victim = victim_public != nothing ? [p.player for p in players if p.player.team == victim_public.team][1] : nothing
+    victim = victim_team != nothing ? [p.player for p in players if p.player.team == victim_team][1] : nothing
     if victim != nothing && stolen_good != nothing
         PlayerApi.take_resource!(victim, stolen_good)
         PlayerApi.give_resource!(player.player, stolen_good)
@@ -185,6 +186,7 @@ function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublic
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
+        println("$team vs $([p.team for p in players])")
         victim = [p for p in players if p.team == team][1]
         if PlayerApi.has_any_resources(victim) && (team != thief.team)
             push!(admissible_victims, victim)
