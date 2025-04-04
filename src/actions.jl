@@ -186,7 +186,6 @@ function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublic
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
-        println("$team vs $([p.team for p in players])")
         victim = [p for p in players if p.team == team][1]
         if PlayerApi.has_any_resources(victim) && (team != thief.team)
             push!(admissible_victims, victim)
