@@ -6,7 +6,7 @@ SAVEFILE = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).
 
 SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
 # Only difference is some changing of dice values for testing
-SAMPLE_MAP_2 = "$(MAIN_DATA_DIR)sample_2.csv"
+SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
 
 global counter = 1
 
