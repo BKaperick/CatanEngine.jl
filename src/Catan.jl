@@ -5,13 +5,15 @@ using Logging
 using Random
 using StatsBase
 
+include("constants.jl")
+reset_configs("Configuration.toml")
+
 logger = ConsoleLogger(stderr, Logging.Warn)
 #logger = ConsoleLogger(stderr, Logging.Debug)
 #logger = ConsoleLogger(stderr, Logging.Info)
 #logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
 global_logger(logger)
 
-include("constants.jl")
 include("random_helper.jl")
 
 include("players/structs.jl")
@@ -66,6 +68,7 @@ PLAYER_ACTIONS,
 MAX_SETTLEMENT,
 MAX_CITY,
 MAX_ROAD
+
 
 if length(ARGS) >= 2
     run(ARGS)

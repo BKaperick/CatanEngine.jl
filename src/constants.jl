@@ -1,11 +1,20 @@
 using Dates
 using Logging
+using TOML
 
 
-DATA_DIR = "/home/bryan/Projects/Catan/CatanEngine.jl/data"
-
-SAVE_GAME_TO_FILE = false
-PRINT_BOARD = false
+function reset_configs(config_file)
+    base_dir = joinpath(@__DIR__, "..")
+    configs = TOML.parsefile(joinpath(base_dir, config_file))::Dict{String, Any}
+    user_configs = configs["UserSettings"]
+    
+    global DATA_DIR = joinpath(base_dir, user_configs["DATA_DIR"])
+    global SAVE_GAME_TO_FILE = user_configs["SAVE_GAME_TO_FILE"]
+    global PRINT_BOARD = user_configs["PRINT_BOARD"]
+    global logger = ConsoleLogger(eval(Meta.parse(user_configs["LOG_OUTPUT"])), eval(Meta.parse(user_configs["LOG_LEVEL"])))
+    reset_savefile(joinpath(base_dir, joinpath(base_dir, user_configs["SAVE_FILE"])))
+    println("Configs saved")
+end
 
 MAX_CITY = 4
 MAX_SETTLEMENT = 5
