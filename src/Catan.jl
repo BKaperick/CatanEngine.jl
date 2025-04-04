@@ -6,7 +6,7 @@ using Random
 using StatsBase
 
 include("constants.jl")
-reset_configs("Configuration.toml")
+reset_configs("Configuration.toml", joinpath(@__DIR__, ".."))
 
 logger = ConsoleLogger(stderr, Logging.Warn)
 #logger = ConsoleLogger(stderr, Logging.Debug)

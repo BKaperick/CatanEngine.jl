@@ -1,0 +1,32 @@
+┌ Debug: 3,p
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:47
+┌ Debug: 5,s
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:47
+┌ Debug: 6,g
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:47
+┌ Debug: 8,w
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:47
+┌ Debug: 9,b
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:47
+┌ Debug: Dict{Int64, Vector{Any}}(5 => [:R, :I], 7 => [:J], 12 => [:L], 8 => [:O, :C], 4 => [:B, :M], 6 => [:Q, :H], 2 => [:E], 10 => [:F, :P], 11 => [:A, :G], 9 => [:K, :S], 3 => [:D, :N])
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:67
+┌ Debug: logging :Blue gr in /home/bryan/Projects/Catan/CatanEngine.jl/test/./data/_test_save_152928.txt
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:132
+┌ Debug: outstring = :Blue gr :Grain
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:135
+┌ Debug: logging :Blue gr in /home/bryan/Projects/Catan/CatanEngine.jl/test/./data/_test_save_152928.txt
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:132
+┌ Debug: outstring = :Blue gr :Grain
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:135
+┌ Debug: logging board bs in /home/bryan/Projects/Catan/CatanEngine.jl/test/./data/_test_save_152928.txt
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:132
+┌ Debug: outstring = board bs :Blue (1,4)
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/io.jl:135
+┌ Info: Blue builds settlement at intersection of B
+└ @ Catan.BoardApi /home/bryan/Projects/Catan/CatanEngine.jl/src/apis/board_api.jl:108
+┌ Debug: Dict(:Stone => 0, :Wood => 0, :Grain => 2, :Brick => 0, :Pasture => 0)
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/random_helper.jl:12
+┌ Info: Blue decided it is wisest to steal from the Cyan player
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/players/robot_player.jl:99
+┌ Info: Blue decided it is wisest to do business with Yellow player
+└ @ Catan /home/bryan/Projects/Catan/CatanEngine.jl/src/players/robot_player.jl:158

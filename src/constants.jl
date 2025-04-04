@@ -3,17 +3,31 @@ using Logging
 using TOML
 
 
-function reset_configs(config_file)
-    base_dir = joinpath(@__DIR__, "..")
-    configs = TOML.parsefile(joinpath(base_dir, config_file))::Dict{String, Any}
+function reset_configs(config_file, base_dir)
+    config_path = joinpath(base_dir, config_file)
+    configs = TOML.parsefile(config_path)::Dict{String, Any}
     user_configs = configs["UserSettings"]
     
     global DATA_DIR = joinpath(base_dir, user_configs["DATA_DIR"])
     global SAVE_GAME_TO_FILE = user_configs["SAVE_GAME_TO_FILE"]
     global PRINT_BOARD = user_configs["PRINT_BOARD"]
-    global logger = ConsoleLogger(eval(Meta.parse(user_configs["LOG_OUTPUT"])), eval(Meta.parse(user_configs["LOG_LEVEL"])))
+    
+    logger_output = user_configs["LOG_OUTPUT"]
+    log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
+    global logger_io = stderr
+    if logger_output == "stderr"
+        logger_io = stderr
+        global logger = ConsoleLogger(logger_io, log_level)
+    else
+        logger_io = open(logger_output, "w+")
+        write(logger_io, "")
+        close(logger_io)
+        logger_io = open(logger_output, "w+")
+        global logger = SimpleLogger(logger_io, log_level)
+    end
+    global_logger(logger)
     reset_savefile(joinpath(base_dir, joinpath(base_dir, user_configs["SAVE_FILE"])))
-    println("Configs saved")
+    println("Configs loaded from $config_path")
 end
 
 MAX_CITY = 4

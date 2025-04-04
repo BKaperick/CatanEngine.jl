@@ -1,9 +1,10 @@
 
-TEST_DATA_DIR = "data/"
-MAIN_DATA_DIR = "../data/"
-SAVEFILE = "$(TEST_DATA_DIR)_test_save_$(Dates.format(now(), "HHMMSS")).txt"
+MAIN_DATA_DIR = DATA_DIR
+reset_configs("Configuration.toml", @__DIR__)
+TEST_DATA_DIR = DATA_DIR
+SAVEFILE = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
 
-SAMPLE_MAP = "$(MAIN_DATA_DIR)sample.csv"
+SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
 # Only difference is some changing of dice values for testing
 SAMPLE_MAP_2 = "$(MAIN_DATA_DIR)sample_2.csv"
 

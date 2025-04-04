@@ -33,24 +33,30 @@ setup_and_do_robot_game,
 test_automated_game,
 reset_savefile_with_timestamp,
 SAVEFILE,
-RESOURCES
+RESOURCES,
+logger_io,
+logger
+
+#reset_configs("Configuration.toml", @__DIR__)
+#MAIN_DATA_DIR = Catan.DATA_DIR
 
 reset_savefile(SAVEFILE)
 
-Catan.SAVE_GAME_TO_FILE = true
+#Catan.SAVE_GAME_TO_FILE = true
 println(SAVEFILE)
 
-SAMPLE_MAP = "$(MAIN_DATA_DIR)sample.csv"
+SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
 # Only difference is some changing of dice values for testing
-SAMPLE_MAP_2 = "$(MAIN_DATA_DIR)sample_2.csv"
+SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
 
 # Reset the one-off test log
-io = open("$(TEST_DATA_DIR)oneoff_test_log.txt", "w")
-write(io,"")
-close(io)
+#io = open(joinpath(TEST_DATA_DIR, "oneoff_test_log.txt"), "w")
 
-logger_io = open("$(TEST_DATA_DIR)oneoff_test_log.txt","w+")
-logger = SimpleLogger(logger_io, Logging.Debug)
+#write(logger_io,"")
+#close(io)
+
+#logger_io = open(joinpath(TEST_DATA_DIR, "oneoff_test_log.txt"),"w+")
+#logger = SimpleLogger(logger_io, Logging.Debug)
 global_logger(logger)
 
 
