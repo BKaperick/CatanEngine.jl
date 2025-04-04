@@ -1,14 +1,19 @@
-
-MAIN_DATA_DIR = DATA_DIR
-reset_configs("Configuration.toml", @__DIR__)
-TEST_DATA_DIR = DATA_DIR
-SAVEFILE = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
-
-SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
-# Only difference is some changing of dice values for testing
-SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
-
 global counter = 1
+global base_dir = @__DIR__
+#global now = now()
+
+function reset_test_data_dirs(new_base_dir)
+    global base_dir = new_base_dir
+    reset_configs("Configuration.toml", new_base_dir)
+    global MAIN_DATA_DIR = DATA_DIR
+    global TEST_DATA_DIR = joinpath(base_dir, "data")
+    global SAVEFILE = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
+    global SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
+    # Only difference is some changing of dice values for testing
+    global SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
+end
+reset_test_data_dirs(@__DIR__)
+
 
 function reset_savefile_with_timestamp(name)
     global SAVE_GAME_TO_FILE = true

@@ -43,7 +43,7 @@ logger
 reset_savefile(SAVEFILE)
 
 #Catan.SAVE_GAME_TO_FILE = true
-println(SAVEFILE)
+#println(SAVEFILE)
 
 SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
 # Only difference is some changing of dice values for testing
@@ -673,7 +673,9 @@ end
 
 function run_tests(neverend = false)
     for file in Base.Filesystem.readdir("data")
-        Base.Filesystem.rm("data/$file")
+        if ~contains(SAMPLE_MAP, file) && ~contains(SAMPLE_MAP_2, file)
+            Base.Filesystem.rm("data/$file")
+        end
     end
     Catan.test_player_implementation(DefaultRobotPlayer)
     test_trading()
