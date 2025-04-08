@@ -134,7 +134,6 @@ function log_action(fname::String, args...)
     outstring = string(serialized, "\n")
     @debug "outstring = $outstring"
     if SAVE_GAME_TO_FILE
-        println(SAVEFILE)
         write(SAVEFILEIO, outstring)
     end
     return serialized

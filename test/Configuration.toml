@@ -8,3 +8,4 @@ PRINT_BOARD = false
 MAX_TURNS = 500
 
 [GameSettings]
+[PlayerSettings]
