@@ -32,18 +32,16 @@ setup_players,
 setup_and_do_robot_game,
 test_automated_game,
 reset_savefile_with_timestamp,
-SAVEFILE,
 RESOURCES,
 logger_io,
-logger
+logger,
+configs,
+reset_test_data_dirs
 
 #reset_configs("Configuration.toml", @__DIR__)
 #MAIN_DATA_DIR = Catan.DATA_DIR
 
-reset_savefile(SAVEFILE)
-
-#Catan.SAVE_GAME_TO_FILE = true
-#println(SAVEFILE)
+reset_savefile(configs["SAVE_FILE"])
 
 SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
 # Only difference is some changing of dice values for testing
@@ -82,7 +80,7 @@ function test_deepcopy()
 end
 
 function test_set_starting_player()
-    sf, sfio = reset_savefile_with_timestamp("test_set_starting_player")
+    sf, sfio = reset_savefile_with_timestamp("test_set_starting_player", configs)
     reset_savefile(sf, sfio)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -101,11 +99,11 @@ function test_set_starting_player()
     @test game.players[3].player.team == :red
     @test game.players[4].player.team == :blue
     
-    flush(Catan.SAVEFILEIO)
+    flush(configs["SAVE_FILE_IO"])
     board = read_map(SAMPLE_MAP)
-    @info "testing logfile $SAVEFILE"
+    @info "testing logfile $(configs["SAVE_FILE"])"
     new_game = Game(players)
-    load_gamestate!(new_game, board, SAVEFILE)
+    load_gamestate!(new_game, board, configs)
     
     flush(logger_io)
 
@@ -158,7 +156,7 @@ function test_misc()
 end
 
 function test_log()
-    reset_savefile_with_timestamp("test_log")
+    reset_savefile_with_timestamp("test_log", configs)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -166,16 +164,16 @@ function test_log()
                           (:red, DefaultRobotPlayer)
                          ]
     board, game = setup_and_do_robot_game(team_and_playertype)
-    flush(Catan.SAVEFILEIO)
+    flush(configs["SAVE_FILE_IO"])
     
-    @info "testing savefile $SAVEFILE"
+    @info "testing savefile $(configs["SAVE_FILE"])"
     
     # initialize fresh objects
     new_players = setup_players(team_and_playertype)
     new_game = Game(new_players)
     new_board = read_map(SAMPLE_MAP)
 
-    load_gamestate!(new_game, new_board, SAVEFILE)
+    load_gamestate!(new_game, new_board, configs)
     @test game.devcards == new_game.devcards
     @test game.already_played_this_turn == new_game.already_played_this_turn
     @test game.turn_num == new_game.turn_num
@@ -193,7 +191,7 @@ function test_log()
         @test player.bought_devcard_this_turn == new_player.bought_devcard_this_turn
         @test new_board.longest_road == board.longest_road
     end
-    rm(SAVEFILE)
+    rm(configs["SAVE_FILE"])
 end
 
 function test_do_turn()
@@ -450,7 +448,7 @@ function test_human_player()
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
     players = Vector{PlayerType}([player1, player2])
     game = Game(players)
-    reset_savefile_with_timestamp("test_human_game")
+    reset_savefile_with_timestamp("test_human_game", configs)
     GameRunner.initialize_and_do_game!(game, SAMPLE_MAP)
 end
 
@@ -672,6 +670,7 @@ function test_trading()
 end
 
 function run_tests(neverend = false)
+    reset_test_data_dirs(@__DIR__)
     for file in Base.Filesystem.readdir("data")
         if ~contains(SAMPLE_MAP, file) && ~contains(SAMPLE_MAP_2, file)
             Base.Filesystem.rm("data/$file")

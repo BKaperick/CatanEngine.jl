@@ -1,8 +1,0 @@
-┌ Debug: logging game ss in data/_test_set_starting_player_101617.txt
-└ @ Main /home/bryan/Projects/Catan/src/io.jl:118
-┌ Debug: game ss 2
-└ @ Main /home/bryan/Projects/Catan/src/io.jl:121
-┌ Debug: Before: [:Robo1, :Sobo2, :Tobo3, :Uobo4]
-└ @ Main /home/bryan/Projects/Catan/src/apis/game_api.jl:66
-┌ Debug: After: [:Sobo2, :Tobo3, :Uobo4, :Robo1]
-└ @ Main /home/bryan/Projects/Catan/src/apis/game_api.jl:68

@@ -38,7 +38,7 @@ It supports
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
-MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS
+MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, configs
 include("../board.jl")
 include("../draw_board.jl")
 
@@ -81,7 +81,7 @@ function get_road_locations(board, team::Symbol)
 end
 
 function build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
-    log_action("board bc", team, coord)
+    log_action(configs, "board bc", team, coord)
     @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_city!(board, team, coord)
 end
@@ -104,7 +104,7 @@ function _build_city!(board, team, coord::Tuple{Int, Int})::Building
 end
 
 function build_settlement!(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
-    log_action("board bs", board, team, coord)
+    log_action(configs, "board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement!(board, team, coord)
 end
@@ -116,7 +116,7 @@ function _build_settlement!(board, team, coord::Tuple{Int,Int})::Building
 end
 
 function build_road!(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
-    log_action("board br", board, team, coord1, coord2)
+    log_action(configs, "board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road!(board, team, coord1, coord2)
 end
@@ -223,7 +223,7 @@ function recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_c
 end
 
 function move_robber!(board::Board, tile)
-    log_action("board mr", tile)
+    log_action(configs, "board mr", tile)
     _move_robber!(board, tile)
 end
 function _move_robber!(board, tile)
@@ -391,7 +391,7 @@ end
 function assign_largest_army!(board::Board, team::Union{Symbol, Nothing})
     # Noop if team already has largest army
     if board.largest_army != team && team != nothing
-        log_action("board la :$team")
+        log_action(configs, "board la :$team")
         _assign_largest_army!(board, team)
     end
 end
@@ -430,7 +430,7 @@ function can_draw_resource(board::Board, resource::Symbol)
     return board.resources[resource] > 0
 end
 function draw_resource!(board::Board, resource::Symbol)
-    log_action("board dr :$resource")
+    log_action(configs, "board dr :$resource")
     _draw_resource!(board, resource)
 end
 function _draw_resource!(board::Board, resource::Symbol)
@@ -438,7 +438,7 @@ function _draw_resource!(board::Board, resource::Symbol)
     return resource 
 end
 function give_resource!(board::Board, resource::Symbol)
-    log_action("board pr :$resource")
+    log_action(configs, "board pr :$resource")
     _give_resource!(board, resource)
 end
 function _give_resource!(board::Board, resource::Symbol)

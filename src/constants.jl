@@ -26,7 +26,7 @@ function reset_configs(config_file, base_dir)
 
 
 
-    global logger_io = stderr
+    logger_io = stderr
     if logger_output == "stderr"
         logger_io = stderr
         global logger = ConsoleLogger(logger_io, log_level)
@@ -44,24 +44,60 @@ function reset_configs(config_file, base_dir)
     println("player configs: $player_configs")
 end
 
+function parse_configs(config_path)
+    configs = TOML.parsefile(config_path)::Dict{String, Any}
+    user_configs = configs["UserSettings"]
+    player_configs = configs["PlayerSettings"]
+    
+    logger_output = user_configs["LOG_OUTPUT"]
+    #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
+    log_level_str = user_configs["LOG_LEVEL"]
+    if log_level_str == "Logging.Info"
+        log_level = Logging.Info
+    elseif log_level_str == "Logging.Warn"
+        log_level = Logging.Warn
+    else
+        log_level = Logging.Debug
+    end
+
+
+    logger_io = stderr
+    if logger_output == "stderr"
+        logger_io = stderr
+        logger = ConsoleLogger(logger_io, log_level)
+    else
+        logger_io = open(logger_output, "w+")
+        write(logger_io, "")
+        close(logger_io)
+        logger_io = open(logger_output, "w+")
+        logger = SimpleLogger(logger_io, log_level)
+    end
+    user_configs["LOG_LEVEL"] = log_level
+    global_logger(logger)
+
+    player_configs = configs["PlayerSettings"]
+    println("Configs loaded from $config_path")
+    return user_configs, player_configs, logger
+end
+
 MAX_CITY = 4
 MAX_SETTLEMENT = 5
 MAX_ROAD = 14
 MAX_RESOURCE = 25
 
-function reset_savefile(path, io)
-    global SAVEFILE = path
-    global SAVEFILEIO = io
+function reset_savefile(path, io, configs::Dict)
+    configs["SAVE_FILE"] = path
+    configs["SAVE_FILE_IO"] = io
 end
-function reset_savefile(path)
-    global SAVEFILE = path
 
-    if SAVE_GAME_TO_FILE
-        println("init file $SAVEFILE")
-        io = open(SAVEFILE, "w"); write(io,""); close(io)
+function reset_savefile(path, configs::Dict)
+    configs["SAVE_FILE"] = path
+
+    if configs["SAVE_GAME_TO_FILE"]
+        io = open(path, "w"); write(io,""); close(io)
     end
-    global SAVEFILEIO = open(SAVEFILE, "a")
-    return SAVEFILE, SAVEFILEIO
+    configs["SAVE_FILE_IO"] = open(path, "a")
+    println("Savefile set to $path")
 end
 
 VP_AWARDS = Dict([

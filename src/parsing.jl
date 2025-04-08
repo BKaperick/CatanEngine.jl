@@ -27,7 +27,7 @@ function input(io::IO, prompt::AbstractString)
     println(prompt)
     response = readline(io)
     if response == "quit"
-        close(SAVEFILEIO)
+        close(configs["SAVE_FILE_IO"])
         stop()
     end
     return response

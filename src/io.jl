@@ -128,19 +128,16 @@ function serialize_action(fname::String, args...)
     string("$fname ", join(arg_strs, " "))
 end
 
-function log_action(fname::String, args...)
-    @debug "logging $fname in $SAVEFILE"
+function log_action(configs::Dict, fname::String, args...)
+    @debug "logging $fname in $(configs["SAVE_FILE"])"
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
     @debug "outstring = $outstring"
-    if SAVE_GAME_TO_FILE
-        write(SAVEFILEIO, outstring)
+    if configs["SAVE_GAME_TO_FILE"]
+        write(configs["SAVE_FILE_IO"], outstring)
     end
     return serialized
 end
-#function log_action(f, expression)
-#    write(SAVEFILEIO, "$(string(expression))\n")
-#end
 
 function read_action()
 end
@@ -173,12 +170,13 @@ function execute_api_call(game::Game, board::Board, line::String)
         api_call(player, other_args...)
     end
 end
-function load_gamestate!(game, board, file)
+function load_gamestate!(game, board, configs)
+    file = configs["SAVE_FILE"]
     @debug "Loading game from file $file"
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
-    if PRINT_BOARD
+    if configs["PRINT_BOARD"]
         BoardApi.print_board(board)
     end
 end

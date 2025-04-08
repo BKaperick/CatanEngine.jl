@@ -4,23 +4,22 @@ global base_dir = @__DIR__
 
 function reset_test_data_dirs(new_base_dir)
     global base_dir = new_base_dir
-    reset_configs("Configuration.toml", new_base_dir)
-    global MAIN_DATA_DIR = DATA_DIR
-    global TEST_DATA_DIR = joinpath(base_dir, "data")
-    global SAVEFILE = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
+    global (configs, _, _) = parse_configs(joinpath(new_base_dir, "Configuration.toml"))
+    global MAIN_DATA_DIR = configs["DATA_DIR"]
+    global TEST_DATA_DIR = joinpath(new_base_dir, "data")
+    global configs["SAVE_FILE"] = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
     global SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
     # Only difference is some changing of dice values for testing
     global SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
 end
-reset_test_data_dirs(@__DIR__)
 
 
-function reset_savefile_with_timestamp(name)
-    global SAVE_GAME_TO_FILE = true
+function reset_savefile_with_timestamp(name, configs)
+    configs["SAVE_GAME_TO_FILE"] = true
     savefile = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
     global counter += 1
-    reset_savefile(savefile)
-    return savefile, Catan.SAVEFILEIO
+    reset_savefile(savefile, configs)
+    return savefile, configs["SAVE_FILE_IO"]
 end
 
 function setup_players()
@@ -60,7 +59,7 @@ up until the end of the save file and then continue to write ongoing game states
 function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
     game = Game(players)
     if (savefile == nothing)
-        savefile, io = reset_savefile_with_timestamp("test_robot_game_savefile")
+        savefile, io = reset_savefile_with_timestamp("test_robot_game_savefile", configs)
     else
         reset_test_savefile(savefile)
     end
@@ -75,15 +74,15 @@ function test_automated_game(neverend, players)
             try
                 setup_and_do_robot_game(players)
             catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+                Base.Filesystem.cp(configs["SAVE_FILE"], "./data/last_save.txt", force=true)
             end
 
             # Then immediately try to replay the game from its save file
-            println("replaying game from $SAVEFILE")
+            println("replaying game from $(configs["SAVE_FILE"])")
             try
-                setup_and_do_robot_game(players, SAVEFILE)
+                setup_and_do_robot_game(players, configs["SAVE_FILE"])
             catch e
-                Base.Filesystem.cp(SAVEFILE, "./data/last_save.txt", force=true)
+                Base.Filesystem.cp(configs["SAVE_FILE"], "./data/last_save.txt", force=true)
             end
 
             # Now move the latest save file to a special `last_save` file for easy retrieval

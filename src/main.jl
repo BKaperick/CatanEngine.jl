@@ -46,6 +46,10 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
+function run_example()
+    run(["data/config.txt", "data/sample.csv", "save.txt"])
+end
+
 function run(args)
     if length(args) >= 1
         CONFIGFILE = args[1]
@@ -64,38 +68,23 @@ function run(args, PLAYERS)
         map_file = generate_random_map("_temp_map_file.csv")
     end
     if length(args) >= 3
-        SAVEFILE = args[3]
-        reset_savefile(SAVEFILE)
-
-        if SAVE_GAME_TO_FILE
-            global SAVEFILEIO = open(SAVEFILE, "a")
-        end
+        reset_savefile(args[3], configs)
     else
-        reset_savefile("./data/savefile.txt")
-        io = open(SAVEFILE, "w")
-        write(io,"")
-        close(io)
-        if SAVE_GAME_TO_FILE
-            global SAVEFILEIO = open(SAVEFILE, "a")
-        end
+        reset_savefile("./data/savefile.txt", configs)
     end
-    GameRunner.initialize_and_do_game!(game, map_file, SAVEFILE)
+    GameRunner.initialize_and_do_game!(game, map_file, configs)
 end
 
 function run(players::Vector{PlayerType})
     game = Game(players)
     map_file = generate_random_map("_temp_map_file.csv")
-    reset_savefile("./data/savefile.txt")
-    #SAVEFILE = "./data/savefile.txt"
-    #if SAVE_GAME_TO_FILE
-    #    global SAVEFILEIO = open(SAVEFILE, "a")
-    #end
-    GameRunner.initialize_and_do_game!(game, map_file, SAVEFILE)
+    reset_savefile("./data/savefile.txt", configs)
+    GameRunner.initialize_and_do_game!(game, map_file, configs)
 end
 
 function run(game::Game, map_file::String)
-    reset_savefile("./data/savefile.txt")
-    GameRunner.initialize_and_do_game!(game, map_file, SAVEFILE)
+    reset_savefile("./data/savefile.txt", configs)
+    GameRunner.initialize_and_do_game!(game, map_file, configs)
 end
 
 

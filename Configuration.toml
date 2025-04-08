@@ -3,7 +3,7 @@ DATA_DIR = "./data"
 SAVE_GAME_TO_FILE = false
 SAVE_FILE = "./data/savefile.txt"
 LOG_OUTPUT = "stderr"
-LOG_LEVEL = "Logging.Warn"
+LOG_LEVEL = "Logging.Info"
 PRINT_BOARD = false
 MAX_TURNS = 500
 
