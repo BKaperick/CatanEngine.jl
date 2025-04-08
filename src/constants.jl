@@ -2,52 +2,29 @@ using Dates
 using Logging
 using TOML
 
-function reset_configs(config_file, base_dir)
-    config_path = joinpath(base_dir, config_file)
-    configs = TOML.parsefile(config_path)::Dict{String, Any}
-    user_configs = configs["UserSettings"]
-    global player_configs = configs["PlayerSettings"]
-    
-    global DATA_DIR = joinpath(base_dir, user_configs["DATA_DIR"])
-    global SAVE_GAME_TO_FILE = user_configs["SAVE_GAME_TO_FILE"]
-    global PRINT_BOARD = user_configs["PRINT_BOARD"]
-    global MAX_TURNS = user_configs["MAX_TURNS"]
-    
-    logger_output = user_configs["LOG_OUTPUT"]
-    #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
-    log_level_str = user_configs["LOG_LEVEL"]
-    if log_level_str == "Logging.Info"
-        log_level = Logging.Info
-    elseif log_level_str == "Logging.Warn"
-        log_level = Logging.Warn
-    else
-        log_level = Logging.Debug
-    end
-
-
-
-    logger_io = stderr
-    if logger_output == "stderr"
-        logger_io = stderr
-        global logger = ConsoleLogger(logger_io, log_level)
-    else
-        logger_io = open(logger_output, "w+")
-        write(logger_io, "")
-        close(logger_io)
-        logger_io = open(logger_output, "w+")
-        global logger = SimpleLogger(logger_io, log_level)
-    end
-    global_logger(logger)
-    reset_savefile(joinpath(base_dir, joinpath(base_dir, user_configs["SAVE_FILE"])))
-    global player_configs = configs["PlayerSettings"]
-    println("Configs loaded from $config_path")
-    println("player configs: $player_configs")
+function reset_user_configs(new_configs::Dict)
+    global (configs, logger) = parse_user_configs(new_configs)
+end
+function reset_configs(config_path::String)
+    global (configs, player_configs, logger) = parse_configs(config_path)
+    return (configs, player_configs, logger)
 end
 
-function parse_configs(config_path)
+function parse_configs(config_path::String)
     configs = TOML.parsefile(config_path)::Dict{String, Any}
-    user_configs = configs["UserSettings"]
+    out = parse_configs(configs)
+    println("Configs loaded from $config_path")
+    return out
+end
+
+function parse_configs(configs::Dict)
     player_configs = configs["PlayerSettings"]
+    user_configs = configs["UserSettings"]
+    (user_configs, logger) = parse_user_configs(user_configs)
+    return (user_configs, player_configs, logger)
+end
+
+function parse_user_configs(user_configs::Dict)
     
     logger_output = user_configs["LOG_OUTPUT"]
     #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
@@ -73,11 +50,10 @@ function parse_configs(config_path)
         logger = SimpleLogger(logger_io, log_level)
     end
     user_configs["LOG_LEVEL"] = log_level
+    user_configs["LOGGER_IO"] = logger_io
     global_logger(logger)
-
-    player_configs = configs["PlayerSettings"]
-    println("Configs loaded from $config_path")
-    return user_configs, player_configs, logger
+    reset_savefile(user_configs)
+    return user_configs, logger
 end
 
 MAX_CITY = 4
@@ -89,6 +65,8 @@ function reset_savefile(path, io, configs::Dict)
     configs["SAVE_FILE"] = path
     configs["SAVE_FILE_IO"] = io
 end
+
+reset_savefile(configs::Dict) = reset_savefile(configs["SAVE_FILE"], configs)
 
 function reset_savefile(path, configs::Dict)
     configs["SAVE_FILE"] = path

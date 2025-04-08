@@ -1,11 +1,11 @@
 module GameApi
-using ..Catan: Game, roll_dice, log_action, configs
+using ..Catan: Game, roll_dice, log_action
 using StatsBase
 import Random
 include("../random_helper.jl")
 
 function start_turn(game::Game)::Nothing
-    log_action(configs, "game st")
+    log_action(game.configs, "game st")
     _start_turn(game)
 end
 function _start_turn(game::Game)
@@ -32,7 +32,7 @@ function do_set_turn_order(game)
 end
 
 function finish_player_turn(game::Game, team)
-    log_action(configs, "game fp :$team")
+    log_action(game.configs, "game fp :$team")
     _finish_player_turn(game, team)
 end
 function _finish_player_turn(game, team)
@@ -40,11 +40,11 @@ function _finish_player_turn(game, team)
 end
 
 function set_dice_true(game::Game)
-    log_action(configs, "game dt")
+    log_action(game.configs, "game dt")
     _reset_dice_true(game)
 end
 function set_dice_false(game::Game)
-    log_action(configs, "game df")
+    log_action(game.configs, "game df")
     _reset_dice_false(game)
 end
 _reset_dice_true(game::Game) = _reset_dice(game, true)
@@ -53,7 +53,7 @@ function _reset_dice(game::Game, choice::Bool)
     game.rolled_dice_already = choice
 end
 function finish_turn(game::Game)
-    log_action(configs, "game ft")
+    log_action(game.configs, "game ft")
     _finish_turn(game)
 end
 function _finish_turn(game)
@@ -64,7 +64,7 @@ function can_draw_devcard(game::Game)
 end
 function draw_devcard(game::Game)
     card = random_sample_resources(game.devcards, 1)[1]
-    log_action(configs, "game dd :$card")
+    log_action(game.configs, "game dd :$card")
     _draw_devcard(game, card)
 end
 function _draw_devcard(game::Game, card::Symbol)
@@ -73,7 +73,7 @@ function _draw_devcard(game::Game, card::Symbol)
 end
 
 function set_starting_player(game, index)
-    log_action(configs, "game ss", index)
+    log_action(game.configs, "game ss", index)
     _set_starting_player(game, index)
 end
 function _set_starting_player(game::Game, index)

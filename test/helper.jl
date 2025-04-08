@@ -4,13 +4,13 @@ global base_dir = @__DIR__
 
 function reset_test_data_dirs(new_base_dir)
     global base_dir = new_base_dir
-    global (configs, _, _) = parse_configs(joinpath(new_base_dir, "Configuration.toml"))
+    global (configs, _, _) = reset_configs(joinpath(new_base_dir, "Configuration.toml"))
     global MAIN_DATA_DIR = configs["DATA_DIR"]
     global TEST_DATA_DIR = joinpath(new_base_dir, "data")
     global configs["SAVE_FILE"] = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
-    global SAMPLE_MAP = joinpath(MAIN_DATA_DIR, "sample.csv")
+    global configs["SAMPLE_MAP"] = joinpath(MAIN_DATA_DIR, "sample.csv")
     # Only difference is some changing of dice values for testing
-    global SAMPLE_MAP_2 = joinpath(MAIN_DATA_DIR, "sample_2.csv")
+    global configs["SAMPLE_MAP_2"] = joinpath(MAIN_DATA_DIR, "sample_2.csv")
 end
 
 
@@ -39,14 +39,14 @@ function setup_players(team_and_playertype::Vector)
     return players
 end
 
-function setup_and_do_robot_game(savefile::Union{Nothing, String} = nothing)
+function setup_and_do_robot_game(configs::Dict{String, Any})
     players = setup_players()
-    setup_and_do_robot_game(players, savefile)
+    setup_and_do_robot_game(players, configs)
 end
 
-function setup_and_do_robot_game(team_and_playertype::Vector, savefile::Union{Nothing, String} = nothing)
+function setup_and_do_robot_game(team_and_playertype::Vector, configs::Dict{String, Any})
     players = setup_players(team_and_playertype)
-    return setup_and_do_robot_game(players, savefile)
+    return setup_and_do_robot_game(players, configs)
 end
 
 """
@@ -56,18 +56,18 @@ If no savefile is passed, we use the standard format "test_robot_game_savefile_y
 If a savefile is passed, we use it to save the game state.  If the file is nonempty, the game will replay
 up until the end of the save file and then continue to write ongoing game states to the file.
 """
-function setup_and_do_robot_game(players::Vector{PlayerType}, savefile::Union{Nothing, String} = nothing)
-    game = Game(players)
-    if (savefile == nothing)
+function setup_and_do_robot_game(players::Vector{PlayerType}, configs::Dict{String, Any})
+    game = Game(players, configs)
+    if (haskey(configs, "SAVE_FILE"))
         savefile, io = reset_savefile_with_timestamp("test_robot_game_savefile", configs)
     else
-        reset_test_savefile(savefile)
+        reset_test_savefile(configs)
     end
-    board, winner = GameRunner.initialize_and_do_game!(game, SAMPLE_MAP, savefile)
+    board, winner = GameRunner.initialize_and_do_game!(game, configs["SAMPLE_MAP"])
     return board, game
 end
 
-function test_automated_game(neverend, players)
+function test_automated_game(neverend, players, configs::Dict)
     if neverend
         while true
             # Play the game once
@@ -88,11 +88,11 @@ function test_automated_game(neverend, players)
             # Now move the latest save file to a special `last_save` file for easy retrieval
         end
     else
-        setup_and_do_robot_game()
+        setup_and_do_robot_game(configs)
     end
 end
 
-function test_player_implementation(T::Type) #where T <: PlayerType
+function test_player_implementation(T::Type, configs) #where T <: PlayerType
     private_players = [
                T(:Blue),
                DefaultRobotPlayer(:Cyan),
@@ -102,8 +102,8 @@ function test_player_implementation(T::Type) #where T <: PlayerType
 
     player = private_players[1]
     players = PlayerPublicView.(private_players)
-    game = Game(private_players)
-    board = read_map(SAMPLE_MAP)
+    game = Game(private_players, configs)
+    board = read_map(configs["SAMPLE_MAP"])
     from_player = players[2]
     #actions = Catan.ALL_ACTIONS
     actions = Set([PreAction(:BuyDevCard)])

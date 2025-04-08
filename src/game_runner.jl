@@ -10,19 +10,19 @@ using ..Catan.BoardApi
 using ..Catan.PlayerApi
 using ..Catan.GameApi
 
-function initialize_and_do_game!(game::Game, map_file::String, configs)::Tuple{Board, Union{PlayerType, Nothing}}
+function initialize_and_do_game!(game::Game, map_file::String)::Tuple{Board, Union{PlayerType, Nothing}}
     board = read_map(map_file)
-    if configs["SAVE_GAME_TO_FILE"]
-        load_gamestate!(game, board, configs)
+    if game.configs["SAVE_GAME_TO_FILE"]
+        load_gamestate!(game, board)
     end
     for p in game.players
         initialize_player(board, p)
     end
-    winner = do_game(game, board, configs)
+    winner = do_game(game, board)
     return board, winner
 end
 
-function do_game(game::Game, board::Board, configs)::Union{PlayerType, Nothing}
+function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     if game.turn_num == 0
         @info "Starting game $(game.unique_id) turn 0"
         # Here we need to pass the whole game so we can modify the players list order in-place
@@ -46,7 +46,7 @@ function do_game(game::Game, board::Board, configs)::Union{PlayerType, Nothing}
             #@info "$(player.player.team): $(sort(["$r - $c" for (r,c) in player.player.resources]))"
         end
 
-        if game.turn_num >= configs["MAX_TURNS"]
+        if game.turn_num >= game.configs["MAX_TURNS"]
             break
         end
     end
@@ -137,7 +137,7 @@ function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,Pla
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
             @info "WINNER $player_points ($player)"
-            if configs["PRINT_BOARD"]
+            if game.configs["PRINT_BOARD"]
                 BoardApi.print_board(board)
             end
             print_player_stats(game, board, player.player)

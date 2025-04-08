@@ -170,13 +170,13 @@ function execute_api_call(game::Game, board::Board, line::String)
         api_call(player, other_args...)
     end
 end
-function load_gamestate!(game, board, configs)
-    file = configs["SAVE_FILE"]
+function load_gamestate!(game, board)
+    file = game.configs["SAVE_FILE"]
     @debug "Loading game from file $file"
     for line in readlines(file)
         execute_api_call(game, board, line)
     end
-    if configs["PRINT_BOARD"]
+    if game.configs["PRINT_BOARD"]
         BoardApi.print_board(board)
     end
 end
