@@ -1,17 +1,5 @@
 global counter = 1
 global base_dir = @__DIR__
-#global now = now()
-
-function reset_test_data_dirs(new_base_dir)
-    global base_dir = new_base_dir
-    global (configs, _, _) = reset_configs(joinpath(new_base_dir, "Configuration.toml"))
-    global MAIN_DATA_DIR = configs["DATA_DIR"]
-    global TEST_DATA_DIR = joinpath(new_base_dir, "data")
-    global configs["SAVE_FILE"] = joinpath(TEST_DATA_DIR, "_test_save_$(Dates.format(now(), "HHMMSS")).txt")
-    global configs["SAMPLE_MAP"] = joinpath(MAIN_DATA_DIR, "sample.csv")
-    # Only difference is some changing of dice values for testing
-    global configs["SAMPLE_MAP_2"] = joinpath(MAIN_DATA_DIR, "sample_2.csv")
-end
 
 
 function reset_savefile_with_timestamp(name, configs)
@@ -22,7 +10,7 @@ function reset_savefile_with_timestamp(name, configs)
     return savefile, configs["SAVE_FILE_IO"]
 end
 
-function setup_players()
+function setup_players(player_configs)
     # Configure players and table configuration
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -31,21 +19,21 @@ function setup_players()
                           #(:red, DefaultRobotPlayer)
                           (:red, DefaultRobotPlayer)
     ]
-    setup_players(team_and_playertype)
+    setup_players(team_and_playertype, player_configs)
 end
 
-function setup_players(team_and_playertype::Vector)
-    players = Vector{PlayerType}([player(team) for (team,player) in team_and_playertype])
+function setup_players(team_and_playertype::Vector, player_configs::Dict)
+    players = Vector{PlayerType}([player(team, player_configs) for (team,player) in team_and_playertype])
     return players
 end
 
 function setup_and_do_robot_game(configs::Dict{String, Any})
-    players = setup_players()
+    players = setup_players(configs["PlayerSettings"])
     setup_and_do_robot_game(players, configs)
 end
 
 function setup_and_do_robot_game(team_and_playertype::Vector, configs::Dict{String, Any})
-    players = setup_players(team_and_playertype)
+    players = setup_players(team_and_playertype, configs)
     return setup_and_do_robot_game(players, configs)
 end
 
@@ -63,7 +51,7 @@ function setup_and_do_robot_game(players::Vector{PlayerType}, configs::Dict{Stri
     else
         reset_test_savefile(configs)
     end
-    board, winner = GameRunner.initialize_and_do_game!(game, configs["SAMPLE_MAP"])
+    board, winner = GameRunner.initialize_and_do_game!(game)
     return board, game
 end
 
@@ -94,7 +82,7 @@ end
 
 function test_player_implementation(T::Type, configs) #where T <: PlayerType
     private_players = [
-               T(:Blue),
+                       T(:Blue, configs["PlayerSettings"]),
                DefaultRobotPlayer(:Cyan),
                DefaultRobotPlayer(:Yellow),
                DefaultRobotPlayer(:Red)
@@ -103,7 +91,7 @@ function test_player_implementation(T::Type, configs) #where T <: PlayerType
     player = private_players[1]
     players = PlayerPublicView.(private_players)
     game = Game(private_players, configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     from_player = players[2]
     #actions = Catan.ALL_ACTIONS
     actions = Set([PreAction(:BuyDevCard)])

@@ -3,7 +3,8 @@ using Logging
 using TOML
 
 function reset_user_configs(new_configs::Dict)
-    global (configs, logger) = parse_user_configs(new_configs)
+    global configs = new_configs
+    global logger = parse_user_configs!(new_configs)
 end
 function reset_configs(config_path::String)
     global (configs, player_configs, logger) = parse_configs(config_path)
@@ -19,14 +20,13 @@ end
 
 function parse_configs(configs::Dict)
     player_configs = configs["PlayerSettings"]
-    user_configs = configs["UserSettings"]
-    (user_configs, logger) = parse_user_configs(user_configs)
+    user_configs = configs
+    logger = parse_user_configs!(user_configs)
     return (user_configs, player_configs, logger)
 end
 
-function parse_user_configs(user_configs::Dict)
+function parse_user_configs!(user_configs::Dict)
     
-    logger_output = user_configs["LOG_OUTPUT"]
     #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
     log_level_str = user_configs["LOG_LEVEL"]
     if log_level_str == "Logging.Info"
@@ -38,6 +38,7 @@ function parse_user_configs(user_configs::Dict)
     end
 
 
+    logger_output = user_configs["LOG_OUTPUT"]
     logger_io = stderr
     if logger_output == "stderr"
         logger_io = stderr
@@ -53,7 +54,7 @@ function parse_user_configs(user_configs::Dict)
     user_configs["LOGGER_IO"] = logger_io
     global_logger(logger)
     reset_savefile(user_configs)
-    return user_configs, logger
+    return logger
 end
 
 MAX_CITY = 4

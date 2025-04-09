@@ -1,11 +1,18 @@
-[UserSettings]
 DATA_DIR = "./data"
 SAVE_GAME_TO_FILE = false
 SAVE_FILE = "./data/savefile.txt"
+MAP_FILE = "./data/sample.csv"
 LOG_OUTPUT = "stderr"
 LOG_LEVEL = "Logging.Info"
 PRINT_BOARD = false
 MAX_TURNS = 500
 
-[GameSettings]
 [PlayerSettings]
+[PlayerSettings.cyan]
+TYPE = "DefaultRobotPlayer"
+[PlayerSettings.red]
+TYPE = "DefaultRobotPlayer"
+[PlayerSettings.yellow]
+TYPE = "DefaultRobotPlayer"
+[PlayerSettings.green]
+TYPE = "DefaultRobotPlayer"

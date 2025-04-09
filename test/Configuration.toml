@@ -1,7 +1,7 @@
-[UserSettings]
 DATA_DIR = "./data"
 SAVE_GAME_TO_FILE = true
 SAVE_FILE = "./data/savefile.txt"
+MAP_FILE = "./data/sample.csv"
 LOG_OUTPUT = "./data/oneoff_test_log.txt"
 LOG_LEVEL = "Logging.Warn"
 PRINT_BOARD = false

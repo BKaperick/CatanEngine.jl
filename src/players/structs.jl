@@ -82,9 +82,12 @@ PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(tea
 
 HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
 HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
+HumanPlayer(team::Symbol, configs::Dict) = HumanPlayer(team)
 
 DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
+DefaultRobotPlayer(team::Symbol, configs::Dict) = DefaultRobotPlayer(team)
 TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team))
+TestRobotPlayer(team::Symbol, configs::Dict) = TestRobotPlayer(team)
 TestRobotPlayer(player::Player) = TestRobotPlayer(player, 5, 5, Dict(:Wood => 1, :Grain => 1, :Pasture => 1, :Brick => 1, :Stone => 1))
 
 

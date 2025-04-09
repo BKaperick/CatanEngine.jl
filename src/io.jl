@@ -1,7 +1,20 @@
 function get_parsed_file_lines(file_str)
     [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
 end
-function read_players_from_config(txtfile)::Vector{PlayerType}
+function read_players_from_config(player_configs::Dict)::Vector{PlayerType}
+    @debug "starting to read lines"
+    players = []
+    for (name,configs) in collect(player_configs)
+        playertype = configs["TYPE"]
+        @debug "Starting add player $name of type $playertype"
+        name_sym = _parse_symbol(name)
+        @debug "Added player $name_sym of type $playertype"
+        player = eval(Meta.parse("$playertype(:$name_sym, player_configs)"))
+        push!(players, player)
+    end
+    return players
+end
+function read_players_from_config(txtfile::String)::Vector{PlayerType}
     file_str = read(txtfile, String)
     configs = get_parsed_file_lines(file_str)
     players = []

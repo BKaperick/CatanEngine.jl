@@ -10,8 +10,8 @@ using ..Catan.BoardApi
 using ..Catan.PlayerApi
 using ..Catan.GameApi
 
-function initialize_and_do_game!(game::Game, map_file::String)::Tuple{Board, Union{PlayerType, Nothing}}
-    board = read_map(map_file)
+function initialize_and_do_game!(game::Game)::Tuple{Board, Union{PlayerType, Nothing}}
+    board = read_map(game.configs["MAP_FILE"])
     if game.configs["SAVE_GAME_TO_FILE"]
         load_gamestate!(game, board)
     end

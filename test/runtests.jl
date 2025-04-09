@@ -1,9 +1,6 @@
 using Test
 using Dates
 using Logging
-#using Catan
-#include("../src/Catan.jl")
-#include("../src/main.jl")
 using Catan
 using Catan: 
 get_coord_from_human_tile_description,
@@ -21,46 +18,24 @@ do_robber_move_theft,
 do_monopoly_action,
 harvest_resources,
 roll_dice,
-#get_legal_action_functions,
 PLAYER_ACTIONS,
 MAX_SETTLEMENT,
 MAX_CITY,
 MAX_ROAD,
-#TEST_DATA_DIR,
-#MAIN_DATA_DIR,
 setup_players,
 setup_and_do_robot_game,
 test_automated_game,
 reset_savefile_with_timestamp,
 RESOURCES,
-#logger_io,
-#logger,
 reset_configs,
 reset_user_configs,
-parse_configs,
-reset_test_data_dirs
-
-#reset_configs("Configuration.toml", @__DIR__)
-#MAIN_DATA_DIR = Catan.DATA_DIR
-
-#reset_savefile(configs["SAVE_FILE"])
-
-# Reset the one-off test log
-#io = open(joinpath(TEST_DATA_DIR, "oneoff_test_log.txt"), "w")
-
-#write(logger_io,"")
-#close(io)
-
-#logger_io = open(joinpath(TEST_DATA_DIR, "oneoff_test_log.txt"),"w+")
-#logger = SimpleLogger(logger_io, Logging.Debug)
-#global_logger(logger)
-
+parse_configs
 
 function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
 end
 
-function test_deepcopy()
+function test_deepcopy(configs)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -68,8 +43,8 @@ function test_deepcopy()
                           (:red, DefaultRobotPlayer)
             ]
 
-    players = setup_players(team_and_playertype)
-    game = Game(players)
+    players = setup_players(team_and_playertype, configs["PlayerSettings"])
+    game = Game(players, configs)
     game2 = deepcopy(game)
     game.players[1].player.team = :newcolor
     @test game2.players[1].player.team == :blue
@@ -86,7 +61,7 @@ function test_set_starting_player(configs)
                           (:green, DefaultRobotPlayer),
                           (:red, DefaultRobotPlayer)
             ]
-    players = setup_players(team_and_playertype)
+    players = setup_players(team_and_playertype, configs["PlayerSettings"])
     game = Game(players, configs)
 
     GameApi.set_starting_player(game, 2)
@@ -98,7 +73,7 @@ function test_set_starting_player(configs)
     @test game.players[4].player.team == :blue
     
     flush(configs["SAVE_FILE_IO"])
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     @info "testing logfile $(configs["SAVE_FILE"])"
     new_game = Game(players, configs)
     load_gamestate!(new_game, board)
@@ -168,9 +143,9 @@ function test_log(configs)
     @info "testing savefile $(configs["SAVE_FILE"])"
     println("testing savefile $(configs["SAVE_FILE"])")
     # initialize fresh objects
-    new_players = setup_players(team_and_playertype)
+    new_players = setup_players(team_and_playertype, configs["PlayerSettings"])
     new_game = Game(new_players, configs)
-    new_board = read_map(configs["SAMPLE_MAP"])
+    new_board = read_map(configs["MAP_FILE"])
 
     load_gamestate!(new_game, new_board)
     @test game.devcards == new_game.devcards
@@ -194,7 +169,7 @@ function test_log(configs)
 end
 
 function test_do_turn(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -205,7 +180,7 @@ function test_do_turn(configs)
 end
 
 function test_robber(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -233,7 +208,7 @@ function test_robber(configs)
 end
 
 function test_max_construction(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
         BoardApi.build_settlement!(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
@@ -271,7 +246,7 @@ end
 
 # API Tests
 function test_devcards(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -305,7 +280,7 @@ function test_devcards(configs)
 end
 
 function test_largest_army(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -357,7 +332,7 @@ function test_road_hashing()
     @test length(set) == 1
 end
 function test_longest_road(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player_blue = DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
@@ -417,7 +392,7 @@ function test_longest_road(configs)
 end
 
 function test_ports(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     game = Game([player1, player2], configs)
@@ -442,19 +417,19 @@ function test_ports(configs)
 end
 
 function test_human_player(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
     players = Vector{PlayerType}([player1, player2])
     game = Game(players, configs)
     reset_savefile_with_timestamp("test_human_game", configs)
-    GameRunner.initialize_and_do_game!(game, configs["SAMPLE_MAP"])
+    GameRunner.initialize_and_do_game!(game, configs["MAP_FILE"])
 end
 
 function test_game_api(configs)
-    players = setup_players() # blue, green, cyan
+    players = setup_players(configs["PlayerSettings"]) # blue, green, cyan
     game = Game(players, configs)
-    board = read_map(configs["SAMPLE_MAP_2"])
+    board = read_map(configs["MAP_FILE_2"])
 
     @test board.resources[:Pasture] == 25
     @test board.resources[:Brick] == 25
@@ -512,7 +487,7 @@ function test_board_api(configs)
     @test length(BoardApi.get_neighbors((3,11))) == 2
     @test length(BoardApi.get_neighbors((4,1))) == 2
 
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     BoardApi.build_settlement!(board, :Test1, (1,1))
     BoardApi.build_road!(board, :Test1, (1,1),(1,2))
     @test BoardApi.is_valid_settlement_placement(board, :Test1, (1,2)) == false
@@ -537,7 +512,7 @@ function test_board_api(configs)
 end
 
 function test_call_api(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -612,7 +587,7 @@ end
 
 
 function test_assign_largest_army(configs)
-    board = Catan.read_map(configs["SAMPLE_MAP"])
+    board = Catan.read_map(configs["MAP_FILE"])
     player_blue = Catan.DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
@@ -651,12 +626,12 @@ function test_assign_largest_army(configs)
 end
     
 function test_robot_game(neverend, configs)
-    players = setup_players()
+    players = setup_players(configs["PlayerSettings"])
     test_automated_game(neverend, players, configs)
 end
 
 function test_trading(configs)
-    board = read_map(configs["SAMPLE_MAP"])
+    board = read_map(configs["MAP_FILE"])
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -670,16 +645,12 @@ end
 
 function run_tests(neverend = false)
     (configs,_,__) = reset_configs("Configuration.toml")
-    println("conf $configs")
-    # (configs, _, _) = parse_configs("Configuration.toml")
-    
-    configs["SAMPLE_MAP"] = joinpath(configs["DATA_DIR"], "sample.csv")
     # Only difference is some changing of dice values for testing
-    configs["SAMPLE_MAP_2"] = joinpath(configs["DATA_DIR"], "sample_2.csv")
-
-    reset_test_data_dirs(@__DIR__)
+    configs["MAP_FILE_2"] = joinpath(configs["DATA_DIR"], "sample_2.csv")
+    println("conf $configs")
+    
     for file in Base.Filesystem.readdir("data")
-        if ~contains(configs["SAMPLE_MAP"], file) && ~contains(configs["SAMPLE_MAP_2"], file)
+        if ~contains(configs["MAP_FILE"], file) && ~contains(configs["MAP_FILE_2"], file)
             Base.Filesystem.rm("data/$file")
         end
     end
@@ -690,7 +661,7 @@ function run_tests(neverend = false)
     test_assign_largest_army(configs)
     test_game_api(configs)
     test_road_hashing()
-    test_deepcopy()
+    test_deepcopy(configs)
     test_actions()
     test_set_starting_player(configs)
     test_log(configs)

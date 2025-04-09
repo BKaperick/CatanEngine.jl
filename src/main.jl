@@ -47,36 +47,26 @@ API_DICTIONARY = Dict(
 #       11-12-13-14-15-16-17
 
 function run_example()
-    run(["data/config.txt", "data/sample.csv", "save.txt"])
+    run(configs)
 end
 
-function run(args)
-    if length(args) >= 1
-        CONFIGFILE = args[1]
-        PLAYERS = read_players_from_config(CONFIGFILE)
-    end
-    return run(args, PLAYERS)
+function run(configs)
+    players = read_players_from_config(configs["PlayerSettings"])
+    return run(players, configs)
 end
-function run(args, PLAYERS)
-    game = nothing
-    if length(args) >= 1
-        game = Game(PLAYERS)
+function run(PLAYERS, configs)
+    game = Game(PLAYERS, configs)
+    if ~haskey(configs, "MAP_FILE")
+        configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
     end
-    if length(args) >= 2
-        map_file = args[2]
-    else
-        map_file = generate_random_map("_temp_map_file.csv")
-    end
-    if length(args) >= 3
-        reset_savefile(args[3], configs)
-    else
+    if ~haskey(configs, "SAVE_FILE")
         reset_savefile("./data/savefile.txt", configs)
     end
-    GameRunner.initialize_and_do_game!(game, map_file, configs)
+    GameRunner.initialize_and_do_game!(game)
 end
 
 function run(players::Vector{PlayerType})
-    game = Game(players)
+    game = Game(players, configs)
     map_file = generate_random_map("_temp_map_file.csv")
     reset_savefile("./data/savefile.txt", configs)
     GameRunner.initialize_and_do_game!(game, map_file, configs)

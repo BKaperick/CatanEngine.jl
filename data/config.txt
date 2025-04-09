@@ -1,4 +1,0 @@
-cyan,DefaultRobotPlayer
-red,TestRobotPlayer
-yellow,TestRobotPlayer
-green,DefaultRobotPlayer

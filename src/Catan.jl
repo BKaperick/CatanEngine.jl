@@ -6,13 +6,7 @@ using Random
 using StatsBase
 
 include("constants.jl")
-#reset_configs(, )
 global (configs, player_configs, logger) = parse_configs(joinpath(@__DIR__, "../Configuration.toml"))
-#logger = ConsoleLogger(stderr, Logging.Warn)
-#logger = ConsoleLogger(stderr, Logging.Debug)
-#logger = ConsoleLogger(stderr, Logging.Info)
-#logger = ConsoleLogger(stderr, Logging.LogLevel(5000))
-#global_logger(logger)
 
 include("random_helper.jl")
 
