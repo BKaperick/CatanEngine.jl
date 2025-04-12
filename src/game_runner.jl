@@ -11,10 +11,10 @@ using ..Catan.PlayerApi
 using ..Catan.GameApi
 
 function initialize_and_do_game!(game::Game)::Tuple{Board, Union{PlayerType, Nothing}}
-    board = read_map(game.configs["MAP_FILE"])
-    if game.configs["SAVE_GAME_TO_FILE"]
+    board = read_map(game.configs)
+    #if game.configs["SAVE_GAME_TO_FILE"]
         load_gamestate!(game, board)
-    end
+    #end
     for p in game.players
         initialize_player(board, p)
     end
@@ -39,12 +39,11 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
             do_turn(game, board, player)
         end
         GameApi.finish_turn(game)
+        if game.configs["PRINT_BOARD"]
+            BoardApi.print_board(board)
+        end
 
         @info "turn num $(game.turn_num)"
-        @info "game $(game.unique_id): $(sort(["$r - $c" for (r,c) in board.resources]))"
-        for player in game.players
-            #@info "$(player.player.team): $(sort(["$r - $c" for (r,c) in player.player.resources]))"
-        end
 
         if game.turn_num >= game.configs["MAX_TURNS"]
             break

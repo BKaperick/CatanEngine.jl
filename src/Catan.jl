@@ -6,8 +6,9 @@ using Random
 using StatsBase
 
 include("constants.jl")
-global (configs, player_configs, logger) = parse_configs(joinpath(@__DIR__, "../Configuration.toml"))
-
+#global (configs, player_configs, logger) = parse_configs(joinpath(@__DIR__, "../Configuration.toml"))
+global configs = Dict{String, Any}()
+global player_configs = Dict{String, Any}()
 include("random_helper.jl")
 
 include("players/structs.jl")
@@ -40,7 +41,8 @@ BoardApi,
 PlayerApi,
 GameApi,
 GameRunner,
-PreAction
+PreAction,
+get_known_players
 
 # Player methods to implement
 export choose_accept_trade,

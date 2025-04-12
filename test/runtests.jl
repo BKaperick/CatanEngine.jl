@@ -73,7 +73,7 @@ function test_set_starting_player(configs)
     @test game.players[4].player.team == :blue
     
     flush(configs["SAVE_FILE_IO"])
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     @info "testing logfile $(configs["SAVE_FILE"])"
     new_game = Game(players, configs)
     load_gamestate!(new_game, board)
@@ -145,7 +145,7 @@ function test_log(configs)
     # initialize fresh objects
     new_players = setup_players(team_and_playertype, configs["PlayerSettings"])
     new_game = Game(new_players, configs)
-    new_board = read_map(configs["MAP_FILE"])
+    new_board = read_map(configs)
 
     load_gamestate!(new_game, new_board)
     @test game.devcards == new_game.devcards
@@ -169,7 +169,7 @@ function test_log(configs)
 end
 
 function test_do_turn(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -180,7 +180,7 @@ function test_do_turn(configs)
 end
 
 function test_robber(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -208,7 +208,7 @@ function test_robber(configs)
 end
 
 function test_max_construction(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     for i in 1:(MAX_SETTLEMENT-1)
         BoardApi.build_settlement!(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
@@ -246,7 +246,7 @@ end
 
 # API Tests
 function test_devcards(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -280,7 +280,7 @@ function test_devcards(configs)
 end
 
 function test_largest_army(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -332,7 +332,7 @@ function test_road_hashing()
     @test length(set) == 1
 end
 function test_longest_road(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player_blue = DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
@@ -392,7 +392,7 @@ function test_longest_road(configs)
 end
 
 function test_ports(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     game = Game([player1, player2], configs)
@@ -417,7 +417,7 @@ function test_ports(configs)
 end
 
 function test_human_player(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
     players = Vector{PlayerType}([player1, player2])
@@ -487,7 +487,7 @@ function test_board_api(configs)
     @test length(BoardApi.get_neighbors((3,11))) == 2
     @test length(BoardApi.get_neighbors((4,1))) == 2
 
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     BoardApi.build_settlement!(board, :Test1, (1,1))
     BoardApi.build_road!(board, :Test1, (1,1),(1,2))
     @test BoardApi.is_valid_settlement_placement(board, :Test1, (1,2)) == false
@@ -512,7 +512,7 @@ function test_board_api(configs)
 end
 
 function test_call_api(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])
@@ -587,7 +587,7 @@ end
 
 
 function test_assign_largest_army(configs)
-    board = Catan.read_map(configs["MAP_FILE"])
+    board = Catan.read_map(configs)
     player_blue = Catan.DefaultRobotPlayer(:Blue)
     player_green = DefaultRobotPlayer(:Green)
     players = Vector{PlayerType}([player_blue, player_green])
@@ -631,7 +631,7 @@ function test_robot_game(neverend, configs)
 end
 
 function test_trading(configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1)
     player2 = DefaultRobotPlayer(:Test2)
     players = Vector{PlayerType}([player1, player2])

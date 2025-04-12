@@ -44,15 +44,16 @@ mutable struct Board
     # Team of player with the longest road card (is nothing if no player has a road at least 5 length)
     longest_road::Union{Nothing, Symbol}
     largest_army::Union{Nothing, Symbol}
+    configs::Dict
 end
 
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, 
-      robber_tile::Symbol, coord_to_port::Dict) = Board(tile_to_value, 
+      robber_tile::Symbol, coord_to_port::Dict, configs::Dict) = Board(tile_to_value, 
       dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
       BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, 
       BoardApi.initialize_empty_board(DIMS), 
       Dict([(r, MAX_RESOURCE) for r in RESOURCES]), 
-      nothing, nothing)
+      nothing, nothing, configs)
 Board(csvfile) = BoardApi.Board(csvfile)
 
 function Base.deepcopy(board::Board)
@@ -70,7 +71,8 @@ function Base.deepcopy(board::Board)
                  deepcopy(board.spaces),
                  deepcopy(board.resources),
                  board.longest_road,
-                 board.largest_army
+                 board.largest_army,
+                 board.configs
                     )
 end
 

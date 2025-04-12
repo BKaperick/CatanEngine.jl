@@ -50,31 +50,24 @@ function run_example()
     run(configs)
 end
 
-function run(configs)
+function run(configs::Dict)
     players = read_players_from_config(configs["PlayerSettings"])
     return run(players, configs)
 end
-function run(PLAYERS, configs)
-    game = Game(PLAYERS, configs)
+
+function run(players, configs)
+    game = Game(players, configs)
     if ~haskey(configs, "MAP_FILE")
         configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
     end
     if ~haskey(configs, "SAVE_FILE")
         reset_savefile("./data/savefile.txt", configs)
     end
+    run(game)
+end
+
+function run(game::Game)
     GameRunner.initialize_and_do_game!(game)
-end
-
-function run(players::Vector{PlayerType})
-    game = Game(players, configs)
-    map_file = generate_random_map("_temp_map_file.csv")
-    reset_savefile("./data/savefile.txt", configs)
-    GameRunner.initialize_and_do_game!(game, map_file, configs)
-end
-
-function run(game::Game, map_file::String)
-    reset_savefile("./data/savefile.txt", configs)
-    GameRunner.initialize_and_do_game!(game, map_file, configs)
 end
 
 

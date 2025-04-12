@@ -1,12 +1,28 @@
 function get_parsed_file_lines(file_str)
     [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
 end
+
+
+function read_player_constructors_from_config(player_configs::Dict)::Vector{Tuple{String, Symbol}}
+    players = []
+    for (name,configs) in collect(player_configs)
+        if ~(configs isa Dict)
+            continue
+        end
+        @debug "$name -> $configs"
+        playertype = configs["TYPE"]
+        name_sym = Symbol(name)
+        @debug "Added player $name_sym of type $playertype"
+        player = (playertype, name_sym)
+        push!(players, player)
+    end
+    return players
+end
 function read_players_from_config(player_configs::Dict)::Vector{PlayerType}
     @debug "starting to read lines"
     players = []
     for (name,configs) in collect(player_configs)
         playertype = configs["TYPE"]
-        @debug "Starting add player $name of type $playertype"
         name_sym = _parse_symbol(name)
         @debug "Added player $name_sym of type $playertype"
         player = eval(Meta.parse("$playertype(:$name_sym, player_configs)"))
@@ -14,22 +30,9 @@ function read_players_from_config(player_configs::Dict)::Vector{PlayerType}
     end
     return players
 end
-function read_players_from_config(txtfile::String)::Vector{PlayerType}
-    file_str = read(txtfile, String)
-    configs = get_parsed_file_lines(file_str)
-    players = []
-    @debug "starting to read lines"
-    for l in configs
-        name,playertype = split(l, ',')
-        @debug "Starting add player $name of type $playertype"
-        name_sym = _parse_symbol(name)
-        @debug "Added player $name_sym of type $playertype"
-        player = eval(Meta.parse("$playertype(:$name_sym)"))
-        push!(players, player)
-    end
-    return players
-end
-function read_map(csvfile)::Board
+
+function read_map(configs::Dict)::Board
+    csvfile = configs["MAP_FILE"]
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
     file_str = read(csvfile, String)
@@ -78,7 +81,7 @@ function read_map(csvfile)::Board
     end
 
     @debug dicevalue_to_tiles
-    board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile, coord_to_port)
+    board = Board(tile_to_dicevalue, dicevalue_to_tiles, tile_to_resource, desert_tile, coord_to_port, configs)
     @assert length(keys(board.tile_to_dicevalue)) == length(keys(TILE_TO_COORDS)) # 17
     t = sum(values(board.tile_to_dicevalue))
     @assert sum(values(board.tile_to_dicevalue)) == 133 "Sum of dice values is $(t) instead of 133"

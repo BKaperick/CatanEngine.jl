@@ -13,9 +13,10 @@ mutable struct Player
     ports::Dict{Symbol, Int}
     played_devcard_this_turn::Bool
     bought_devcard_this_turn::Union{Nothing,Symbol}
+    configs::Dict
 end
 
-function Player(team::Symbol)
+function Player(team::Symbol, configs::Dict)
     default_ports = Dict([
     :Wood => 4
     :Stone => 4
@@ -23,7 +24,7 @@ function Player(team::Symbol)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(Dict([(r,0) for r in RESOURCES]), Dict(), team, Dict(), default_ports, false, nothing)
+    return Player(Dict([(r,0) for r in RESOURCES]), Dict(), team, Dict(), default_ports, false, nothing, configs)
 end
 
 """
@@ -77,18 +78,14 @@ mutable struct TestRobotPlayer <: RobotPlayer
     resource_to_proba_weight::Dict{Symbol, Int}
 end
 
-RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = RobotPlayer(team)
+#RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}, configs::Dict) = RobotPlayer(team, configs)
 PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(team)
 
-HumanPlayer(team::Symbol, io::IO) = HumanPlayer(Player(team), io)
-HumanPlayer(team::Symbol) = HumanPlayer(team, stdin)
-HumanPlayer(team::Symbol, configs::Dict) = HumanPlayer(team)
+HumanPlayer(team::Symbol, io::IO, configs::Dict) = HumanPlayer(Player(team, configs), io)
+HumanPlayer(team::Symbol, configs::Dict) = HumanPlayer(team, stdin, configs)
 
-DefaultRobotPlayer(team::Symbol) = DefaultRobotPlayer(Player(team))
-DefaultRobotPlayer(team::Symbol, configs::Dict) = DefaultRobotPlayer(team)
-TestRobotPlayer(team::Symbol) = TestRobotPlayer(Player(team))
-TestRobotPlayer(team::Symbol, configs::Dict) = TestRobotPlayer(team)
-TestRobotPlayer(player::Player) = TestRobotPlayer(player, 5, 5, Dict(:Wood => 1, :Grain => 1, :Pasture => 1, :Brick => 1, :Stone => 1))
+DefaultRobotPlayer(team::Symbol, configs::Dict) = DefaultRobotPlayer(Player(team, configs))
+TestRobotPlayer(team::Symbol, configs::Dict) = TestRobotPlayer(Player(team, configs))
 
 
 function Base.deepcopy(player::DefaultRobotPlayer)
@@ -103,7 +100,8 @@ function Base.deepcopy(player::Player)
         deepcopy(player.devcards_used),
         deepcopy(player.ports),
         player.played_devcard_this_turn,
-        player.bought_devcard_this_turn
+        player.bought_devcard_this_turn,
+        player.configs
     )
 end
 
@@ -111,3 +109,18 @@ player(player::DefaultRobotPlayer) = p -> p.player
 player(player::TestRobotPlayer) = p -> p.player
 player(player::HumanPlayer) = p -> p.player
 
+struct KnownPlayers
+    registered_constructors::Dict
+end
+
+function get_known_players()
+    return known_players.registered_constructors
+end
+function add_player_to_register(name, constructor)
+    known_players.registered_constructors[name] = constructor
+end
+
+global known_players = KnownPlayers(Dict())
+
+add_player_to_register("DefaultRobotPlayer", (t,c) -> DefaultRobotPlayer(t,c))
+add_player_to_register("HumanPlayer", (t,c) -> HumanPlayer(t,c))
