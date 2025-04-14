@@ -23,7 +23,7 @@ function initialize_and_do_game!(game::Game)::Tuple{Board, Union{PlayerType, Not
 end
 
 function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
-    if game.turn_num == 0
+    if game.turn_num == 1
         @info "Starting game $(game.unique_id) turn 0"
         # Here we need to pass the whole game so we can modify the players list order in-place
         GameApi.do_set_turn_order(game) 
@@ -93,7 +93,7 @@ function do_action_from_legal_actions(game, board, player, legal_actions::Set{Pr
         return false
     end
     next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
-    if next_action != nothing
+    if next_action != nothing && next_action != Returns(nothing)
         next_action(game, board, player)
         do_post_action_step(board, player)
         return true

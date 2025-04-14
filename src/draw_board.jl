@@ -191,7 +191,7 @@ function print_building(building)::String
     if building.type == :Settlement
         return string(Crayon(foreground = team_color), lowercase(name))
     else
-        return string(Crayon(foreground = team_color), name)
+        return string(Crayon(foreground = team_color), uppercase(name))
     end
 end
 

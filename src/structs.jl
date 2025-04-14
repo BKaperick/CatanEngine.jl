@@ -13,7 +13,7 @@ mutable struct Game
 end
 
 Game(players) = Game(players, Dict{String, Any}())
-Game(players, configs) = Game(deepcopy(DEVCARD_COUNTS), [deepcopy(p) for p in players], Set(), 0, false, false, false, rand(range(1,10000)), configs)
+Game(players, configs) = Game(deepcopy(DEVCARD_COUNTS), [deepcopy(p) for p in players], Set(), 1, false, false, false, rand(range(1,10000)), configs)
 
 struct Road
     coord1::Tuple{Int,Int}

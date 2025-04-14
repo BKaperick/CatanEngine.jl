@@ -117,6 +117,7 @@ function get_known_players()
     return known_players.registered_constructors
 end
 function add_player_to_register(name, constructor)
+    @info "Registering $name"
     known_players.registered_constructors[name] = constructor
 end
 

@@ -5,6 +5,7 @@ global base_dir = @__DIR__
 function reset_savefile_with_timestamp(name, configs)
     configs["SAVE_GAME_TO_FILE"] = true
     savefile = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
+    configs["SAVE_FILE"] = savefile
     global counter += 1
     reset_savefile(savefile, configs)
     return savefile, configs["SAVE_FILE_IO"]
@@ -28,7 +29,7 @@ function setup_players(team_and_playertype::Vector, player_configs::Dict)
 end
 
 function setup_and_do_robot_game(configs::Dict{String, Any})
-    players = setup_players(configs["PlayerSettings"])
+    players = setup_players(configs)
     setup_and_do_robot_game(players, configs)
 end
 
@@ -82,16 +83,16 @@ end
 
 function test_player_implementation(T::Type, configs) #where T <: PlayerType
     private_players = [
-                       T(:Blue, configs["PlayerSettings"]),
-               DefaultRobotPlayer(:Cyan),
-               DefaultRobotPlayer(:Yellow),
-               DefaultRobotPlayer(:Red)
+                       T(:Blue, configs),
+               DefaultRobotPlayer(:Cyan, configs),
+               DefaultRobotPlayer(:Yellow, configs),
+               DefaultRobotPlayer(:Red, configs)
               ]
 
     player = private_players[1]
     players = PlayerPublicView.(private_players)
     game = Game(private_players, configs)
-    board = read_map(configs["MAP_FILE"])
+    board = read_map(configs)
     from_player = players[2]
     #actions = Catan.ALL_ACTIONS
     actions = Set([PreAction(:BuyDevCard)])

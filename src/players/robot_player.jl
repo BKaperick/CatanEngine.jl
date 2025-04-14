@@ -62,6 +62,7 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
     return nothing
 end
 function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
+    @debug "$(player.player.team) chooses $building_type location randomly"
     if length(candidates) > 0
         return sample(candidates, 1)[1]
     end

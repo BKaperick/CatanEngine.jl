@@ -145,7 +145,7 @@ function serialize_action(fname::String, args...)
 end
 
 function log_action(configs::Dict, fname::String, args...)
-    @debug "logging $fname in $(configs["SAVE_FILE"])"
+    #@debug "logging $fname in $(configs["SAVE_FILE"])"
     serialized = serialize_action(fname, args...)
     outstring = string(serialized, "\n")
     @debug "outstring = $outstring"
@@ -208,11 +208,31 @@ function Base.showerror(io::IO, ex::StopException, bt; backtrace=true)
         showerror(io, ex.S)
     end
 end
-
+function print_winner(board, winner)
+    team = winner.player.team
+    println("winner: $(team)")
+    println("------------")
+    if board.longest_road == team
+        println("\tlongest road (2)")
+    end
+    if board.largest_army == team
+        println("\tlargest army (2)")
+    end
+    if haskey(winner.player.devcards, :VictoryPoint) && winner.player.devcards[:VictoryPoint] > 0
+        println("\tvictory point devcards ($(winner.player.devcards[:VictoryPoint]))")
+    end
+    buildings = [b for b in board.buildings if b.team == team]
+    settlements = [b for b in buildings if b.type == :Settlement]
+    cities = [b for b in buildings if b.type == :City]
+    println("\tsettlements ($(length(settlements)))")
+    println("\tcities (2 ⋅$(length(cities)))")
+end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
-    #BoardApi.print_board(board)
+    if winner isa PlayerType
+        print_winner(board, winner)
+    end
     for player in players
         do_post_game_action(game, board, players, player, winner)
     end
