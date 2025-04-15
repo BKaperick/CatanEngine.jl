@@ -231,7 +231,7 @@ function do_post_game_action(game::Game, board::Board, players::Vector{T}, playe
 end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
     if winner isa PlayerType
-        print_winner(board, winner)
+        #print_winner(board, winner)
     end
     for player in players
         do_post_game_action(game, board, players, player, winner)

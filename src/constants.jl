@@ -29,12 +29,14 @@ function parse_user_configs!(user_configs::Dict)
     
     #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
     log_level_str = user_configs["LOG_LEVEL"]
-    if log_level_str == "Logging.Info"
+    if log_level_str == "Logging.Info" || log_level_str == "Info"
         log_level = Logging.Info
-    elseif log_level_str == "Logging.Warn"
+    elseif log_level_str == "Logging.Warn" || log_level_str == "Warn"
         log_level = Logging.Warn
-    else
+    elseif log_level_str == "Logging.Debug" || log_level_str == "Debug"
         log_level = Logging.Debug
+    else
+        log_level = Logging.Info
     end
 
 
@@ -43,6 +45,10 @@ function parse_user_configs!(user_configs::Dict)
     if logger_output == "stderr"
         logger_io = stderr
         logger = ConsoleLogger(logger_io, log_level)
+
+    elseif logger_output == "Null" || logger_output == ""
+        logger_io = stderr
+        logger = NullLogger()
     else
         logger_io = open(logger_output, "w+")
         write(logger_io, "")
