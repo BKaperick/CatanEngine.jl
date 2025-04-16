@@ -18,6 +18,25 @@ function parse_configs(config_path::String)
     return out
 end
 
+get_player_config(player::PlayerType, key) = get_player_config(player.player.configs, key, player.player.team)
+
+"""
+    ```get_player_config(configs, team, key)```
+
+Retrieves the `key`, potentially overridden for this team.
+"""
+function get_player_config(configs, key, team = nothing)
+    player_config = configs["PlayerSettings"]
+    if team !== nothing && haskey(player_config, team) && haskey(player_config[team], key)
+        return player_config[team][key]
+    elseif haskey(player_config, key)
+        return player_config[key]
+    else
+        @warn "PlayerSettings.$key has not been set "
+        return nothing
+    end
+end
+
 function parse_configs(configs::Dict)
     player_configs = configs["PlayerSettings"]
     user_configs = configs

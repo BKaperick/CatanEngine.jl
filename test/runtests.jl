@@ -648,7 +648,7 @@ end
 function run_tests(neverend = false)
     (configs,_,__) = reset_configs("Configuration.toml")
     # Only difference is some changing of dice values for testing
-    configs["MAP_FILE_2"] = joinpath(configs["DATA_DIR"], "sample_2.csv")
+    configs["MAP_FILE_2"] = "./data/sample_2.csv"
     println("conf $configs")
     
     for file in Base.Filesystem.readdir("data")

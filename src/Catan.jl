@@ -5,14 +5,14 @@ using Logging
 using Random
 using StatsBase
 
+
+include("players/structs.jl")
+include("structs.jl")
 include("constants.jl")
 #global (configs, player_configs, logger) = parse_configs(joinpath(@__DIR__, "../Configuration.toml"))
 global configs = Dict{String, Any}()
 global player_configs = Dict{String, Any}()
 include("random_helper.jl")
-
-include("players/structs.jl")
-include("structs.jl")
 
 include("parsing.jl")
 include("io.jl")
@@ -42,7 +42,8 @@ PlayerApi,
 GameApi,
 GameRunner,
 PreAction,
-get_known_players
+get_known_players,
+get_player_config
 
 # Player methods to implement
 export choose_accept_trade,
