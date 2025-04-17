@@ -194,6 +194,10 @@ end
 
 function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
+    if length(candidates) == 0
+        @debug "Not possible for $(player.player.team) to construct a road at this time"
+        return
+    end
     coord = choose_road_location(board, players, player, candidates)
     if coord != nothing
         BoardApi.build_road!(board, player.player.team, coord[1], coord[2])

@@ -25,8 +25,9 @@ get_player_config(player::PlayerType, key) = get_player_config(player.player.con
 
 Retrieves the `key`, potentially overridden for this team.
 """
-function get_player_config(configs, key, team = nothing)
+function get_player_config(configs, key, team_sym = nothing)
     player_config = configs["PlayerSettings"]
+    team = String(team_sym)
     if team !== nothing && haskey(player_config, team) && haskey(player_config[team], key)
         return player_config[team][key]
     elseif haskey(player_config, key)

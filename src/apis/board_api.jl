@@ -38,7 +38,7 @@ It supports
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
-MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, configs
+MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, configs, read_map, generate_random_map
 include("../board.jl")
 include("../draw_board.jl")
 
@@ -46,7 +46,13 @@ macro api_name(x)
     API_DICTIONARY[string(x)] = x
 end
 
-Board(configs::Dict) = read_map(configs)
+function Board(configs::Dict)
+    if ~haskey(configs, "MAP_FILE")
+        configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
+    end
+    
+    read_map(configs)
+end
 
 function count_settlements(board, team)
     return length(get_settlement_locations(board, team))
