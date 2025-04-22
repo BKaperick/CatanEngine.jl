@@ -4,7 +4,7 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction,
                do_first_turn_building!,
                decide_and_roll_dice!,choose_next_action,
                do_post_action_step, do_post_game_action, get_legal_actions,
-               COORD_TO_TILES, COSTS, RESOURCES, configs
+               COORD_TO_TILES, COSTS, RESOURCES
 
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
@@ -160,7 +160,7 @@ function print_player_stats(game, board, player::Player)
     if PlayerApi.get_vp_count_from_devcards(player) > 0
         @info "$(PlayerApi.get_vp_count_from_devcards(player)) points from dev cards"
     end
-    @info player
+    @debug player
 end
 
 function get_total_vp_count(board, player)

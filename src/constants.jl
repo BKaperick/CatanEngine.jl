@@ -11,10 +11,37 @@ function reset_configs(config_path::String)
     return (configs, player_configs, logger)
 end
 
-function parse_configs(config_path::String)
+function _initialize_configs()
+    config_path = joinpath(@__DIR__, "..", "DefaultConfiguration.toml")
     configs = TOML.parsefile(config_path)::Dict{String, Any}
     out = parse_configs(configs)
-    println("Configs loaded from $config_path")
+    println("Default configs loaded from $config_path")
+    return out[1]
+end
+
+function _update_configs!(new::Dict, old::Dict)
+    for (k,v) in old
+        if ~haskey(new, k)
+            @info "transferring $k,$v to new config dict"
+            new[k] = v
+        elseif v isa Dict
+            _update_configs!(new[k], v)
+        end
+    end
+end
+
+function update_default_configs(new_path)
+    out = parse_configs(new_path, DEFAULT_CONFIGS)
+    global DEFAULT_CONFIGS = out[1]
+end
+
+parse_configs(config_path::String) = parse_configs(config_path, _initialize_configs())
+
+function parse_configs(config_path::String, old::Dict)
+    configs = TOML.parsefile(config_path)::Dict{String, Any}
+    _update_configs!(configs, old)
+    out = parse_configs(configs)
+    println("More configs loaded from $config_path")
     return out
 end
 

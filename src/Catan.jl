@@ -5,26 +5,26 @@ using Logging
 using Random
 using StatsBase
 
-
 include("players/structs.jl")
 include("structs.jl")
-include("constants.jl")
-#global (configs, player_configs, logger) = parse_configs(joinpath(@__DIR__, "../Configuration.toml"))
-global configs = Dict{String, Any}()
-global player_configs = Dict{String, Any}()
-include("random_helper.jl")
 
+include("constants.jl")
+include("random_helper.jl")
 include("parsing.jl")
 include("io.jl")
 
 include("apis/player_api.jl")
 import .PlayerApi
+
 include("players/human_player.jl")
 include("players/robot_player.jl")
+
 include("apis/board_api.jl")
 import .BoardApi
+
 include("apis/game_api.jl")
 import .GameApi
+
 include("apis/human_action_interface.jl")
 include("trading.jl")
 
@@ -57,22 +57,17 @@ choose_robber_victim,
 choose_who_to_trade_with,
 choose_resource_to_draw,
 choose_card_to_steal,
-
 do_post_game_action,
-do_post_action
+do_post_action,
 
 PLAYER_ACTIONS,
 MAX_SETTLEMENT,
 MAX_CITY,
 MAX_ROAD
 
-
-if length(ARGS) >= 2
-    run(ARGS)
-end
-
-if length(ARGS) >= 2
-    run(ARGS)
+function __init__()
+    # Set the default configs
+    global DEFAULT_CONFIGS = _initialize_configs()
 end
 
 end
