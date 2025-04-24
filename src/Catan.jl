@@ -60,10 +60,7 @@ choose_card_to_steal,
 do_post_game_action,
 do_post_action,
 
-PLAYER_ACTIONS,
-MAX_SETTLEMENT,
-MAX_CITY,
-MAX_ROAD
+PLAYER_ACTIONS
 
 function __init__()
     # Set the default configs

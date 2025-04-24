@@ -7,7 +7,7 @@ function reset_savefile_with_timestamp(name, configs)
     savefile = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
     configs["SAVE_FILE"] = savefile
     global counter += 1
-    reset_savefile(savefile, configs)
+    reset_savefile!(configs, savefile)
     return savefile, configs["SAVE_FILE_IO"]
 end
 

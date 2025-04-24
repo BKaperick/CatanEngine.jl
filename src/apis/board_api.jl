@@ -38,7 +38,7 @@ It supports
 """
 module BoardApi
 using ..Catan: Board, Building, Road, log_action, 
-MAX_ROAD, MAX_SETTLEMENT, MAX_CITY, DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, read_map, generate_random_map
+DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, read_map, generate_random_map
 include("../board.jl")
 include("../draw_board.jl")
 
@@ -248,13 +248,13 @@ end
 
 Returns a vector of all legal locations to place a settlement:
 1. Always respect the distance-from-other-buildings rule (most not be neighboring another city or settlement)
-2. Must not exceed `MAX_SETTLEMENT`
+2. Must not exceed `board.configs["GameSettings"]["MaxComponents"]["CITY"]`
 3. If it's not the first turn, it must be adjacent to a road of the same team
 """
 function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int,Int}}
 
     # Some quick checks to eliminate most spaces
-    if count_settlements(board, team) >= MAX_SETTLEMENT
+    if count_settlements(board, team) >= board.configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]
         return []
     end
     coords_near_player_road = get_road_locations(board, team)
@@ -317,7 +317,7 @@ function is_valid_city_placement(board, team, coord)::Bool
 end
 
 function get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int,Int}}
-    if count_cities(board, team) >= MAX_CITY
+    if count_cities(board, team) >= board.configs["GameSettings"]["MaxComponents"]["CITY"]
         return []
     end
     get_settlement_locations(board, team)
@@ -362,7 +362,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
 end
 
 function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
-    if count_roads(board, team) >= MAX_ROAD
+    if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end
     start_coords = []

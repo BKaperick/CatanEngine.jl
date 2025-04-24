@@ -61,7 +61,7 @@ function run(players, configs)
         configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
     end
     if ~haskey(configs, "SAVE_FILE")
-        reset_savefile("./data/savefile.txt", configs)
+        reset_savefile!(configs, "./data/savefile.txt")
     end
     run(game)
 end

@@ -13,7 +13,7 @@ mutable struct Game
 end
 
 Game(players) = Game(players, Dict{String, Any}())
-Game(players, configs) = Game(deepcopy(DEVCARD_COUNTS), [deepcopy(p) for p in players], Set(), 1, false, false, false, rand(range(1,10000)), configs)
+Game(players, configs) = Game(get_devcard_counts(configs), [deepcopy(p) for p in players], Set(), 1, false, false, false, rand(range(1,10000)), configs)
 
 struct Road
     coord1::Tuple{Int,Int}
@@ -52,7 +52,7 @@ Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict,
       dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
       BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, 
       BoardApi.initialize_empty_board(DIMS), 
-      Dict([(r, MAX_RESOURCE) for r in RESOURCES]), 
+      Dict([(r, configs["GameSettings"]["MaxComponents"]["RESOURCE"]) for r in RESOURCES]), 
       nothing, nothing, configs)
 Board(csvfile) = BoardApi.Board(csvfile)
 

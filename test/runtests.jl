@@ -7,7 +7,7 @@ get_coord_from_human_tile_description,
 get_road_coords_from_human_tile_description,
 read_map,
 load_gamestate!,
-reset_savefile,
+reset_savefile!,
 random_sample_resources,
 decide_and_assign_largest_army!,
 get_admissible_theft_victims,
@@ -19,16 +19,11 @@ do_monopoly_action,
 harvest_resources,
 roll_dice,
 PLAYER_ACTIONS,
-MAX_SETTLEMENT,
-MAX_CITY,
-MAX_ROAD,
 setup_players,
 setup_and_do_robot_game,
 test_automated_game,
 reset_savefile_with_timestamp,
 RESOURCES,
-reset_configs,
-reset_user_configs,
 parse_configs
 
 function test_actions()
@@ -54,7 +49,7 @@ end
 
 function test_set_starting_player(configs)
     sf, sfio = reset_savefile_with_timestamp("test_set_starting_player", configs)
-    reset_savefile(sf, sfio, configs)
+    reset_savefile!(configs, sf, sfio)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -130,7 +125,6 @@ end
 
 function test_log(configs)
     reset_savefile_with_timestamp("test_log", configs)
-    reset_user_configs(configs)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -210,23 +204,23 @@ end
 function test_max_construction(configs)
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
-    for i in 1:(MAX_SETTLEMENT-1)
+    for i in 1:(configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]-1)
         BoardApi.build_settlement!(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
     end
     @test length(BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)) > 0
     BoardApi.build_settlement!(board, :Test1, BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)[1])
     @test length(BoardApi.get_admissible_settlement_locations(board, player1.player.team, true)) == 0
-    @test BoardApi.count_settlements(board, player1.player.team) == MAX_SETTLEMENT
+    @test BoardApi.count_settlements(board, player1.player.team) == configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]
     
-    for i in 1:(MAX_CITY-1)
+    for i in 1:(configs["GameSettings"]["MaxComponents"]["CITY"]-1)
         BoardApi.build_city!(board, :Test1, BoardApi.get_admissible_city_locations(board, player1.player.team)[1])
     end
     @test length(BoardApi.get_admissible_city_locations(board, player1.player.team)) > 0
     BoardApi.build_city!(board, :Test1, BoardApi.get_admissible_city_locations(board, player1.player.team)[1])
     @test length(BoardApi.get_admissible_city_locations(board, player1.player.team)) == 0
-    @test BoardApi.count_cities(board, player1.player.team) == MAX_CITY
+    @test BoardApi.count_cities(board, player1.player.team) == board.configs["GameSettings"]["MaxComponents"]["CITY"]
     
-    for i in 1:(MAX_ROAD-1)
+    for i in 1:(configs["GameSettings"]["MaxComponents"]["ROAD"]-1)
         coords = BoardApi.get_admissible_road_locations(board, player1.player.team)[1]
         BoardApi.build_road!(board, :Test1, coords...)
     end
@@ -234,7 +228,7 @@ function test_max_construction(configs)
     coords = BoardApi.get_admissible_road_locations(board, player1.player.team)[1]
     BoardApi.build_road!(board, :Test1, coords...)
     @test length(BoardApi.get_admissible_road_locations(board, player1.player.team)) == 0
-    @test BoardApi.count_roads(board, player1.player.team) == MAX_ROAD
+    @test BoardApi.count_roads(board, player1.player.team) == configs["GameSettings"]["MaxComponents"]["ROAD"]
 end
 
 function test_resource_conservation(game, board)
@@ -646,7 +640,7 @@ function test_trading(configs)
 end
 
 function run_tests(neverend = false)
-    (configs,_,__) = reset_configs("Configuration.toml")
+    configs = parse_configs("Configuration.toml")
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "./data/sample_2.csv"
     println("conf $configs")

@@ -2,47 +2,42 @@ using Dates
 using Logging
 using TOML
 
-function reset_user_configs(new_configs::Dict)
-    global configs = new_configs
-    global logger = parse_user_configs!(new_configs)
-end
-function reset_configs(config_path::String)
-    global (configs, player_configs, logger) = parse_configs(config_path)
-    return (configs, player_configs, logger)
-end
-
 function _initialize_configs()
     config_path = joinpath(@__DIR__, "..", "DefaultConfiguration.toml")
     configs = TOML.parsefile(config_path)::Dict{String, Any}
-    out = parse_configs(configs)
+    out = _parse_configs(configs)
     println("Default configs loaded from $config_path")
-    return out[1]
+    return out
 end
 
-function _update_configs!(new::Dict, old::Dict)
+function _upsert_configs!(new::Dict, old::Dict)
     for (k,v) in old
         if ~haskey(new, k)
-            @info "transferring $k,$v to new config dict"
             new[k] = v
         elseif v isa Dict
-            _update_configs!(new[k], v)
+            _upsert_configs!(new[k], v)
         end
     end
 end
 
 function update_default_configs(new_path)
-    out = parse_configs(new_path, DEFAULT_CONFIGS)
-    global DEFAULT_CONFIGS = out[1]
+    global DEFAULT_CONFIGS = parse_configs(new_path, DEFAULT_CONFIGS)
 end
 
-parse_configs(config_path::String) = parse_configs(config_path, _initialize_configs())
+parse_configs(config_path::String) = parse_configs(config_path, DEFAULT_CONFIGS)
 
 function parse_configs(config_path::String, old::Dict)
     configs = TOML.parsefile(config_path)::Dict{String, Any}
-    _update_configs!(configs, old)
-    out = parse_configs(configs)
-    println("More configs loaded from $config_path")
+    _upsert_configs!(configs, old)
+    out = _parse_configs(configs)
+    @debug "More configs loaded from $config_path"
     return out
+end
+
+function _parse_configs(configs::Dict)
+    parse_logging_configs!(configs)
+    reset_savefile!(configs)
+    return configs
 end
 
 get_player_config(player::PlayerType, key) = get_player_config(player.player.configs, key, player.player.team)
@@ -65,16 +60,7 @@ function get_player_config(configs, key, team_sym = nothing)
     end
 end
 
-function parse_configs(configs::Dict)
-    player_configs = configs["PlayerSettings"]
-    user_configs = configs
-    logger = parse_user_configs!(user_configs)
-    return (user_configs, player_configs, logger)
-end
-
-function parse_user_configs!(user_configs::Dict)
-    
-    #log_level = eval(Meta.parse(user_configs["LOG_LEVEL"]))
+function parse_logging_configs!(user_configs::Dict)
     log_level_str = user_configs["LOG_LEVEL"]
     if log_level_str == "Logging.Info" || log_level_str == "Info"
         log_level = Logging.Info
@@ -85,7 +71,6 @@ function parse_user_configs!(user_configs::Dict)
     else
         log_level = Logging.Info
     end
-
 
     logger_output = user_configs["LOG_OUTPUT"]
     logger_io = stderr
@@ -105,31 +90,25 @@ function parse_user_configs!(user_configs::Dict)
     end
     user_configs["LOG_LEVEL"] = log_level
     user_configs["LOGGER_IO"] = logger_io
+    user_configs["LOGGER"] = logger
     global_logger(logger)
-    reset_savefile(user_configs)
-    return logger
 end
 
-MAX_CITY = 4
-MAX_SETTLEMENT = 5
-MAX_ROAD = 14
-MAX_RESOURCE = 25
-
-function reset_savefile(path, io, configs::Dict)
+function reset_savefile!(configs::Dict, path, io)
     configs["SAVE_FILE"] = path
     configs["SAVE_FILE_IO"] = io
 end
 
-reset_savefile(configs::Dict) = reset_savefile(configs["SAVE_FILE"], configs)
+reset_savefile!(configs::Dict) = reset_savefile!(configs, configs["SAVE_FILE"])
 
-function reset_savefile(path, configs::Dict)
+function reset_savefile!(configs::Dict, path)
     configs["SAVE_FILE"] = path
 
     if configs["SAVE_GAME_TO_FILE"]
         io = open(path, "w"); write(io,""); close(io)
     end
     configs["SAVE_FILE_IO"] = open(path, "a")
-    println("Savefile set to $path")
+    @info "Savefile set to $path"
 end
 
 VP_AWARDS = Dict([
@@ -188,13 +167,16 @@ HUMAN_DEVCARD_TO_SYMBOL = Dict([
 "V" => :VictoryPoint
 ])
 
-DEVCARD_COUNTS = Dict([
-                               :Knight => 14,
-                               :RoadBuilding => 2,
-                               :YearOfPlenty => 2,
-                               :Monopoly => 2,
-                               :VictoryPoint => 5
-                              ])
+function get_devcard_counts(configs)
+    dc_configs = configs["GameSettings"]["DevCards"]
+    return Dict([
+                                :Knight => dc_configs["KNIGHT"],
+                                :RoadBuilding => dc_configs["ROAD_BUILDING"],
+                                :YearOfPlenty => dc_configs["YEAR_OF_PLENTY"],
+                                :Monopoly => dc_configs["MONOPOLY"],
+                                :VictoryPoint => dc_configs["VICTORY_POINT"]
+                                ])
+end
 
 HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "W" => :Wood,

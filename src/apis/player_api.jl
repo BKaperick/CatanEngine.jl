@@ -34,7 +34,7 @@ take_resource!(player::Player, resource::Symbol)
 trade_resource_with_bank(player::Player, from_resource, to_resource)
 """
 module PlayerApi
-using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, DEVCARD_COUNTS, log_action#, configs
+using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, log_action, get_devcard_counts
 
 # Player API
 

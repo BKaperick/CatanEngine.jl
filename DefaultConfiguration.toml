@@ -4,14 +4,19 @@ MAP_FILE = "./data/sample.csv"
 LOG_OUTPUT = "stderr"
 LOG_LEVEL = "Info"
 PRINT_BOARD = false
-MAX_TURNS = 500
+MAX_TURNS = 1000
+
+[GameSettings]
+[GameSettings.DevCards]
+KNIGHT = 14
+ROAD_BUILDING = 2
+YEAR_OF_PLENTY = 2
+MONOPOLY = 2
+VICTORY_POINT = 5
+[GameSettings.MaxComponents]
+CITY = 4
+SETTLEMENT = 5
+ROAD = 14
+RESOURCE = 25
 
 [PlayerSettings]
-[PlayerSettings.cyan]
-TYPE = "DefaultRobotPlayer"
-[PlayerSettings.red]
-TYPE = "DefaultRobotPlayer"
-[PlayerSettings.yellow]
-TYPE = "DefaultRobotPlayer"
-[PlayerSettings.green]
-TYPE = "DefaultRobotPlayer"

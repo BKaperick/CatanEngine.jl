@@ -135,7 +135,7 @@ function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,Pla
     for player in players
         player_points = get_total_vp_count(board, player.player)
         if player_points >= 10
-            @info "WINNER $player_points ($player)"
+            @debug "Winner: $player_points ($player)"
             if game.configs["PRINT_BOARD"]
                 BoardApi.print_board(board)
             end
