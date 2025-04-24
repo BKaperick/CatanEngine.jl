@@ -18,14 +18,17 @@ function read_player_constructors_from_config(player_configs::Dict)::Vector{Tupl
     end
     return players
 end
-function read_players_from_config(player_configs::Dict)::Vector{PlayerType}
+function read_players_from_config(configs::Dict)::Vector{PlayerType}
     @debug "starting to read lines"
     players = []
-    for (name,configs) in collect(player_configs)
-        playertype = configs["TYPE"]
+    for (name,config) in collect(configs["PlayerSettings"])
+        if ~(config isa Dict)
+            continue
+        end
+        playertype = config["TYPE"]
         name_sym = _parse_symbol(name)
         @debug "Added player $name_sym of type $playertype"
-        player = eval(Meta.parse("$playertype(:$name_sym, player_configs)"))
+        player = get_known_players()[playertype](name_sym, configs)
         push!(players, player)
     end
     return players
@@ -128,7 +131,6 @@ end
 
 
 function serialize_action(fname::String, args...)
-    #println("serializing $fname and $args")
     arg_strs = []
     for arg in args
         if typeof(arg) == Symbol

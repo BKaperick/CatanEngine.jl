@@ -51,7 +51,7 @@ function run_example()
 end
 
 function run(configs::Dict)
-    players = read_players_from_config(configs["PlayerSettings"])
+    players = read_players_from_config(configs)
     return run(players, configs)
 end
 

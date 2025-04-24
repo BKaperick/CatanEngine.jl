@@ -6,7 +6,7 @@ function _initialize_configs()
     config_path = joinpath(@__DIR__, "..", "DefaultConfiguration.toml")
     configs = TOML.parsefile(config_path)::Dict{String, Any}
     out = _parse_configs(configs)
-    println("Default configs loaded from $config_path")
+    @debug "Default configs loaded from $config_path"
     return out
 end
 
@@ -81,6 +81,7 @@ function parse_logging_configs!(user_configs::Dict)
     elseif logger_output == "Null" || logger_output == ""
         logger_io = stderr
         logger = NullLogger()
+        @warn "No more logging will take place, since NullLogger is set"
     else
         logger_io = open(logger_output, "w+")
         write(logger_io, "")

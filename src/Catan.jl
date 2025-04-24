@@ -65,6 +65,10 @@ PLAYER_ACTIONS
 function __init__()
     # Set the default configs
     global DEFAULT_CONFIGS = _initialize_configs()
+
+    global known_players = KnownPlayers(Dict())
+    add_player_to_register("DefaultRobotPlayer", (t,c) -> DefaultRobotPlayer(t,c))
+    add_player_to_register("HumanPlayer", (t,c) -> HumanPlayer(t,c))
 end
 
 end

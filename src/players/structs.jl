@@ -121,7 +121,3 @@ function add_player_to_register(name, constructor)
     known_players.registered_constructors[name] = constructor
 end
 
-global known_players = KnownPlayers(Dict())
-
-add_player_to_register("DefaultRobotPlayer", (t,c) -> DefaultRobotPlayer(t,c))
-add_player_to_register("HumanPlayer", (t,c) -> HumanPlayer(t,c))
