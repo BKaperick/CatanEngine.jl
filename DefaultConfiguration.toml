@@ -1,4 +1,4 @@
-SAVE_GAME_TO_FILE = false
+SAVE_GAME_TO_FILE = true
 SAVE_FILE = "./data/savefile.txt"
 MAP_FILE = "./data/sample.csv"
 LOG_OUTPUT = "stderr"

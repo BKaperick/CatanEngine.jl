@@ -1,20 +1,34 @@
 # CatanEngine.jl
 
-This repository handles the engine for playing Settlers of Catan with a mixture of human and scripted players.
+A full Julia engine for playing the extremely popular board game [Settlers of Catan](https://www.catan.com/) with a mixture of human and custom scripted players.
 
-For examples of implementation and advanced player algorithms, check out the sister repo [CatanLearning.jl](https://github.com/BKaperick/CatanLearning.jl/).
+ For examples of scripted players and how to apply more advanced ML/RL algorithms, check out the sister repo [CatanLearning.jl](https://github.com/BKaperick/CatanLearning.jl/).
 
 ## How to run the game
 To launch a new or existing game:
-`$julia Catan.jl [CONFIG FILE] [MAP FILE] [SAVE FILE]`
+Set up a basic configuration file, such as
+```toml filename="Configuration.toml"
+# Changing any configs you want (defaults in ./DefaultConfiguration.toml)
+PRINT_BOARD = true
 
-For example, from the repository root directory, run
+# Setting up the types of players.  
+# One human (blue) against three scripted players of type `DefaultRobotPlayer`
+[PlayerSettings]
+[PlayerSettings.blue]
+TYPE = "HumanPlayer"
+[PlayerSettings.cyan]
+TYPE = "DefaultRobotPlayer"
+[PlayerSettings.green]
+TYPE = "DefaultRobotPlayer"
+[PlayerSettings.yellow]
+TYPE = "DefaultRobotPlayer"
+```
 
-`$julia --project src/Catan.jl data/config.txt data/sample.csv save.txt`
-
-* `data/config.txt` sets the label (e.g. a color) and player class (e.g. `HumanPlayer` or `DefaultRobotPlayer`) for each player.
-* `data/sample.csv` sets the board layout
-* `save.txt` is a file to write the game history for saving and reloading previous games.  If the file already exists, it will be read and the game state will be initialized by executing the progress denoted in this file.
+```julia
+using Catan
+configs = Catan.parse_configs("Configuration.toml")
+board, winner = Catan.run(configs)
+```
 
 ## Developer Notes
 ### Board representation
@@ -47,7 +61,7 @@ where:
 
 ### Debugging
 
-For convenience, setting `PRINT_BOARD = true` in `src/constants.jl` will print a color representation of the final map state:
+For convenience, setting `PRINT_BOARD = true` in the configuration file will print a color representation of the map state after each turn:
 
 ![image](https://github.com/user-attachments/assets/17c5b8b6-1592-4c7d-9b84-6666e4334b7f)
 
@@ -65,17 +79,14 @@ mutable struct NewRobotPlayer <: RobotPlayer
 end
 ```
 
-and it needs to have two constructors:
-
+and it needs to have the constructor
 ```julia
-NewRobotPlayer(team::Symbol) = NewRobotPlayer(Player(team))
-NewRobotPlayer(player::Player) = NewRobotPlayer(
-    player, 
-    # Here, initialize any default values for other fields
-)
+NewRobotPlayer(team::Symbol, configs::Dict) = NewRobotPlayer(Player(team, configs))
 ```
-
-Note: Julia automatically creates the `NewRobotPlayer(player::Player)` if you don't define any other fields.
+and you need to add a register the player via
+```julia
+add_player_to_register("NewRobotPlayer", (t,c) -> NewRobotPlayer(t,c))
+```
 
 #### Define the player behavior
 Add a file in the directory [./src/players](https://github.com/BKaperick/Catan.jl/blob/master/src/players) and implement any of the methods in the header of [./src/players/robot_player.jl](https://github.com/BKaperick/Catan.jl/blob/master/src/players/robot_player.jl) for which you want customized behavior.
@@ -83,18 +94,7 @@ Add a file in the directory [./src/players](https://github.com/BKaperick/Catan.j
 For example, to give your `NewRobotPlayer` a custom algorithm to accept trades, implement the following function definition:
 
 ```julia
-function choose_accept_trade(board::Board, player::NewRobotPlayer, from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
+function choose_accept_trade(board::Board, player::NewRobotPlayer, from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})::Bool
     # Define a custom algorithm for how the NewRobotPlayer will decide to accept a proposed trade or not.
 end
 ```
-
-#### Adding the new player to a game
-Simply add a line to your config file that invokes your new player by the name of its `mutable struct`.  So a game with 1 human, 1 default robot player and 2 of your custom players could have the format:
-
-```
-red,HumanPlayer
-cyan,DefaultRobotPlayer
-green,NewRobotPlayer
-blue,NewRobotPlayer
-```
-
