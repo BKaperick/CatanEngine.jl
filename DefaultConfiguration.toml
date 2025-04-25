@@ -7,6 +7,7 @@ PRINT_BOARD = false
 MAX_TURNS = 1000
 
 [GameSettings]
+VICTORY_POINT_GOAL = 10
 [GameSettings.DevCards]
 KNIGHT = 14
 ROAD_BUILDING = 2

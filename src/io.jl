@@ -26,7 +26,7 @@ function read_players_from_config(configs::Dict)::Vector{PlayerType}
             continue
         end
         playertype = config["TYPE"]
-        name_sym = _parse_symbol(name)
+        name_sym = Symbol(name)
         @debug "Added player $name_sym of type $playertype"
         player = get_known_players()[playertype](name_sym, configs)
         push!(players, player)
