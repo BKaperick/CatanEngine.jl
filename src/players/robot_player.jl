@@ -69,7 +69,7 @@ function choose_building_location(board::Board, players::Vector{PlayerPublicView
 end
 
 function choose_one_resource_to_discard(board::Board, player::RobotPlayer)::Symbol
-    ~isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
+    isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
     return random_sample_resources(player.player.resources, 1)[1]
 end
 
@@ -111,7 +111,7 @@ end
 function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::Tuple
     rand_action = sample(collect(actions), 1)[1]
     name = rand_action.name
-    candidates = collect(rand_action.admissible_args)
+    candidates = rand_action.admissible_args
     if name == :ConstructCity
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
         return (coord, (g, b, p) -> construct_city(b, p.player, coord))

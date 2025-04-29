@@ -78,11 +78,9 @@ end
 
 struct PreAction 
     name::Symbol
-    admissible_args::Set
+    admissible_args::Vector
+    PreAction(name::Symbol, admissible_args::Vector) = new(name, unique(admissible_args))
 end
 
-PreAction(name::Symbol) = PreAction(name, Set([]))
-
-function PreAction(name::Symbol, admissible_args::Vector)
-    PreAction(name, Set(admissible_args))
-end
+PreAction(name::Symbol) = PreAction(name, [])
+PreAction(name::Symbol, admissible_args::Set) = PreAction(name, collect(admissible_args))

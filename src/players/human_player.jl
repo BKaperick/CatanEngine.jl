@@ -10,7 +10,7 @@ function roll_dice(player::HumanPlayer)::Int
 end
 
 function choose_one_resource_to_discard(board, player::HumanPlayer)::Symbol
-    ~isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
+    isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
     return parse_resources(player.io, "$(player.player.team) discards: ", player.player.configs)[1]
 end
 

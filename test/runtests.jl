@@ -660,7 +660,6 @@ function run_tests(neverend = false)
             Base.Filesystem.rm("data/$file")
         end
     end
-    test_jet_fails()
     #Catan.test_player_implementation(HumanPlayer, configs)
     Catan.test_player_implementation(DefaultRobotPlayer, configs)
     test_trading(configs)
@@ -683,6 +682,7 @@ function run_tests(neverend = false)
     test_do_turn(configs)
     test_call_api(configs)
     test_longest_road(configs)
+    test_jet_fails()
     test_robot_game(neverend, configs)
 end
 if abspath(PROGRAM_FILE) == @__FILE__
