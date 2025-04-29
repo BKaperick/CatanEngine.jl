@@ -93,7 +93,7 @@ function do_action_from_legal_actions(game, board, player, legal_actions::Set{Pr
         return false
     end
     next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
-    if next_action != nothing && next_action != Returns(nothing)
+    if next_action !== nothing && next_action != Returns(nothing)
         next_action(game, board, player)
         do_post_action_step(board, player)
         return true
@@ -127,7 +127,7 @@ function do_turn(game::Game, board::Board, player::PlayerType)
 end
 
 function someone_has_won(game, board, players::Vector{PlayerType})::Bool
-    return get_winner(game, board, players) != nothing
+    return get_winner(game, board, players) !== nothing
 end
 
 function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}

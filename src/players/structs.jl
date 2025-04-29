@@ -71,21 +71,12 @@ mutable struct DefaultRobotPlayer <: RobotPlayer
     player::Player
 end
 
-mutable struct TestRobotPlayer <: RobotPlayer
-    player::Player
-    accept_trade_willingness
-    propose_trade_willingness
-    resource_to_proba_weight::Dict{Symbol, Int}
-end
-
-#RobotPlayer(team::Symbol, mutation::Dict{Symbol, AbstractFloat}, configs::Dict) = RobotPlayer(team, configs)
-PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}) = PlayerType(team)
+#PlayerType(team::Symbol, mutation::Dict{Symbol, AbstractFloat}, configs::Dict) = PlayerType(team, configs::Dict)
 
 HumanPlayer(team::Symbol, io::IO, configs::Dict) = HumanPlayer(Player(team, configs), io)
 HumanPlayer(team::Symbol, configs::Dict) = HumanPlayer(team, stdin, configs)
 
 DefaultRobotPlayer(team::Symbol, configs::Dict) = DefaultRobotPlayer(Player(team, configs))
-TestRobotPlayer(team::Symbol, configs::Dict) = TestRobotPlayer(Player(team, configs))
 
 
 function Base.deepcopy(player::DefaultRobotPlayer)
@@ -104,10 +95,6 @@ function Base.deepcopy(player::Player)
         player.configs
     )
 end
-
-player(player::DefaultRobotPlayer) = p -> p.player
-player(player::TestRobotPlayer) = p -> p.player
-player(player::HumanPlayer) = p -> p.player
 
 struct KnownPlayers
     registered_constructors::Dict

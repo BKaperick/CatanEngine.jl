@@ -1,4 +1,5 @@
 using Test
+using JET
 using Dates
 using Logging
 using Catan
@@ -25,6 +26,15 @@ test_automated_game,
 reset_savefile_with_timestamp,
 RESOURCES,
 parse_configs
+
+function test_jet_fails()
+    rep = report_package(Catan;
+    ignored_modules=())
+
+    #@show length(JET.get_reports(rep))
+    #@show rep
+    @test length(JET.get_reports(rep)) <= 16
+end
 
 function test_actions()
     @test length(keys(PLAYER_ACTIONS)) == 6
@@ -529,7 +539,7 @@ function test_call_api(configs)
     # Build first settlement
     settlement = first_turn_build_settlement!(board, players_public, player1)
     loc_settlement = settlement.coord
-    @test loc_settlement != nothing
+    @test loc_settlement !== nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1
     
@@ -556,7 +566,7 @@ function test_call_api(configs)
     players_public = [PlayerPublicView(p) for p in players]
     settlement = Catan.first_turn_build_settlement!(board, players_public, player1)
     loc_settlement = settlement.coord
-    @test loc_settlement != nothing
+    @test loc_settlement !== nothing
     settlement_locs = BoardApi.get_settlement_locations(board, player1.player.team)
     @test length(settlement_locs) == 1 # City is no longer counted
     
@@ -564,7 +574,7 @@ function test_call_api(configs)
     admissible_roads = BoardApi.get_admissible_road_locations(board, player1.player.team, true)
     players_public = [PlayerPublicView(p) for p in players]
     road_coords = choose_road_location(board, players_public, player1, admissible_roads)
-    if road_coords == nothing
+    if road_coords === nothing
         print_board(board)
     end
     BoardApi.build_road!(board, player1.player.team, road_coords[1], road_coords[2])
@@ -636,7 +646,7 @@ function test_trading(configs)
     PlayerApi.give_resource!(player2.player, :Brick)
     actions = Set([PreAction(:ProposeTrade)])
     next_action = choose_next_action(board::Board, players_public, player1, actions)
-    @test next_action != nothing 
+    @test next_action !== nothing 
 end
 
 function run_tests(neverend = false)
@@ -650,6 +660,8 @@ function run_tests(neverend = false)
             Base.Filesystem.rm("data/$file")
         end
     end
+    test_jet_fails()
+    #Catan.test_player_implementation(HumanPlayer, configs)
     Catan.test_player_implementation(DefaultRobotPlayer, configs)
     test_trading(configs)
     """

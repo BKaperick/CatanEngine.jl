@@ -50,7 +50,7 @@ function setup_and_do_robot_game(players::Vector{PlayerType}, configs::Dict{Stri
     if (haskey(configs, "SAVE_FILE"))
         savefile, io = reset_savefile_with_timestamp("test_robot_game_savefile", configs)
     else
-        reset_test_savefile(configs)
+        reset_savefile!(configs)
     end
     board, winner = GameRunner.initialize_and_do_game!(game)
     return board, game

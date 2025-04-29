@@ -43,7 +43,7 @@ function get_admissible_devcards(player::Player)
 end
 function get_admissible_devcards_with_counts(player::Player)
     if ~can_play_devcard(player)
-        return 
+        return Dict()
     end
     
     # Non-playable card :VictoryPoint
@@ -51,7 +51,7 @@ function get_admissible_devcards_with_counts(player::Player)
     out[:VictoryPoint] = 0
 
     if player.bought_devcard_this_turn !== nothing
-        out[player.bought_devcard_this_turn] -= 1
+        out[player.bought_devcard_this_turn::Symbol] -= 1
     end
     return Dict((c,cc) for (c,cc) in out if cc > 0)
 end

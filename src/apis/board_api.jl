@@ -42,10 +42,6 @@ DIMS, COORD_TO_TILES, VP_AWARDS, TILE_TO_COORDS, COSTS, read_map, generate_rando
 include("../board.jl")
 include("../draw_board.jl")
 
-macro api_name(x)
-    API_DICTIONARY[string(x)] = x
-end
-
 function Board(configs::Dict)
     if ~haskey(configs, "MAP_FILE")
         configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
@@ -109,7 +105,7 @@ function _build_city!(board, team, coord::Tuple{Int, Int})::Building
     return city
 end
 
-function build_settlement!(board::Board, team::Symbol, coord::Union{Nothing, Tuple{Int, Int}})::Building
+function build_settlement!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
     log_action(board.configs, "board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement!(board, team, coord)
@@ -121,7 +117,7 @@ function _build_settlement!(board, team, coord::Tuple{Int,Int})::Building
     return building
 end
 
-function build_road!(board::Board, team::Symbol, coord1::Union{Nothing, Tuple{Int, Int}}, coord2::Union{Nothing, Tuple{Int, Int}})::Road
+function build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
     log_action(board.configs, "board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road!(board, team, coord1, coord2)
@@ -161,7 +157,7 @@ function _award_longest_road!(board)
     for (team,len) in team_to_length
         if len == max_length
             # If the current longest road holder still has the longest road, he wins (even in case of ties)
-            if board.longest_road != nothing && len == team_to_length[board.longest_road]
+            if board.longest_road !== nothing && len == team_to_length[board.longest_road]
                 return
             else
                 board.longest_road = team
@@ -396,7 +392,7 @@ end
 
 function assign_largest_army!(board::Board, team::Union{Symbol, Nothing})
     # Noop if team already has largest army
-    if board.largest_army != team && team != nothing
+    if board.largest_army != team && team !== nothing
         log_action(board.configs, "board la :$team")
         _assign_largest_army!(board, team)
     end

@@ -46,10 +46,6 @@ API_DICTIONARY = Dict(
 #       |  A  |  B  |  C  |
 #       11-12-13-14-15-16-17
 
-function run_example()
-    run(configs)
-end
-
 function run(configs::Dict)
     players = read_players_from_config(configs)
     return run(players, configs)
@@ -187,9 +183,7 @@ end
 function first_turn_build_settlement!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
     candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, true)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
-    if coord != nothing
-        BoardApi.build_settlement!(board, player.player.team, coord)
-    end
+    BoardApi.build_settlement!(board, player.player.team, coord)
 end
 
 function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
@@ -199,7 +193,7 @@ function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicV
         return
     end
     coord = choose_road_location(board, players, player, candidates)
-    if coord != nothing
+    if coord !== nothing
         BoardApi.build_road!(board, player.player.team, coord[1], coord[2])
     end
 end

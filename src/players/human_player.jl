@@ -6,30 +6,32 @@ function get_admissible_devcards(player::HumanPlayer)
 end
 
 function roll_dice(player::HumanPlayer)::Int
-    parse_int(player.io, "Dice roll:")
+    parse_int(player.io, "Dice roll:", player.player.configs)
 end
 
-function choose_one_resource_to_discard(board, player::HumanPlayer)
-    return parse_resources(player.io, "$(player.player.team) discards: ")[1]
+function choose_one_resource_to_discard(board, player::HumanPlayer)::Symbol
+    ~isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
+    return parse_resources(player.io, "$(player.player.team) discards: ", player.player.configs)[1]
 end
 
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int,Int}}, building_type::Symbol, is_first_turn = false)::Union{Nothing, Tuple{Int, Int}}
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int,Int}}, building_type::Symbol, is_first_turn = false)::Tuple{Int, Int}
     if building_type == :Settlement
-        validation_check = is_valid_settlement_placement
+        validation_check = BoardApi.is_valid_settlement_placement
     else
-        validation_check = is_valid_city_placement
+        validation_check = BoardApi.is_valid_city_placement
     end
     coord = nothing
     while (!validation_check(board, player.player.team, coord))
-        coord = parse_ints(player.io, "$(player.player.team) places a $(building_type):")
+        coord = parse_ints(player.io, "$(player.player.team) places a $(building_type):", board.configs)
     end
+    return coord
 end
 function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int,Int}}
     road_coord1 = nothing
     road_coord2 = nothing
     road_coords = Vector{Tuple{Int,Int}}()
-    while (!is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
-        coords = parse_road_coord(player.io, "$(player.player.team) places a Road:")
+    while (!BoardApi.is_valid_road_placement(board, player.player.team, road_coord1, road_coord2))
+        coords = parse_road_coord(player.io, "$(player.player.team) places a Road:", board.configs)
         if length(coords) == 4
             road_coords = [Tuple(coords[1:2]);Tuple(coords[3:4])]
         else
@@ -44,33 +46,32 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
 end
 
 function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer, candidates::Vector{Symbol})
-    parse_tile(player.io, "$(player.player.team) places the Robber:")
+    parse_tile(player.io, "$(player.player.team) places the Robber:", board.configs)
 end
 
-function choose_resource_to_draw(board, players, player::HumanPlayer)
-    parse_resources(player.io, "$(player.player.team) choose two resources for free:")[1]
-    return
+function choose_resource_to_draw(board, players, player::HumanPlayer)::Symbol
+    parse_resources(player.io, "$(player.player.team) choose two resources for free:", board.configs)[1]
 end
 
 function choose_monopoly_resource(board, players, player::HumanPlayer)
-    parse_resources(player.io, "$(player.player.team) will steal all:")
+    parse_resources(player.io, "$(player.player.team) will steal all:", board.configs)[1]
 end
 function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
-    @info "$([p.player.team for p in potential_victims])"
+    @info "$([p.team for p in potential_victims])"
     if length(potential_victims) == 1
         return potential_victims[1]
     end
-    team = parse_teams(player.io, "$(player.player.team) chooses his victim among $(join([v.player.team for v in potential_victims],",")):")
-    return [p for p in potential_victims if p.player.team == team][1]
+    team = parse_teams(player.io, "$(player.player.team) chooses his victim among $(join([v.team for v in potential_victims],",")):", player.player.configs)
+    return [p for p in potential_victims if p.team == team][1]
 end
 function choose_card_to_steal(player::HumanPlayer)::Symbol
-    parse_resources(player.io, "$(player.player.team) lost his:")[1]
+    parse_resources(player.io, "$(player.player.team) lost his:", player.player.configs)[1]
 end
 
 function choose_next_action(board, players, player::HumanPlayer, actions)
     header = "What does $(player.player.team) do next?\n"
     full_options = string(header, [ACTION_TO_DESCRIPTION[a.name] for a in actions]..., "\n[E]nd turn")
-    action_and_args = parse_action(player.io, full_options)
+    action_and_args = parse_action(player.io, full_options, board.configs)
     if action_and_args == :EndTurn
         return nothing
     end
@@ -81,10 +82,10 @@ end
 
 function choose_steal_random_resource(from_player, to_player)
     stolen_good = choose_card_to_steal(from_player)
-    input(stdin, "Press Enter when $(to_player.player.team) is ready to see the message")
+    input(stdin, "Press Enter when $(to_player.player.team) is ready to see the message", from_player.configs)
     @info "$(to_player.player.team) stole $stolen_good from $(from_player.player.team)"
-    input(stdin, "Press Enter again when you are ready to hide the message")
-    run(`clear`)
+    input(stdin, "Press Enter again when you are ready to hide the message", from_player.player.configs)
+    Base.run(`clear`)
     return stolen_good
 end
 
@@ -95,9 +96,9 @@ function choose_steal_random_resource(from_player::HumanPlayer, to_player::Human
 end
 
 function choose_who_to_trade_with(board, player::HumanPlayer, players)
-    parse_team(player.io, "$(join([p.player.team for p in players], ", ")) have accepted. Who do you choose?")
+    parse_team(player.io, "$(join([p.team for p in players], ", ")) have accepted. Who do you choose?", board.configs)
 end
 
-function choose_accept_trade(board, player::HumanPlayer, from_player::Player, from_goods, to_goods)
-    parse_yesno(player.io, "Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?")
+function choose_accept_trade(board, player::HumanPlayer, from_player::PlayerPublicView, from_goods, to_goods)
+    parse_yesno(player.io, "Does $(player.player.team) want to recieve $from_goods and give $to_goods to $(from_player.team) ?", board.configs)
 end

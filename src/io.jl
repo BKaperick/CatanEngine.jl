@@ -169,7 +169,7 @@ function execute_api_call(game::Game, board::Board, line::String)
     api_call = API_DICTIONARY[func_key]
 
     other_args = [eval(Meta.parse(a)) for a in values[3:end]]
-    filter!(x -> x != nothing, other_args)
+    filter!(x -> x !== nothing, other_args)
     if values[1] == "board"
         @debug "API: $api_call(board, $(other_args...))"
         api_call(board, other_args...)

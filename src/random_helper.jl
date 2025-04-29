@@ -20,8 +20,10 @@ function get_random_tile(board)::Symbol
     candidates = [keys(board.tile_to_dicevalue)...]
     return sample(candidates, 1)[1]
 end
+
+#TODO unused
 function get_random_empty_coord(board)
-    return sample(get_empty_spaces(board), 1)[1]
+    return sample(BoardApi.get_empty_spaces(board), 1)[1]
 end
 
 function get_random_resource()

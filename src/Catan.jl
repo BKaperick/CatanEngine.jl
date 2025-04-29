@@ -35,7 +35,7 @@ import .GameRunner
 
 include("../test/helper.jl")
 
-export DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
+export HumanPlayer, DefaultRobotPlayer, RobotPlayer, Player, Board, Road, PlayerType, PlayerPublicView, Game,
     initialize_and_do_game!,
 BoardApi, 
 PlayerApi,

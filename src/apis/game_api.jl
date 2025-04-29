@@ -1,8 +1,5 @@
 module GameApi
-using ..Catan: Game, roll_dice, log_action
-using StatsBase
-import Random
-include("../random_helper.jl")
+using ..Catan: Game, roll_dice, log_action, has_any_elements, random_sample_resources
 
 function start_turn(game::Game)::Nothing
     log_action(game.configs, "game st")

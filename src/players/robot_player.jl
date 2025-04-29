@@ -54,26 +54,26 @@ function roll_dice(player::RobotPlayer)::Int
 end
 
 
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})::Union{Nothing,Vector{Tuple{Int, Int}}}
-    if length(candidates) > 0
-        return sample(candidates)
-    end
-    @info "I didn't find any place to put my road"
-    return nothing
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})::Vector{Tuple{Int, Int}}
+    return sample(candidates)
 end
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
+
+"""
+    `choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Tuple{Int,Int}`
+
+`candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
+"""
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Tuple{Int,Int}
     @debug "$(player.player.team) chooses $building_type location randomly"
-    if length(candidates) > 0
-        return sample(candidates, 1)[1]
-    end
-    return nothing
+    return sample(candidates, 1)[1]
 end
 
 function choose_one_resource_to_discard(board::Board, player::RobotPlayer)::Symbol
+    ~isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
     return random_sample_resources(player.player.resources, 1)[1]
 end
 
-function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Symbol
+function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Union{Nothing, Symbol}
     if length(candidates) > 0
         return sample(candidates, 1)[1]
     end
@@ -132,7 +132,7 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     if name == :PlayDevCard
         devcards = PlayerApi.get_admissible_devcards_with_counts(player.player)
         card = _choose_play_devcard(board, players, player, devcards)
-        if card != nothing
+        if card !== nothing
             return (card, (g, b, p) -> do_play_devcard(b, g.players, p, card))
         end
     end

@@ -57,14 +57,14 @@ end
 
 
 function trade_goods(players, from_player::Player, to_player_team::Symbol, amount::Int, resource_symbols...)
-    to_player = [p for p in players if p.player.team == to_player_team]
-    from_goods = resource_symbols[1:amount]
-    to_goods = resource_symbols[amount+1:end]
+    to_player = [p for p in players if p.player.team == to_player_team][1]
+    from_goods = length(resource_symbols) > 0 ? collect(resource_symbols[1:amount]) : Vector{Symbol}()
+    to_goods = length(resource_symbols) > 0 ? collect(resource_symbols[amount+1:end]) : Vector{Symbol}()
     return trade_goods(from_player, to_player, from_goods, to_goods)
 end
 
-function flatten(d::Dict)
-    vcat([repeat(r,c) for (r,c) in collect(d)]...)
+function flatten(d::Dict{Symbol,Int})::Vector{Symbol}
+    vcat([repeat([r],c) for (r,c) in collect(d)]...)
 end
 
 function trade_goods(from_player::Player, to_player::Player, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
@@ -73,12 +73,9 @@ function trade_goods(from_player::Player, to_player::Player, from_goods::Dict{Sy
     trade_goods(from_player, to_player, from_goods, to_goods)
 end
 
-function trade_goods(from_player, to_player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
+function trade_goods(from_player::Player, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
     trade_goods_from_player(from_player, from_goods, to_goods)
     trade_goods_to_player(to_player, from_goods, to_goods)
-end
-function trade_goods(from_player::PlayerPublicView, to_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
-    trade_goods()
 end
 
 function trade_goods_from_player(from_player::Player, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})
@@ -114,7 +111,7 @@ function trade_goods_from_player(from_player::PlayerPublicView, from_goods::Vect
     from_player.resource_count - length(from_goods) + length(to_goods)
 end
 
-function trade_goods_from_player(from_player::Player, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
+function trade_goods_from_player(from_player::Union{Player, PlayerPublicView}, from_goods::Dict{Symbol, Int}, to_goods::Dict{Symbol, Int})
     from_goods_flat = flatten(from_goods)
     to_goods_flat = flatten(to_goods)
     trade_goods_from_player(from_player, from_goods_flat, to_goods_flat)
