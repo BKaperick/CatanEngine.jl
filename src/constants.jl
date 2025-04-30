@@ -109,7 +109,7 @@ function reset_savefile!(configs::Dict, path)
         io = open(path, "w"); write(io,""); close(io)
     end
     configs["SAVE_FILE_IO"] = open(path, "a")
-    @info "Savefile set to $path"
+    @debug "Savefile set to $path"
 end
 
 VP_AWARDS = Dict([

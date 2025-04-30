@@ -132,7 +132,9 @@ function _build_road!(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tupl
             board.coord_to_roads[coord] = Set([road])
         end
     end
-    _award_longest_road!(board)
+    if board.longest_road != team
+        _award_longest_road!(board)
+    end
     return road
 end
 
@@ -140,7 +142,12 @@ end
 #_build_road!(board, team, human_coords::String) = _build_settlement!(board, team, get_coords_from_human_tile_description(human_coords)...)
 
 function _award_longest_road!(board) 
-    teams = [Set([r.team for r in board.roads])...]
+    road_teams = [r.team for r in board.roads]
+    if length(road_teams) < 5
+        return
+    end
+
+    teams = unique(road_teams)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
     for team in teams
@@ -266,7 +273,7 @@ function get_admissible_settlement_locations(board, team::Symbol, first_turn = f
 end
 
 function is_valid_settlement_placement(board, team, coord, is_first_turn::Bool = false)::Bool
-    if coord == nothing
+    if coord === nothing
         return false
     end
     # 1. There cannot be another building at the same location

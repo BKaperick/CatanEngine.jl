@@ -4,32 +4,50 @@ using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction,
                do_first_turn_building!,
                decide_and_roll_dice!,choose_next_action,
                do_post_action_step, do_post_game_action, get_legal_actions,
-               COORD_TO_TILES, COSTS, RESOURCES
+               COORD_TO_TILES, COSTS, RESOURCES, generate_random_map
 
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
 using ..Catan.GameApi
 
 function initialize_and_do_game!(game::Game)::Tuple{Board, Union{PlayerType, Nothing}}
+    board = initialize_game!(game)
+    winner = do_game(game, board)
+    return board, winner
+end
+
+function initialize_game!(game::Game)
+    if ~haskey(game.configs, "MAP_FILE")
+        game.configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
+    end
+    if ~haskey(game.configs, "SAVE_FILE")
+        reset_savefile!(game.configs, "./data/savefile.txt")
+    end
     board = read_map(game.configs)
-    #if game.configs["SAVE_GAME_TO_FILE"]
-        load_gamestate!(game, board)
-    #end
+    load_gamestate!(game, board)
+
     for p in game.players
         initialize_player(board, p)
     end
-    winner = do_game(game, board)
-    return board, winner
+    return board
 end
 
 function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     if game.turn_num == 1
         @info "Starting game $(game.unique_id) turn 0"
-        # Here we need to pass the whole game so we can modify the players list order in-place
-        GameApi.do_set_turn_order(game) 
         do_first_turn(game, board, game.players)
     end
 
+    do_rest_of_game!(game, board)
+
+    winner = get_winner(game, board, game.players)
+
+    # Post game steps (writing features, updating models, etc)
+    do_post_game_action(game, board, game.players, winner)
+    return winner
+end
+
+function do_rest_of_game!(game, board)
     while ~someone_has_won(game, board, game.players)
         @info "Starting game $(game.unique_id) turn $(game.turn_num)"
         GameApi.start_turn(game)
@@ -49,14 +67,11 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
             break
         end
     end
-    winner = get_winner(game, board, game.players)
-
-    # Post game steps (writing features, updating models, etc)
-    do_post_game_action(game, board, game.players, winner)
-    return winner
 end
 
 function do_first_turn(game::Game, board::Board, players)
+    # Here we need to pass the whole game so we can modify the players list order in-place
+    GameApi.do_set_turn_order(game) 
     if !game.first_turn_forward_finished
         do_first_turn_forward(game, board, players)
     end
