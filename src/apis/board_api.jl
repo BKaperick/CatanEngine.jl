@@ -44,7 +44,7 @@ include("../draw_board.jl")
 
 function Board(configs::Dict)
     if ~haskey(configs, "MAP_FILE")
-        configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
+        configs["MAP_FILE"] = generate_random_map(joinpath(configs["TEMP_DIR"], "_temp_map_file.csv"))
     end
     
     read_map(configs)

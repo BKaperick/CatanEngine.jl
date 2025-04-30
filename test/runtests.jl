@@ -682,8 +682,8 @@ function run_tests(neverend = false)
     test_do_turn(configs)
     test_call_api(configs)
     test_longest_road(configs)
-    test_jet_fails()
     test_robot_game(neverend, configs)
+    test_jet_fails()
 end
 if abspath(PROGRAM_FILE) == @__FILE__
     if (length(ARGS) > 0)

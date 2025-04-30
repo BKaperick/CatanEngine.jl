@@ -18,7 +18,7 @@ end
 
 function initialize_game!(game::Game)
     if ~haskey(game.configs, "MAP_FILE")
-        game.configs["MAP_FILE"] = generate_random_map("_temp_map_file.csv")
+        game.configs["MAP_FILE"] = generate_random_map(joinpath(configs["TEMP_DIR"], "_temp_map_file.csv"))
     end
     if ~haskey(game.configs, "SAVE_FILE")
         reset_savefile!(game.configs, "./data/savefile.txt")
