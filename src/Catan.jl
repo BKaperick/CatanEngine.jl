@@ -58,6 +58,7 @@ choose_who_to_trade_with,
 choose_resource_to_draw,
 choose_card_to_steal,
 do_post_game_action,
+do_post_game_produce!,
 do_post_action,
 
 PLAYER_ACTIONS

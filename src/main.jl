@@ -61,6 +61,25 @@ function run(game::Game)
     GameRunner.initialize_and_do_game!(game)
 end
 
+function run_async(configs::Dict)
+    players = read_players_from_config(configs)
+    channels = read_channels_from_config(configs)
+    return _run_async(channels, players, configs)
+end
+
+function _run_async(channels, players, configs)
+    game = Game(players, configs)
+
+    run_async(channels, game)
+end
+
+function run_async(channels::Dict{Symbol, Channel}, game::Game)
+    GameRunner.initialize_and_do_game_async!(channels, game)
+end
+
+function run_async(channels::Dict{Symbol, Channel}, game::Game, board::Board)
+    GameRunner.initialize_and_do_game_async!(channels, game, board)
+end
 
 function decide_and_assign_largest_army!(board, players)
     la_team = decide_largest_army(board, players)

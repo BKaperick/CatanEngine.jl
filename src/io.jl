@@ -34,11 +34,25 @@ function read_players_from_config(configs::Dict)::Vector{PlayerType}
     return players
 end
 
+
+function read_channels_from_config(configs::Dict)::Dict{Symbol, Channel}
+    channels = Dict{Symbol, Channel}()
+    for name in configs["Async"]["CHANNELS"]
+        c = Channel{Vector}(configs["Async"]["main"]["SIZE"])
+        channels[Symbol(name)] = c
+    end
+    return channels
+end
+
 function read_map(configs::Dict)::Board
     csvfile = configs["MAP_FILE"]
+    file_str = read(csvfile, String)
+    read_map(configs, file_str)
+end
+
+function read_map(configs::Dict, file_str::String)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
-    file_str = read(csvfile, String)
     if length(file_str) == 0
         error("Empty file: $file_str")
     end
@@ -103,8 +117,11 @@ Generate a random board conforming to the following constraints:
 
 """
 function generate_random_map(fname::String)
-    io = open(fname, "w")
-    vcat([repeat([string(s)], 5) for s in "abc"]...)
+    io = generate_random_map(open(fname, "w"))
+    close(io)
+    return fname
+end
+function generate_random_map(io::IO)
     resource_bag = shuffle!(vcat([repeat([lowercase(string(r)[1])], c) for (r,c) in RESOURCE_TO_COUNT]...))
     dicevalue_bag = shuffle!(vcat([repeat([r], c) for (r,c) in DICEVALUE_TO_COUNT]...))
 
@@ -118,16 +135,24 @@ function generate_random_map(fname::String)
         write(io, "$(string(p)),$r\n")
     end
 
-    """
+    #=
 3,p
 5,s
 6,g
 8,w
 9,b
-   """ 
-   close(io)
-   return fname
+   =#
+   #close(io)
+   return io
 end
+function generate_random_map()
+    io = generate_random_map(IOBuffer())
+    map_str = String(take!(io))
+    close(io)
+    return map_str
+end
+#function generate_random_map_string(fname::String)
+#end
 
 
 function serialize_action(fname::String, args...)
@@ -231,6 +256,10 @@ function print_winner(board, winner)
 end
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
+
+function do_post_game_produce!(channels::Dict{Symbol, Channel}, game::Game, board::Board, players::Vector{PlayerType}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
+end
+
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
     if winner isa PlayerType
         #print_winner(board, winner)

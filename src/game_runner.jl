@@ -2,7 +2,7 @@ module GameRunner
 using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction,
                read_map, load_gamestate!, initialize_player,
                do_first_turn_building!,
-               decide_and_roll_dice!,choose_next_action,
+               decide_and_roll_dice!,choose_next_action, do_post_game_produce!,
                do_post_action_step, do_post_game_action, get_legal_actions,
                COORD_TO_TILES, COSTS, RESOURCES, generate_random_map
 
@@ -16,14 +16,30 @@ function initialize_and_do_game!(game::Game)::Tuple{Board, Union{PlayerType, Not
     return board, winner
 end
 
+function initialize_and_do_game_async!(channels::Dict, game::Game)::Tuple{Board, Union{PlayerType, Nothing}}
+    board = initialize_game!(game)
+    winner = do_game_async(channels, game, board)
+    return board, winner
+end
+
+function initialize_and_do_game_async!(channels::Dict, game::Game, board)::Tuple{Board, Union{PlayerType, Nothing}}
+    board = initialize_game!(game, board)
+    winner = do_game_async(channels, game, board)
+    return board, winner
+end
+
 function initialize_game!(game::Game)
     if ~haskey(game.configs, "MAP_FILE")
-        game.configs["MAP_FILE"] = generate_random_map(joinpath(configs["TEMP_DIR"], "_temp_map_file.csv"))
+        game.configs["MAP_FILE"] = generate_random_map(joinpath(game.configs["TEMP_DIR"], "_temp_map_file.csv"))
     end
     if ~haskey(game.configs, "SAVE_FILE")
         reset_savefile!(game.configs, "./data/savefile.txt")
     end
     board = read_map(game.configs)
+    initialize_game!(game, board)
+end
+
+function initialize_game!(game::Game, board::Board)
     load_gamestate!(game, board)
 
     for p in game.players
@@ -43,7 +59,47 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     winner = get_winner(game, board, game.players)
 
     # Post game steps (writing features, updating models, etc)
-    do_post_game_action(game, board, game.players, winner)
+    #do_post_game_action(game, board, game.players, winner)
+    if game.configs["ASYNC"]
+        t = @task begin;
+            do_post_game_action(game, board, game.players, winner);
+        end
+        schedule(t)
+    else
+        do_post_game_action(game, board, game.players, winner);
+    end
+    return winner
+end
+
+
+function do_game_async(channels::Dict, game::Game, board::Board)::Union{PlayerType, Nothing}
+    if game.turn_num == 1
+        @info "Starting game $(game.unique_id) turn 0"
+        do_first_turn(game, board, game.players)
+    end
+
+    do_rest_of_game!(game, board)
+
+    winner = get_winner(game, board, game.players)
+
+    for player in game.players
+        do_post_game_produce!(channels, game, board, game.players, player, winner)
+    end
+
+    # Post game steps (writing features, updating models, etc)
+    #do_post_game_action(game, board, game.players, winner)
+    #=
+    if game.configs["ASYNC"]
+        t = @task begin;
+            do_post_game_action(game, board, game.players, winner);
+        end
+        schedule(t)
+    else
+        do_post_game_produce!(channels, game, board, game.players, winner);
+
+        #do_post_game_action(game, board, game.players, winner);
+    end
+    =#
     return winner
 end
 
