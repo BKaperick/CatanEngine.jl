@@ -435,6 +435,7 @@ function test_game_api(configs)
     game = Game(players, configs)
     configs_2 = deepcopy(configs)
     configs_2["SAVE_MAP"] = configs["MAP_FILE_2"]
+    configs_2["LOAD_MAP"] = configs["MAP_FILE_2"]
     board = read_map(configs_2)
 
     @test board.resources[:Pasture] == 25
@@ -656,17 +657,17 @@ function run_tests(neverend = false)
     println("conf $configs")
     
     for file in Base.Filesystem.readdir("data")
-        if ~contains(configs["SAVE_MAP"], file) && ~contains(configs["MAP_FILE_2"], file)
+        if ~contains(configs["LOAD_MAP"], file) && ~contains(configs["SAVE_MAP"], file) && ~contains(configs["MAP_FILE_2"], file)
             Base.Filesystem.rm("data/$file")
         end
     end
+    test_game_api(configs)
     #Catan.test_player_implementation(HumanPlayer, configs)
     Catan.test_player_implementation(DefaultRobotPlayer, configs)
     test_trading(configs)
     """
     """
     test_assign_largest_army(configs)
-    test_game_api(configs)
     test_road_hashing()
     test_deepcopy(configs)
     test_actions()

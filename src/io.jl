@@ -54,8 +54,8 @@ function read_map(configs::Dict)::Board
     if ~isempty(configs["LOAD_MAP"])
         fname = configs["LOAD_MAP"]
         map_str = read(fname, String)
-        if haskey(configs, "SAVE_MAP")
-            cp(fname, configs["SAVE_MAP"])
+        if ~isempty(configs["SAVE_MAP"]) && configs["SAVE_MAP"] != configs["LOAD_MAP"]
+            cp(fname, configs["SAVE_MAP"]; force=true)
         end
     elseif ~isempty(configs["SAVE_MAP"])
         fname = generate_random_map(configs["SAVE_MAP"])
