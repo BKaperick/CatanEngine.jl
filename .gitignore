@@ -7,3 +7,4 @@ tmp/
 .CondaPkg
 .CondaPkg/*
 data/_temp_map_file.csv
+docs/build/
