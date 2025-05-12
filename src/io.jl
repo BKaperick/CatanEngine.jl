@@ -1,5 +1,5 @@
-function get_parsed_file_lines(file_str)
-    [strip(line) for line in split(file_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
+function get_parsed_map_lines(map_str)
+    [strip(line) for line in split(map_str,'\n') if !isempty(strip(line)) && strip(line)[1] != '#']
 end
 
 
@@ -44,21 +44,37 @@ function read_channels_from_config(configs::Dict)::Dict{Symbol, Channel}
     return channels
 end
 
+"""
+    `read_map(configs::Dict)::Board`
+
+Handles three cases: LOAD_MAP from file if specified, write the map to SAVE_MAP if specified,
+and if neither are set, then we just generate the map and keep in memory.
+"""
 function read_map(configs::Dict)::Board
-    csvfile = configs["MAP_FILE"]
-    file_str = read(csvfile, String)
-    read_map(configs, file_str)
+    if ~isempty(configs["LOAD_MAP"])
+        fname = configs["LOAD_MAP"]
+        map_str = read(fname, String)
+        if haskey(configs, "SAVE_MAP")
+            cp(fname, configs["SAVE_MAP"])
+        end
+    elseif ~isempty(configs["SAVE_MAP"])
+        fname = generate_random_map(configs["SAVE_MAP"])
+        map_str = read(fname, String)
+    else
+        map_str = generate_random_map()
+    end
+    return read_map(configs, map_str)
 end
 
-function read_map(configs::Dict, file_str::String)::Board
+function read_map(configs::Dict, map_str::String)::Board
     # Resource is a value W[ood],S[tone],G[rain],B[rick],P[asture]
     resourcestr_to_symbol = HUMAN_RESOURCE_TO_SYMBOL
-    if length(file_str) == 0
-        error("Empty file: $file_str")
+    if length(map_str) == 0
+        error("Empty map string: $map_str")
     end
-    board_state = get_parsed_file_lines(file_str)
+    board_state = get_parsed_map_lines(map_str)
     if length(board_state) == 0
-        error("File contains no uncommented lines: $file_str")
+        error("Map string contains no uncommented lines: $map_str")
     end
     tile_to_dicevalue = Dict()
     tile_to_resource = Dict()
@@ -112,15 +128,15 @@ function read_map(configs::Dict, file_str::String)::Board
 end
 
 """
-Generate a random board conforming to the following constraints:
-* RESOURCE_TO_COUNT[resource_symbol] of each
-
+Generate a random board conforming to the game constraints set in constants.jl.
+Save the generated map.
 """
 function generate_random_map(fname::String)
     io = generate_random_map(open(fname, "w"))
     close(io)
     return fname
 end
+
 function generate_random_map(io::IO)
     resource_bag = shuffle!(vcat([repeat([lowercase(string(r)[1])], c) for (r,c) in RESOURCE_TO_COUNT]...))
     dicevalue_bag = shuffle!(vcat([repeat([r], c) for (r,c) in DICEVALUE_TO_COUNT]...))

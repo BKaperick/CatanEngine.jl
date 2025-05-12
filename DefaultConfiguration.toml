@@ -2,11 +2,13 @@ SAVE_GAME_TO_FILE = true
 SAVE_FILE = "./data/savefile.txt"
 # Directory for storing temporary files like an on-the-fly generated map file
 TEMP_DIR = "./tmp/"
-#MAP_FILE = "./data/sample.csv"
+SAVE_MAP = "./tmp/_temp_map_file.csv"
+LOAD_MAP = ""
 LOG_OUTPUT = "stderr"
 LOG_LEVEL = "Info"
 PRINT_BOARD = false
 MAX_TURNS = 1000
+ASYNC = false
 
 [GameSettings]
 VICTORY_POINT_GOAL = 10

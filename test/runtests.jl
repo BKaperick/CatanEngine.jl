@@ -427,14 +427,14 @@ function test_human_player(configs)
     players = Vector{PlayerType}([player1, player2])
     game = Game(players, configs)
     reset_savefile_with_timestamp("test_human_game", configs)
-    GameRunner.initialize_and_do_game!(game, configs["MAP_FILE"])
+    GameRunner.initialize_and_do_game!(game)
 end
 
 function test_game_api(configs)
     players = setup_players(configs) # blue, green, cyan
     game = Game(players, configs)
     configs_2 = deepcopy(configs)
-    configs_2["MAP_FILE"] = configs["MAP_FILE_2"]
+    configs_2["SAVE_MAP"] = configs["MAP_FILE_2"]
     board = read_map(configs_2)
 
     @test board.resources[:Pasture] == 25
@@ -656,7 +656,7 @@ function run_tests(neverend = false)
     println("conf $configs")
     
     for file in Base.Filesystem.readdir("data")
-        if ~contains(configs["MAP_FILE"], file) && ~contains(configs["MAP_FILE_2"], file)
+        if ~contains(configs["SAVE_MAP"], file) && ~contains(configs["MAP_FILE_2"], file)
             Base.Filesystem.rm("data/$file")
         end
     end

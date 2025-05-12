@@ -100,7 +100,7 @@ function reset_savefile!(configs::Dict, path, io)
     configs["SAVE_FILE_IO"] = io
 end
 
-reset_savefile!(configs::Dict) = reset_savefile!(configs, configs["SAVE_FILE"])
+reset_savefile!(configs::Dict) = reset_savefile!(configs, joinpath(@__DIR__, "..", configs["SAVE_FILE"]))
 
 function reset_savefile!(configs::Dict, path)
     configs["SAVE_FILE"] = path

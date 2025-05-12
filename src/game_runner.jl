@@ -29,12 +29,6 @@ function initialize_and_do_game_async!(channels::Dict, game::Game, board)::Tuple
 end
 
 function initialize_game!(game::Game)
-    if ~haskey(game.configs, "MAP_FILE")
-        game.configs["MAP_FILE"] = generate_random_map(joinpath(game.configs["TEMP_DIR"], "_temp_map_file.csv"))
-    end
-    if ~haskey(game.configs, "SAVE_FILE")
-        reset_savefile!(game.configs, "./data/savefile.txt")
-    end
     board = read_map(game.configs)
     initialize_game!(game, board)
 end
@@ -59,15 +53,8 @@ function do_game(game::Game, board::Board)::Union{PlayerType, Nothing}
     winner = get_winner(game, board, game.players)
 
     # Post game steps (writing features, updating models, etc)
-    #do_post_game_action(game, board, game.players, winner)
-    if game.configs["ASYNC"]
-        t = @task begin;
-            do_post_game_action(game, board, game.players, winner);
-        end
-        schedule(t)
-    else
-        do_post_game_action(game, board, game.players, winner);
-    end
+    do_post_game_action(game, board, game.players, winner);
+    
     return winner
 end
 
