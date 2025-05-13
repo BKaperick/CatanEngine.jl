@@ -59,7 +59,9 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
 end
 
 """
-    `choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Tuple{Int,Int}`
+    choose_building_location(board::Board, players::Vector{PlayerPublicView}, 
+    player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol
+    )::Tuple{Int,Int}
 
 `candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
 """

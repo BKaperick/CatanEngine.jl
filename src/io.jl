@@ -45,7 +45,7 @@ function read_channels_from_config(configs::Dict)::Dict{Symbol, Channel}
 end
 
 """
-    `read_map(configs::Dict)::Board`
+    read_map(configs::Dict)::Board
 
 Handles three cases: LOAD_MAP from file if specified, write the map to SAVE_MAP if specified,
 and if neither are set, then we just generate the map and keep in memory.

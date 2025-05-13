@@ -9,7 +9,8 @@ function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_pla
 end
 
 """
-    `propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, from_goods, to_goods)`
+    propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, 
+    from_goods, to_goods)
 
 Handles the action of `from_player` offering `from_goods` in exchange for `to_goods`.  Each of the players in `players`
 need to evaluate the proposition and decide if they will accept via `choose_accept_trade`.
@@ -103,7 +104,8 @@ function trade_goods_to_player(to_player::Player, from_goods::Dict{Symbol, Int},
 end
 
 """
-    `trade_goods_from_player(from_player::PlayerPublicView, from_goods::Vector{Symbol}, to_goods::Vector{Symbol})`
+    trade_goods_from_player(from_player::PlayerPublicView, from_goods::Vector{Symbol}, 
+    to_goods::Vector{Symbol})
 
 This implementation is useful in when a player is evaluating whether they should accept a trade.  To see the 
 """
