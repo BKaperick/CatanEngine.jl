@@ -32,7 +32,7 @@ function test_jet_fails()
     ignored_modules=())
 
     #@show length(JET.get_reports(rep))
-    #@show rep
+    @@show rep
     @test length(JET.get_reports(rep)) <= 16
 end
 

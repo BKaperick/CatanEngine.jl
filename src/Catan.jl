@@ -43,25 +43,24 @@ GameApi,
 GameRunner,
 PreAction,
 get_known_players,
-get_player_config
+get_player_config,
+PLAYER_ACTIONS
 
-# Player methods to implement
-export choose_accept_trade,
+# Customizable Player Interface
+export 
+choose_next_action,
 choose_building_location,
+choose_road_location,
+choose_accept_trade,
+choose_who_to_trade_with,
 choose_one_resource_to_discard,
 choose_monopoly_resource,
 choose_place_robber,
-choose_next_action,
-choose_road_location,
 choose_robber_victim,
-choose_who_to_trade_with,
 choose_resource_to_draw,
-choose_card_to_steal,
+initialize_player,
 do_post_game_action,
-do_post_game_produce!,
-do_post_action,
-
-PLAYER_ACTIONS
+do_post_game_produce!
 
 function __init__()
     # Set the default configs

@@ -56,7 +56,7 @@ end
 function choose_monopoly_resource(board, players, player::HumanPlayer)
     parse_resources(player.io, "$(player.player.team) will steal all:", board.configs)[1]
 end
-function choose_robber_victim(board, player::HumanPlayer, potential_victims...)
+function choose_robber_victim(board, player::HumanPlayer, potential_victims::PlayerPublicView...)
     @info "$([p.team for p in potential_victims])"
     if length(potential_victims) == 1
         return potential_victims[1]

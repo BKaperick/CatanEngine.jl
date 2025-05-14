@@ -48,7 +48,7 @@ API_DICTIONARY = Dict(
 
 
 """@docs
-    `run(configs::Dict)`
+    run(configs::Dict)
 
 Run one game, returning the board and the winner, accepting a config TOML file to 
 overwrite any default configuration keys set in ./DefaultConfiguration.toml.

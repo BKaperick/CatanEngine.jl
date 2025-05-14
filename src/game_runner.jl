@@ -150,7 +150,7 @@ function do_action_from_legal_actions(game, board, player, legal_actions::Set{Pr
         @info "no legal actions"
         return false
     end
-    next_args, next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
+    next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
     if next_action !== nothing && next_action != Returns(nothing)
         next_action(game, board, player)
         do_post_action_step(board, player)

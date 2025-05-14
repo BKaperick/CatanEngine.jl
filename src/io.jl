@@ -270,12 +270,27 @@ function print_winner(board, winner)
     println("\tsettlements ($(length(settlements)))")
     println("\tcities (2 ⋅$(length(cities)))")
 end
+
+"""
+    do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, 
+    winner::Union{PlayerType, Nothing}) where T <: PlayerType
+
+Perform any post-game actions while the full `Game` and `Board` states are in memory, and the 
+`winner` has been defined.  Feature generation is one example.  See CatanLearning.jl for usage.
+"""
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
 
 function do_post_game_produce!(channels::Dict{Symbol, Channel}, game::Game, board::Board, players::Vector{PlayerType}, player::T, winner::Union{PlayerType, Nothing}) where T <: PlayerType
 end
 
+"""
+    do_post_game_action(game::Game, board::Board, players::Vector{T}, 
+    winner::Union{PlayerType, Nothing}) where T <: PlayerType
+
+Perform any post-game actions while the full `Game` and `Board` states are in memory, and the 
+`winner` has been defined.  Feature generation is one example.  See CatanLearning.jl for usage.
+"""
 function do_post_game_action(game::Game, board::Board, players::Vector{T}, winner::Union{PlayerType, Nothing}) where T <: PlayerType
     if winner isa PlayerType
         #print_winner(board, winner)

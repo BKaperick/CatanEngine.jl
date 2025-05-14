@@ -43,9 +43,10 @@ end
 get_player_config(player::PlayerType, key) = get_player_config(player.player.configs, key, player.player.team)
 
 """
-    ```get_player_config(configs, team, key)```
+    get_player_config(configs, team, key)
 
-Retrieves the `key`, potentially overridden for this team.
+Retrieves the `key`, potentially overridden for this team.  This accessor method handles the fallback to a default
+value set at the `configs["PlayerSettings"]` level, and custom player-level values set in `configs["PlayerSettings"][team]`.
 """
 function get_player_config(configs, key, team_sym = nothing)
     player_config = configs["PlayerSettings"]
