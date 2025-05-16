@@ -113,7 +113,7 @@ function reset_savefile!(configs::Dict, path)
     @debug "Savefile set to $path"
 end
 
-VP_AWARDS = Dict([
+const VP_AWARDS = Dict([
                   :Settlement => 1,
                   :City => 2,
                   :Road => 0,
@@ -121,7 +121,7 @@ VP_AWARDS = Dict([
                   :LongestRoad => 2
                  ])
 
-HUMAN_ACTIONS = Dict(
+const HUMAN_ACTIONS = Dict(
     "bs" => :ConstructSettlement,
     "bc" => :ConstructCity,
     "br" => :ConstructRoad,
@@ -129,7 +129,7 @@ HUMAN_ACTIONS = Dict(
     "bd" => :BuyDevCard,
     "pd" => :PlayDevCard
    )
-ACTION_TO_DESCRIPTION = Dict(
+const ACTION_TO_DESCRIPTION = Dict(
     :ProposeTrade => "[pt] Propose trade (e.g. \"pt 2 w w g g\")",
     :ConstructCity => "[bc] Build city",
     :ConstructSettlement => "[bs] Build settlement",
@@ -139,7 +139,7 @@ ACTION_TO_DESCRIPTION = Dict(
    )
 
 
-COSTS = Dict([
+const COSTS = Dict([
               :Settlement => Dict([
                                    :Wood => 1,
                                    :Brick => 1,
@@ -161,7 +161,7 @@ COSTS = Dict([
                             ])
              ])
 
-HUMAN_DEVCARD_TO_SYMBOL = Dict([
+const HUMAN_DEVCARD_TO_SYMBOL = Dict([
 "K" => :Knight,
 "M" => :Monopoly,
 "Y" => :YearOfPlenty,
@@ -180,7 +180,7 @@ function get_devcard_counts(configs)
                                 ])
 end
 
-HUMAN_RESOURCE_TO_SYMBOL = Dict([
+const HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "W" => :Wood,
 "S" => :Stone,
 "G" => :Grain,
@@ -189,7 +189,7 @@ HUMAN_RESOURCE_TO_SYMBOL = Dict([
 "D" => :Desert
 ])
 
-RESOURCES = Set([
+const RESOURCES = Set([
                  :Wood,
                  :Stone,
                  :Grain,
@@ -197,7 +197,7 @@ RESOURCES = Set([
                  :Pasture
                 ])
 
-RESOURCE_TO_COUNT = Dict([
+const RESOURCE_TO_COUNT = Dict([
     :Wood => 4
     :Stone => 3
     :Grain => 4
@@ -205,7 +205,7 @@ RESOURCE_TO_COUNT = Dict([
     :Pasture => 4
     :Desert => 1
    ]) 
-DICEVALUE_TO_COUNT = Dict([
+const DICEVALUE_TO_COUNT = Dict([
     2 => 1
     3 => 2
     4 => 2
@@ -219,7 +219,7 @@ DICEVALUE_TO_COUNT = Dict([
     12 => 1
    ]) 
 
-COORD_TO_PORTNUM = Dict([
+const COORD_TO_PORTNUM = Dict([
                          (1,1) => 1,
                          (1,2) => 1,
                          (1,4) => 2,
@@ -239,7 +239,7 @@ COORD_TO_PORTNUM = Dict([
                          (3,2) => 9,
                          (2,1) => 9
                         ])
-TILE_TO_ISOLATED_EDGE_COORDS = Dict([
+const TILE_TO_ISOLATED_EDGE_COORDS = Dict([
                       :A => Set([(1,1),(1,2)]),
                       :B => Set([(1,4)]),
                       :C => Set([(1,6),(1,7)]),
@@ -264,7 +264,7 @@ TILE_TO_ISOLATED_EDGE_COORDS = Dict([
                       :R => Set([(6,4)]),
                       :S => Set([(6,6),(6,7)]),
                            ])
-TILE_TO_EDGE_COORDS = Dict(
+const TILE_TO_EDGE_COORDS = Dict(
                       :A => Set([(1,1),(1,2),(1,3),(2,2)]),
                       :B => Set([(1,3),(1,4),(1,5)]),
                       :C => Set([(1,5),(1,6),(1,7),(2,8)]),
@@ -289,7 +289,7 @@ TILE_TO_EDGE_COORDS = Dict(
                       :R => Set([(6,3),(6,4),(6,5)]),
                       :S => Set([(6,5),(6,6),(6,7),(5,8)]),
                      )
-TILE_TO_COORDS = Dict(
+const TILE_TO_COORDS = Dict(
                       :A => Set([(1,1),(1,2),(1,3),(2,2),(2,3),(2,4)]),
                       :B => Set([(1,3),(1,4),(1,5),(2,4),(2,5),(2,6)]),
                       :C => Set([(1,5),(1,6),(1,7),(2,6),(2,7),(2,8)]),
@@ -328,9 +328,9 @@ for elem in TILE_TO_COORDS
         end
     end
 end
-DIMS = [7,9,11,11,9,7]
+const DIMS = [7,9,11,11,9,7]
 
-DICEVALUE_TO_PROBA_WEIGHT = Dict(
+const DICEVALUE_TO_PROBA_WEIGHT = Dict(
                                  2 => 1,
                                  12 => 1,
                                  3 => 2,

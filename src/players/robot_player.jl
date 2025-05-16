@@ -66,7 +66,7 @@ end
 `candidates` is guaranteed to be non-empty.  Given all legal road placements, 
 return a `Vector` containing two coordinates signifying the road placement choice.
 """
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})::Vector{Tuple{Int, Int}}
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Vector{Tuple{Int8, Int8}}})::Vector{Tuple{Int8, Int8}}
     return sample(candidates)
 end
 
@@ -77,7 +77,7 @@ end
 
 `candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
 """
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol)::Tuple{Int,Int}
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int8, Int8}}, building_type::Symbol)::Tuple{Int8, Int8}
     @debug "$(player.player.team) chooses $building_type location randomly"
     return sample(candidates, 1)[1]
 end
@@ -96,11 +96,11 @@ end
     choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, 
     candidates::Vector{Symbol})::Union{Nothing, Symbol}
 """
-function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Union{Nothing, Symbol}
+function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Symbol
     if length(candidates) > 0
         return sample(candidates, 1)[1]
     end
-    return nothing
+    throw(ArgumentError("candidates can't be empty for placing robber"))
 end
 
 function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
@@ -164,14 +164,17 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
     name = rand_action.name
     candidates = rand_action.admissible_args
     if name == :ConstructCity
+        candidates = [Int8.(t) for t in candidates]
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
         return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if name == :ConstructSettlement
+        candidates = [Int8.(t) for t in candidates]
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
         return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if name == :ConstructRoad
+        candidates = [[Int8.(tt) for tt in t] for t in candidates]
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]

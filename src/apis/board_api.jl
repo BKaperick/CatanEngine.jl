@@ -54,13 +54,34 @@ function Board(configs::Dict)
 end
 
 function count_settlements(board, team)
-    return length(get_settlement_locations(board, team))
+    #return length(get_settlement_locations(board, team))
+    return count_buildings_low_alloc(board, team, :Settlement)
 end
+
+function count_buildings_low_alloc(board, team, type::Symbol)::Int8
+    out = Int8(0)
+    for b in values(board.coord_to_building)
+        if b.team == team && b.type == type
+            out += 1
+        end
+    end
+    return out
+end
+
 function count_roads(board, team)
-    return length([r for r in board.roads if r.team == team])
+    #return length([r for r in board.roads if r.team == team])
+    out = Int8(0)
+    for b in values(board.roads)
+        if b.team == team
+            out += 1
+        end
+    end
+    return out
 end
+
 function count_cities(board, team)
-    return length(get_city_locations(board, team))
+    #return length(get_city_locations(board, team))
+    return count_buildings_low_alloc(board, team, :City)
 end
 
 function print_board_stats(board::Board, team::Symbol)
@@ -69,28 +90,28 @@ function print_board_stats(board::Board, team::Symbol)
     @info "$(count_cities(board, team)) cities"
 end
 
-function get_building_locations(board, team::Symbol)::Vector{Tuple}
+function get_building_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
     [c for (c,b) in board.coord_to_building if b.team == team]
 end
 
-function get_settlement_locations(board, team::Symbol)::Vector{Tuple}
+function get_settlement_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
     [c for (c,b) in board.coord_to_building if b.team == team && b.type == :Settlement]
 end
 
-function get_city_locations(board, team::Symbol)::Vector{Tuple}
+function get_city_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
     [c for (c,b) in board.coord_to_building if b.team == team && b.type == :City]
 end
 
-function get_road_locations(board, team::Symbol)
+function get_road_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
     [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
 end
 
-function build_city!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
+function build_city!(board::Board, team::Symbol, coord::Tuple{Int8, Int8})::Building
     log_action(board.configs, "board bc", team, coord)
     @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_city!(board, team, coord)
 end
-function _build_city!(board, team, coord::Tuple{Int, Int})::Building
+function _build_city!(board, team, coord::Tuple{Int8, Int8})::Building
     
     # Remove current settlement
     current_settlement = nothing
@@ -108,35 +129,39 @@ function _build_city!(board, team, coord::Tuple{Int, Int})::Building
     return city
 end
 
-function build_settlement!(board::Board, team::Symbol, coord::Tuple{Int, Int})::Building
+function build_settlement!(board::Board, team::Symbol, coord::Tuple{Int8, Int8})::Building
     log_action(board.configs, "board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement!(board, team, coord)
 end
-function _build_settlement!(board, team, coord::Tuple{Int,Int})::Building
+function _build_settlement!(board, team, coord::Tuple{Int8, Int8})::Building
     building = Building(coord, :Settlement, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
     return building
 end
 
-function build_road!(board::Board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
+function build_road!(board::Board, team::Symbol, coord1::Tuple{Int8, Int8}, coord2::Tuple{Int8, Int8})::Road
     log_action(board.configs, "board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road!(board, team, coord1, coord2)
 end
-function _build_road!(board, team::Symbol, coord1::Tuple{Int, Int}, coord2::Tuple{Int, Int})::Road
+function _build_road!(board, team::Symbol, coord1::Tuple{Int8, Int8}, coord2::Tuple{Int8, Int8})::Road
     road = Road(coord1, coord2, team)
     push!(board.roads, road)
     for coord in [coord1, coord2]
         if haskey(board.coord_to_roads, coord)
+            @assert coord[1] != 0
             push!(board.coord_to_roads[coord], road)
         else
             board.coord_to_roads[coord] = Set([road])
         end
     end
-    if board.longest_road != team
-        _award_longest_road!(board)
+    # We only need to re-assign longest road if:
+    # 1. it's currently someone else's (or noone's)
+    # 2. this is at least the 5th road being built
+    if board.longest_road != team && count_roads(board, team) >= 5
+        _award_longest_road!(board, team)
     end
     return road
 end
@@ -144,7 +169,7 @@ end
 #TODO is this a bug?
 #_build_road!(board, team, human_coords::String) = _build_settlement!(board, team, get_coords_from_human_tile_description(human_coords)...)
 
-function _award_longest_road!(board) 
+function _award_longest_road!(board, current_team) 
     road_teams = [r.team for r in board.roads]
     if length(road_teams) < 5
         return
@@ -154,6 +179,7 @@ function _award_longest_road!(board)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
     for team in teams
+        # TODO try to cache these values
         current_len = get_max_road_length(board, team)
         max_length = current_len > max_length ? current_len : max_length
         team_to_length[team] = current_len 
@@ -219,7 +245,6 @@ function recursive_roads_skip_coord(roads_seen::Set{Road}, current::Road, root_c
 
     # setdiff is used handle infinite counting in case of loops 
     roads_to_explore = setdiff(coord_to_roads[coord_to_explore], roads_seen)
-    #println("(in recursive call $(length(roads_seen)) $(length(roads_to_explore))")
     
     # Base case - road ends on an opponent's building, or it's a deadend -- count only the current road
     if (coord_to_explore in skip_coords) || (length(roads_to_explore) == 0)
@@ -257,18 +282,19 @@ Returns a vector of all legal locations to place a settlement:
 2. Must not exceed `board.configs["GameSettings"]["MaxComponents"]["CITY"]`
 3. If it's not the first turn, it must be adjacent to a road of the same team
 """
-function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int,Int}}
+function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int8,Int8}}
 
     # Some quick checks to eliminate most spaces
     if count_settlements(board, team) >= board.configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]
         return []
     end
     coords_near_player_road = get_road_locations(board, team)
-    empty = get_empty_spaces(board)
-    if first_turn
-        admissible = empty
-    else
-        admissible = intersect(empty, coords_near_player_road)
+
+    #admissible = Vector{Tuple{Int, Int}}()
+    #get_empty_spaces!(admissible, board)
+    admissible = get_empty_spaces(board)
+    if ~first_turn
+        intersect!(admissible, coords_near_player_road)
     end
     
     # More complex check after we've done the first filtration
@@ -330,7 +356,7 @@ function get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int,In
 end
 
 function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
-    if coord1 == nothing || coord2 == nothing
+    if coord1 === nothing || coord2 === nothing
         return false
     end
 
@@ -367,7 +393,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     return found_neighbor
 end
 
-function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int,Int}}}
+function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int8,Int8}}}
     if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end
@@ -383,7 +409,8 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
         append!(start_coords, coords_near_player_road)
     end
     append!(start_coords, coords_near_player_buildings)
-    start_coords = Set(unique(start_coords))
+    unique!(start_coords)
+
     road_coords = []
     for c in start_coords
         ns = get_neighbors(c)

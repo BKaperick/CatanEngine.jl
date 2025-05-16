@@ -41,14 +41,14 @@ function construct_road(board, player::Player, coord1, coord2, first_turn = fals
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function construct_city(board, player::Player, coord::Tuple{Int,Int}, first_turn = false)
+function construct_city(board, player::Player, coord::Tuple{Int8, Int8}, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :City)
         BoardApi.pay_construction!(board, :City)
     end
     BoardApi.build_city!(board, player.team, coord)
 end
-function construct_settlement(board, player::Player, coord::Tuple{Int,Int}, first_turn = false)
+function construct_settlement(board, player::Player, coord::Tuple{Int8, Int8}, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Settlement)
         BoardApi.pay_construction!(board, :Settlement)
@@ -149,36 +149,43 @@ end
 function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
     candidate_tiles = BoardApi.get_admissible_robber_tiles(board) 
-    new_robber_tile = choose_place_robber(board, players_public, player, candidate_tiles)
+    new_robber_tile = choose_place_robber(board, players_public, player, candidate_tiles)::Symbol
     @info "$(player.player.team) moves robber to $new_robber_tile"
     players_public = PlayerPublicView.(players)
     admissible_victims_public = [p.team for p in get_admissible_theft_victims(board, players_public, player.player, new_robber_tile)]
     admissible_victims = Vector{PlayerType}([p for p in players if p.player.team in admissible_victims_public])
     
-    do_robber_move_theft(board, admissible_victims, player, new_robber_tile)
+    do_robber_move_choose_victim_theft(board, admissible_victims, player, new_robber_tile)
 end
 
-function do_robber_move_theft(board, admissible_victims::Vector{PlayerType}, 
-        player::PlayerType, new_robber_tile::Symbol)
+function do_robber_move_choose_victim_theft(board, admissible_victims::Vector{PlayerType}, 
+        player::T, new_robber_tile::Symbol) where T <: PlayerType
     stolen_good = nothing
     victim_team = nothing
     if length(admissible_victims) > 0
         admissible_victims_public = PlayerPublicView.(admissible_victims)
         from_player_view = choose_robber_victim(board, player, admissible_victims_public...)
         victim_team = from_player_view.team
-
-        victim = [p for p in admissible_victims if p.player.team == victim_team][1]
+        victim = admissible_victims[1]
+        for p in admissible_victims
+            if p.player.team == victim_team
+                victim = p
+                break
+            end
+        end
+        #victim = [p for p in admissible_victims if p.player.team == victim_team][1]
         stolen_good = steal_random_resource(victim, player)
     end
-    do_robber_move_theft(board, admissible_victims, player, victim_team, new_robber_tile, stolen_good)
+    inner_do_robber_move_theft(board, admissible_victims::Vector{PlayerType}, player, victim_team, new_robber_tile, stolen_good)
 end
 
-function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType, victim_team::Union{Symbol, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
+function inner_do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType, victim_team::Union{Symbol, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
     BoardApi.move_robber!(board, new_robber_tile)
-    victim = victim_team !== nothing ? [p.player for p in players if p.player.team == victim_team][1] : nothing
-    if victim !== nothing && stolen_good !== nothing
-        PlayerApi.take_resource!(victim, stolen_good)
-        PlayerApi.give_resource!(player.player, stolen_good)
+    for p in players
+        if p.player.team == victim_team && stolen_good !== nothing
+            PlayerApi.take_resource!(p.player, stolen_good)
+            PlayerApi.give_resource!(player.player, stolen_good)
+        end
     end
 end
 

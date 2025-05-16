@@ -187,15 +187,21 @@ function serialize_action(fname::String, args...)
     string("$fname ", join(arg_strs, " "))
 end
 
-function log_action(configs::Dict, fname::String, args...)
-    #@debug "logging $fname in $(configs["SAVE_FILE"])"
-    serialized = serialize_action(fname, args...)
-    outstring = string(serialized, "\n")
-    @debug "outstring = $outstring"
+"""
+    log_action(configs::Dict, fname::String, args...)
+
+Logs the action to the SAVE_FILE if `SAVE_GAME_TO_FILE` is true.
+Otherwise, it is a no-op.
+"""
+function log_action(configs::Dict, fname::String, args...)::Nothing
     if configs["SAVE_GAME_TO_FILE"]
+        serialized = serialize_action(fname, args...)
+        outstring = string(serialized, "\n")
+        @debug "outstring = $outstring"
         write(configs["SAVE_FILE_IO"], outstring)
+        #return serialized
     end
-    return serialized
+    #return
 end
 
 function read_action()

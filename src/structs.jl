@@ -33,7 +33,7 @@ mutable struct Board
     dicevalue_to_tiles::Dict{Int,Vector{Symbol}}
     tile_to_resource::Dict{Symbol,Symbol}
     coord_to_building::Dict{Tuple,Building}
-    coord_to_roads::Dict{Tuple,Set{Road}}
+    coord_to_roads::Dict{Tuple{Int8, Int8}, Set{Road}}
     coord_to_port::Dict{Tuple,Symbol}
     empty_spaces::Vector
     buildings::Array{Building,1}

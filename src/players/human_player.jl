@@ -14,7 +14,7 @@ function choose_one_resource_to_discard(board, player::HumanPlayer)::Symbol
     return parse_resources(player.io, "$(player.player.team) discards: ", player.player.configs)[1]
 end
 
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int,Int}}, building_type::Symbol, is_first_turn = false)::Tuple{Int, Int}
+function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int8,Int8}}, building_type::Symbol, is_first_turn = false)::Tuple{Int8, Int8}
     if building_type == :Settlement
         validation_check = BoardApi.is_valid_settlement_placement
     else
@@ -26,7 +26,7 @@ function choose_building_location(board::Board, players::Vector{PlayerPublicView
     end
     return coord
 end
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int,Int}}
+function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int8,Int8}}
     road_coord1 = nothing
     road_coord2 = nothing
     road_coords = Vector{Tuple{Int,Int}}()
@@ -68,12 +68,12 @@ function choose_card_to_steal(player::HumanPlayer)::Symbol
     parse_resources(player.io, "$(player.player.team) lost his:", player.player.configs)[1]
 end
 
-function choose_next_action(board, players, player::HumanPlayer, actions)
+function choose_next_action(board, players, player::HumanPlayer, actions)::Function
     header = "What does $(player.player.team) do next?\n"
     full_options = string(header, [ACTION_TO_DESCRIPTION[a.name] for a in actions]..., "\n[E]nd turn")
     action_and_args = parse_action(player.io, full_options, board.configs)
     if action_and_args == :EndTurn
-        return nothing
+        return Returns(nothing)
     end
     @warn keys(PLAYER_ACTIONS)
     func = PLAYER_ACTIONS[action_and_args[1]]
