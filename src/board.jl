@@ -1,29 +1,27 @@
-function initialize_empty_board(dimensions)
+function initialize_empty_board(dimensions)::Vector{Vector{Bool}}
     spaces = []
     for d in dimensions
-        push!(spaces, repeat([nothing], d))
+        push!(spaces, repeat([false], d))
     end
     return spaces
 end
 
-#get_empty_spaces(board) = get_empty_spaces!(Vector{Tuple{Int, Int}}(), board)
-#empty::Vector{Tuple{Int, Int}}, 
 function get_empty_spaces(board)::Vector{Tuple{Int8, Int8}}
-    building_coords = keys(board.coord_to_building)
+    #building_coords = keys(board.coord_to_building)
 
-    empty = Vector{Tuple{Int8, Int8}}(undef, sum(DIMS) - length(building_coords))
+    empty = Vector{Tuple{Int8, Int8}}(undef, sum(DIMS)) # - length(building_coords))
     
-    next_i = Int16(1)
+    next_i = Int16(0)
 
     for (r,row) in enumerate(board.spaces)
         for (c,value) in enumerate(row)
-            if value === nothing && !((r,c) in building_coords)
-                empty[next_i] = (r,c)
+            if !value
                 next_i += 1
+                empty[next_i] = (r,c)
             end
         end
     end
-    return empty
+    return empty[1:next_i]
 end
 
 function get_neighbors(coord::Tuple{Int8, Int8})::Vector{Tuple{Int8, Int8}}

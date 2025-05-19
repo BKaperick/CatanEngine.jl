@@ -28,18 +28,17 @@ struct Building
 end
 
 mutable struct Board
-    tile_to_dicevalue::Dict{Symbol,Int}
+    tile_to_dicevalue::Dict{Symbol,Int8}
     #dicevalue_to_coords::Dict{Symbol,Int}
-    dicevalue_to_tiles::Dict{Int,Vector{Symbol}}
+    dicevalue_to_tiles::Dict{Int8,Vector{Symbol}}
     tile_to_resource::Dict{Symbol,Symbol}
     coord_to_building::Dict{Tuple{Int8,Int8},Building}
     coord_to_roads::Dict{Tuple{Int8, Int8}, Set{Road}}
     coord_to_port::Dict{Tuple{Int8,Int8},Symbol}
-    empty_spaces::Vector
     buildings::Array{Building,1}
     roads::Array{Road,1}
     robber_tile::Symbol
-    spaces::Vector
+    spaces::Vector{Vector{Bool}}
     resources::Dict{Symbol,Int}
     # Team of player with the longest road card (is nothing if no player has a road at least 5 length)
     longest_road::Union{Nothing, Symbol}
@@ -50,7 +49,7 @@ end
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, 
       robber_tile::Symbol, coord_to_port::Dict, configs::Dict) = Board(tile_to_value, 
       dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
-      BoardApi.initialize_empty_board(DIMS), [], [], robber_tile, 
+      [], [], robber_tile, 
       BoardApi.initialize_empty_board(DIMS), 
       Dict([(r, configs["GameSettings"]["MaxComponents"]["RESOURCE"]) for r in RESOURCES]), 
       nothing, nothing, configs)
@@ -64,7 +63,6 @@ function Base.deepcopy(board::Board)
                  deepcopy(board.coord_to_building),
                  deepcopy(board.coord_to_roads),
                  deepcopy(board.coord_to_port),
-                 deepcopy(board.empty_spaces),
                  deepcopy(board.buildings),
                  deepcopy(board.roads),
                  board.robber_tile,

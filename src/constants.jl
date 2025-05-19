@@ -328,6 +328,7 @@ for elem in TILE_TO_COORDS
         end
     end
 end
+
 const DIMS = [7,9,11,11,9,7]
 
 const DICEVALUE_TO_PROBA_WEIGHT = Dict(

@@ -54,7 +54,6 @@ function Board(configs::Dict)
 end
 
 function count_settlements(board, team)
-    #return length(get_settlement_locations(board, team))
     return count_buildings_low_alloc(board, team, :Settlement)
 end
 
@@ -69,7 +68,6 @@ function count_buildings_low_alloc(board, team, type::Symbol)::Int8
 end
 
 function count_roads(board, team)
-    #return length([r for r in board.roads if r.team == team])
     out = Int8(0)
     for b in values(board.roads)
         if b.team == team
@@ -80,7 +78,6 @@ function count_roads(board, team)
 end
 
 function count_cities(board, team)
-    #return length(get_city_locations(board, team))
     return count_buildings_low_alloc(board, team, :City)
 end
 
@@ -138,6 +135,7 @@ function _build_settlement!(board, team, coord::Tuple{Int8, Int8})::Building
     building = Building(coord, :Settlement, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
+    board.spaces[coord[1]][coord[2]] = true
     return building
 end
 
@@ -288,13 +286,12 @@ function get_admissible_settlement_locations(board, team::Symbol, first_turn = f
     if count_settlements(board, team) >= board.configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]
         return []
     end
-    coords_near_player_road = get_road_locations(board, team)
 
-    #admissible = Vector{Tuple{Int, Int}}()
-    #get_empty_spaces!(admissible, board)
-    admissible = get_empty_spaces(board)
-    if ~first_turn
-        intersect!(admissible, coords_near_player_road)
+    if first_turn
+        admissible = get_empty_spaces(board)
+    else
+        admissible = get_road_locations(board, team)
+        filter!(c -> ~haskey(board.coord_to_building, c), admissible)
     end
     
     # More complex check after we've done the first filtration
@@ -337,7 +334,7 @@ function is_valid_settlement_placement(board, team, coord, is_first_turn::Bool =
 end
 
 function is_valid_city_placement(board, team, coord)::Bool
-    if coord == nothing
+    if coord === nothing
         return false
     end
     
@@ -348,7 +345,7 @@ function is_valid_city_placement(board, team, coord)::Bool
     return false
 end
 
-function get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int,Int}}
+function get_admissible_city_locations(board, team::Symbol)::Vector{Tuple{Int8,Int8}}
     if count_cities(board, team) >= board.configs["GameSettings"]["MaxComponents"]["CITY"]
         return []
     end
@@ -397,19 +394,22 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
     if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end
-    start_coords = []
+    #start_coords = []
     coords_near_player_road = get_road_locations(board, team)
-    coords_near_player_buildings = get_building_locations(board, team)
+    #coords_near_player_buildings = get_building_locations(board, team)
 
     # This is because on the first turn (placement of first 2 settlements), the 
     # second road must be attached to the second settlement
     if is_first_turn
-        filter!(c -> !(c in coords_near_player_road), coords_near_player_buildings)
+        #coords_near_player_buildings = get_building_locations(board, team)
+        start_coords = filter(c -> !(c in coords_near_player_road), get_building_locations(board, team))
     else 
-        append!(start_coords, coords_near_player_road)
+        start_coords = coords_near_player_road
     end
-    append!(start_coords, coords_near_player_buildings)
-    unique!(start_coords)
+    # TODO this append is needed?
+    #append!(start_coords, coords_near_player_buildings)
+
+    #unique!(start_coords)
 
     road_coords = []
     for c in start_coords

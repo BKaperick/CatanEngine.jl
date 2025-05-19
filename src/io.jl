@@ -85,7 +85,7 @@ function read_map(configs::Dict, map_str::String)::Board
             tile_str,dice_str,resource_str = split(line,',')
             tile = Symbol(tile_str)
             resource = resourcestr_to_symbol[uppercase(resource_str)]
-            dice = parse(Int, dice_str)
+            dice = parse(Int8, dice_str)
 
             tile_to_dicevalue[tile] = dice
             tile_to_resource[tile] = resource
