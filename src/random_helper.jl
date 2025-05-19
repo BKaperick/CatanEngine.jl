@@ -2,6 +2,16 @@ function has_any_elements(sym_dict::Dict{Symbol, Int})
     return sum(values(sym_dict)) > 0
 end
 
+function unsafe_random_sample_one_resource(resources::Dict{Symbol, T}, replace=false)::Symbol where {T<:Integer}
+    items = Vector{Symbol}()
+    for (r,c) in resources
+        if c > 0
+            append!(items, repeat([r], c))
+        end
+    end
+    return sample(items, 1, replace=replace)[1]
+end
+
 function random_sample_resources(resources::Dict{Symbol, Int}, count::Int, replace=false)::Union{Nothing,Vector{Symbol}}
     items = Vector{Symbol}()
     for (r,c) in resources

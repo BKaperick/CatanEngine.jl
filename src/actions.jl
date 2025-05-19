@@ -242,3 +242,21 @@ function get_legal_actions(game, board, player::Player)::Set{PreAction}
     end
     return actions
 end
+
+action_construct_city(g::Game, b::Board, p::PlayerType, coord) = construct_city(b, p.player, coord)
+action_construct_settlement(g::Game, b::Board, p::PlayerType, coord) = construct_settlement(b, p.player, coord)
+action_construct_road(g::Game, b::Board, p::PlayerType, coord1, coord2) = construct_road(b, p.player, coord1, coord2)
+action_buy_devcard(g::Game, b::Board, p::PlayerType) = draw_devcard(g, b, p.player)
+action_play_devcard(g::Game, b::Board, p::PlayerType, card::Symbol) = do_play_devcard(b, g.players, p, card)
+action_propose_trade_goods(g::Game, b::Board, p::PlayerType, rand_resource_from::Vector{Symbol}, rand_resource_to::Vector{Symbol}) = propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
+action_do_nothing(g::Game, b::Board, p::PlayerType) = Returns(nothing)
+
+const ACTIONS_DICTIONARY = Dict(
+    :ConstructCity => action_construct_city,
+    :ConstructRoad => action_construct_road,
+    :ConstructSettlement => action_construct_settlement,
+    :BuyDevCard => action_buy_devcard,
+    :PlayDevCard => action_play_devcard,
+    :ProposeTrade => action_propose_trade_goods,
+    :DoNothing => action_do_nothing
+   )

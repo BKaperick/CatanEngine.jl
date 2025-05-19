@@ -89,7 +89,8 @@ Returned symbol must be present in both `Catan.RESOURCES` and `keys(player.resou
 """
 function choose_one_resource_to_discard(board::Board, player::RobotPlayer)::Symbol
     isempty(player.player.resources) && throw(ArgumentError("Player has no resources"))
-    return random_sample_resources(player.player.resources, 1)[1]
+    return unsafe_random_sample_one_resource(player.player.resources)
+    #return random_sample_resources(player.player.resources, 1)[1]
 end
 
 """
@@ -108,7 +109,8 @@ function steal_random_resource(from_player::RobotPlayer, to_player::RobotPlayer)
 end
 
 function choose_card_to_steal(player::RobotPlayer)::Symbol
-    random_sample_resources(player.player.resources, 1)[1]
+    unsafe_random_sample_one_resource(player.player.resources)
+    #random_sample_resources(player.player.resources, 1)[1]
 end
 
 """
@@ -145,7 +147,8 @@ end
 
 function _choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
     if sum(values(devcards)) > 0 && (rand() > .5)
-        return random_sample_resources(devcards, 1)[1]
+        return unsafe_random_sample_one_resource(devcards)
+        #return random_sample_resources(devcards, 1)[1]
     end
     return nothing
 end
@@ -159,51 +162,59 @@ The return `Function` needs to accept a `Game, Board, PlayerType` triple.
 
 TODO integrate with `CatanLearning` `Action` type.  This should not be returning a function.
 """
-function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::Function
+function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::ChosenAction
     rand_action = sample(collect(actions), 1)[1]
     name = rand_action.name
     candidates = rand_action.admissible_args
     if name == :ConstructCity
-        candidates = [Int8.(t) for t in candidates]
+        candidates = candidates::Vector{Tuple{Int8, Int8}} #[Int8.(t) for t in candidates]
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
-        return (g, b, p) -> construct_city(b, p.player, coord)
+        return ChosenAction(name, coord)
+        #return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if name == :ConstructSettlement
-        candidates = [Int8.(t) for t in candidates]
+        #candidates = [Int8.(t) for t in candidates]
+        candidates = candidates::Vector{Tuple{Int8, Int8}} 
         coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
-        return (g, b, p) -> construct_settlement(b, p.player, coord)
+        return ChosenAction(name, coord)
+        #return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if name == :ConstructRoad
         candidates = [[Int8.(tt) for tt in t] for t in candidates]
         coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
-        return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
+        return ChosenAction(name, coord1, coord2)
+        #return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
     if name == :BuyDevCard
-        return (g, b, p) -> draw_devcard(g, b, p.player)
+        return ChosenAction(name)
+        #return (g, b, p) -> draw_devcard(g, b, p.player)
     end
     if name == :PlayDevCard
         devcards = PlayerApi.get_admissible_devcards_with_counts(player.player)
         card = _choose_play_devcard(board, players, player, devcards)
         if card !== nothing
-            return (g, b, p) -> do_play_devcard(b, g.players, p, card)
-        end
+            return ChosenAction(name, card)
+        end            
+        #return (g, b, p) -> do_play_devcard(b, g.players, p, card)
     end
     if name == :ProposeTrade
         # We add an additional random filter here to avoid extremely long, uninteresting trade negotiations between DefaultRobotPlayers.
-        if rand() > .8
-            sampled = random_sample_resources(player.player.resources, 1)
-            rand_resource_from = [sampled...]
+        if rand() > .8 && sum(values(player.player.resources)) > 0
+            rand_resource_from = [unsafe_random_sample_one_resource(player.player.resources)]
+            #sampled = random_sample_resources(player.player.resources, 1)
+            #rand_resource_from = [sampled...]
             
             rand_resource_to = [get_random_resource()]
             while rand_resource_to[1] == rand_resource_from[1]
                 rand_resource_to = [get_random_resource()]
             end
-            return (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
+            return ChosenAction(name, rand_resource_from, rand_resource_to)
+            #return (g, b, p) -> propose_trade_goods(b, g.players, p, rand_resource_from, rand_resource_to)
         end
     end
-    return Returns(nothing)
+    return ChosenAction(:DoNothing) #Returns(nothing)
 end
 
 """

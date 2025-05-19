@@ -1,10 +1,13 @@
 module GameRunner
-using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction,
+using ..Catan: Game, Board, PlayerType, Player, PlayerPublicView, PreAction, ChosenAction,
                read_map, load_gamestate!, initialize_player,
                do_first_turn_building!,
                decide_and_roll_dice!,choose_next_action, do_post_game_produce!,
                do_post_action_step, do_post_game_action, get_legal_actions,
-               COORD_TO_TILES, COSTS, RESOURCES, generate_random_map
+               COORD_TO_TILES, COSTS, RESOURCES, generate_random_map, ACTIONS_DICTIONARY,
+               action_construct_city, action_construct_settlement,
+               action_construct_road, action_buy_devcard, action_play_devcard,
+               action_propose_trade_goods, action_do_nothing
 
 using ..Catan.BoardApi
 using ..Catan.PlayerApi
@@ -150,13 +153,14 @@ function do_action_from_legal_actions(game, board, player, legal_actions::Set{Pr
         @info "no legal actions"
         return false
     end
-    next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)
-    if next_action !== nothing && next_action != Returns(nothing)
-        next_action(game, board, player)
-        do_post_action_step(board, player)
-        return true
+    next_action = choose_next_action(board, PlayerPublicView.(game.players), player, legal_actions)::ChosenAction
+    if next_action.name == :DoNothing
+        return false
     end
-    return false
+    next_action_func! = ACTIONS_DICTIONARY[next_action.name]::Function
+    next_action_func!(game, board, player, next_action.args...)
+    do_post_action_step(board, player)
+    return true
 end
 
 """

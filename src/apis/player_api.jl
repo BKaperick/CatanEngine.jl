@@ -41,8 +41,8 @@ using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, lo
 function get_admissible_devcards(player::Player)
     return collect(keys(get_admissible_devcards_with_counts(player)))
 end
-function get_admissible_devcards_with_counts(player::Player)
-    if ~can_play_devcard(player)
+function get_admissible_devcards_with_counts(player::Player)::Dict{Symbol, Int8}
+    if player.played_devcard_this_turn
         return Dict()
     end
     
@@ -64,11 +64,14 @@ function trade_resource_with_bank(player::Player, from_resource, to_resource)
 end
 
 function can_play_devcard(player::Player)::Bool
+    return ~isempty(get_admissible_devcards(player))
+    #=
     total_num_devcards = sum(values(player.devcards))
     if haskey(player.devcards, :VictoryPoint) && total_num_devcards == player.devcards[:VictoryPoint]
         return false
     end
     return total_num_devcards > 0 && ~player.played_devcard_this_turn
+    =#
 end
 
 function get_vp_count_from_devcards(player::Player)

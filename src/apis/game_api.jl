@@ -1,5 +1,5 @@
 module GameApi
-using ..Catan: Game, roll_dice, log_action, has_any_elements, random_sample_resources
+using ..Catan: Game, roll_dice, log_action, has_any_elements, random_sample_resources, unsafe_random_sample_one_resource
 
 function start_turn(game::Game)::Nothing
     log_action(game.configs, "game st")
@@ -60,7 +60,8 @@ function can_draw_devcard(game::Game)
     return has_any_elements(game.devcards)
 end
 function draw_devcard(game::Game)
-    card = random_sample_resources(game.devcards, 1)[1]
+    card = unsafe_random_sample_one_resource(game.devcards)
+    #card = random_sample_resources(game.devcards, 1)[1]
     log_action(game.configs, "game dd :$card")
     _draw_devcard(game, card)
 end

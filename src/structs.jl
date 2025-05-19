@@ -16,13 +16,13 @@ Game(players) = Game(players, Dict{String, Any}())
 Game(players, configs) = Game(get_devcard_counts(configs), [deepcopy(p) for p in players], Set(), 1, false, false, false, rand(range(1,10000)), configs)
 
 struct Road
-    coord1::Tuple{Int,Int}
-    coord2::Tuple{Int,Int}
+    coord1::Tuple{Int8,Int8}
+    coord2::Tuple{Int8,Int8}
     team::Symbol
 end
 
 struct Building
-    coord::Tuple{Int,Int}
+    coord::Tuple{Int8,Int8}
     type::Symbol
     team::Symbol
 end
@@ -32,9 +32,9 @@ mutable struct Board
     #dicevalue_to_coords::Dict{Symbol,Int}
     dicevalue_to_tiles::Dict{Int,Vector{Symbol}}
     tile_to_resource::Dict{Symbol,Symbol}
-    coord_to_building::Dict{Tuple,Building}
+    coord_to_building::Dict{Tuple{Int8,Int8},Building}
     coord_to_roads::Dict{Tuple{Int8, Int8}, Set{Road}}
-    coord_to_port::Dict{Tuple,Symbol}
+    coord_to_port::Dict{Tuple{Int8,Int8},Symbol}
     empty_spaces::Vector
     buildings::Array{Building,1}
     roads::Array{Road,1}
@@ -80,6 +80,12 @@ struct PreAction
     name::Symbol
     admissible_args::Vector
     PreAction(name::Symbol, admissible_args::Vector) = new(name, unique(admissible_args))
+end
+
+struct ChosenAction
+    name::Symbol
+    args::Tuple
+    ChosenAction(name::Symbol, args...) = new(name, args)
 end
 
 PreAction(name::Symbol) = PreAction(name, [])
