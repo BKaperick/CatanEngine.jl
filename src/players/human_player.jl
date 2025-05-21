@@ -5,8 +5,8 @@ function get_admissible_devcards(player::HumanPlayer)
     return get_devcard_counts(player.player.configs)
 end
 
-function roll_dice(player::HumanPlayer)::Int
-    parse_int(player.io, "Dice roll:", player.player.configs)
+function roll_dice(player::HumanPlayer)::Integer
+    Int8(parse_int(player.io, "Dice roll:", player.player.configs))
 end
 
 function choose_one_resource_to_discard(board, player::HumanPlayer)::Symbol
@@ -14,7 +14,7 @@ function choose_one_resource_to_discard(board, player::HumanPlayer)::Symbol
     return parse_resources(player.io, "$(player.player.team) discards: ", player.player.configs)[1]
 end
 
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int8,Int8}}, building_type::Symbol, is_first_turn = false)::Tuple{Int8, Int8}
+function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple{Int8,Int8}}, building_type::Symbol, is_first_turn = false)::Tuple{Int8, Int8}
     if building_type == :Settlement
         validation_check = BoardApi.is_valid_settlement_placement
     else
@@ -26,7 +26,7 @@ function choose_building_location(board::Board, players::Vector{PlayerPublicView
     end
     return coord
 end
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int8,Int8}}
+function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::HumanPlayer, candidates::Vector{Tuple})::Vector{Tuple{Int8,Int8}}
     road_coord1 = nothing
     road_coord2 = nothing
     road_coords = Vector{Tuple{Int,Int}}()
@@ -45,7 +45,7 @@ function choose_road_location(board::Board, players::Vector{PlayerPublicView}, p
     return road_coords
 end
 
-function choose_place_robber(board::Board, players::Vector{PlayerType}, player::HumanPlayer, candidates::Vector{Symbol})
+function choose_place_robber(board::Board, players::AbstractVector{PlayerType}, player::HumanPlayer, candidates::Vector{Symbol})
     parse_tile(player.io, "$(player.player.team) places the Robber:", board.configs)
 end
 

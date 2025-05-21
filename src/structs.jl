@@ -1,7 +1,7 @@
 
 mutable struct Game
     devcards::Dict{Symbol,Int8}
-    players::Vector{PlayerType}
+    players::AbstractVector{PlayerType}
     # This field is needed in order to reload a game that was saved and quit in the middle of a turn
     already_played_this_turn::Set{Symbol}
     turn_num::Int
@@ -12,8 +12,8 @@ mutable struct Game
     configs::Dict{String, Any}
 end
 
-Game(players) = Game(players, Dict{String, Any}())
-Game(players, configs) = Game(get_devcard_counts(configs), [deepcopy(p) for p in players], Set(), 1, false, false, false, rand(range(1,10000)), configs)
+Game(players) = Game(SVector{length(players)}(players), Dict{String, Any}())
+Game(players::AbstractVector, configs::Dict) = Game(get_devcard_counts(configs), SVector{length(players)}(deepcopy.(players)), Set(), 1, false, false, false, rand(range(1,10000)), configs)
 
 struct Road
     coord1::Tuple{Int8,Int8}

@@ -188,11 +188,11 @@ function do_turn(game::Game, board::Board, player::PlayerType)
     GameApi.finish_player_turn(game, player.player.team)
 end
 
-function someone_has_won(game, board, players::Vector{PlayerType})::Bool
+function someone_has_won(game, board, players::AbstractVector{PlayerType})::Bool
     return get_winner(game, board, players) !== nothing
 end
 
-function get_winner(game, board, players::Vector{PlayerType})::Union{Nothing,PlayerType}
+function get_winner(game, board, players::AbstractVector{PlayerType})::Union{Nothing,PlayerType}
     winner = nothing
     for player in players
         player_points = get_total_vp_count(board, player.player)

@@ -2,14 +2,14 @@ using ..Catan: Board, PlayerType, Player, PlayerPublicView,
                choose_accept_trade, choose_who_to_trade_with
 using ..Catan.PlayerApi
 
-function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, amount::Int, resource_symbols...)
+function propose_trade_goods(board::Board, players::AbstractVector{PlayerType}, from_player::PlayerType, amount::Int, resource_symbols...)
     from_goods = collect(resource_symbols[1:amount])
     to_goods = collect(resource_symbols[amount+1:end])
     return propose_trade_goods(board, players, from_player, from_goods, to_goods)
 end
 
 """
-    propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, 
+    propose_trade_goods(board::Board, players::AbstractVector{PlayerType}, from_player::PlayerType, 
     from_goods, to_goods)
 
 Handles the action of `from_player` offering `from_goods` in exchange for `to_goods`.  Each of the players in `players`
@@ -18,7 +18,7 @@ need to evaluate the proposition and decide if they will accept via `choose_acce
 Then, finally, `from_player` will decide among the accepted players, `accepted_public`, with whome he will carry out
 the trade.
 """
-function propose_trade_goods(board::Board, players::Vector{PlayerType}, from_player::PlayerType, from_goods, to_goods)
+function propose_trade_goods(board::Board, players::AbstractVector{PlayerType}, from_player::PlayerType, from_goods, to_goods)
     to_goods_dict = Dict{Symbol,Int}()
     for g in to_goods
         if haskey(to_goods_dict,g)

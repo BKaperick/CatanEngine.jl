@@ -82,7 +82,7 @@ function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symb
     end
 end
 
-function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerType, card::Symbol)
+function do_devcard_action(board, players::AbstractVector{PlayerType}, player::PlayerType, card::Symbol)
     @info "$(player.player.team) does devcard $card action"
     players_public = PlayerPublicView.(players)
     if card == :Knight
@@ -98,12 +98,12 @@ function do_devcard_action(board, players::Vector{PlayerType}, player::PlayerTyp
     end
 end
 
-function do_road_building_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
+function do_road_building_action(board, players::AbstractVector{PlayerPublicView}, player::PlayerType)
     choose_validate_build_road!(board, players, player, false)
     choose_validate_build_road!(board, players, player, false)
 end
 
-function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, player::PlayerType)
+function do_year_of_plenty_action(board, players::AbstractVector{PlayerPublicView}, player::PlayerType)
     r1 = choose_resource_to_draw(board, players, player)::Symbol
     PlayerApi.give_resource!(player.player, r1)
     BoardApi.draw_resource!(board, r1)
@@ -112,7 +112,7 @@ function do_year_of_plenty_action(board, players::Vector{PlayerPublicView}, play
     BoardApi.draw_resource!(board, r2)
 end
 
-function do_monopoly_action(board, players::Vector{PlayerType}, player::PlayerType)
+function do_monopoly_action(board, players::AbstractVector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
     res = choose_monopoly_resource(board, players_public, player)
     for victim in players
@@ -124,11 +124,11 @@ function do_monopoly_action(board, players::Vector{PlayerType}, player::PlayerTy
     end
 end
 
-function do_knight_action(board, players::Vector{PlayerType}, player)
+function do_knight_action(board, players::AbstractVector{PlayerType}, player)
     do_robber_move_theft(board, players, player)
 end
 
-function do_robber_move(board, players::Vector{PlayerType}, player)
+function do_robber_move(board, players::AbstractVector{PlayerType}, player)
     for p in players
         do_robber_move_discard(board, player)
     end
@@ -146,7 +146,7 @@ function do_robber_move_discard(board, player::PlayerType)
     end
 end
 
-function do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType)
+function do_robber_move_theft(board, players::AbstractVector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
     candidate_tiles = BoardApi.get_admissible_robber_tiles(board) 
     new_robber_tile = choose_place_robber(board, players_public, player, candidate_tiles)::Symbol
@@ -158,7 +158,7 @@ function do_robber_move_theft(board, players::Vector{PlayerType}, player::Player
     do_robber_move_choose_victim_theft(board, admissible_victims, player, new_robber_tile)
 end
 
-function do_robber_move_choose_victim_theft(board, admissible_victims::Vector{PlayerType}, 
+function do_robber_move_choose_victim_theft(board, admissible_victims::AbstractVector{PlayerType}, 
         player::T, new_robber_tile::Symbol) where T <: PlayerType
     stolen_good = nothing
     victim_team = nothing
@@ -176,10 +176,10 @@ function do_robber_move_choose_victim_theft(board, admissible_victims::Vector{Pl
         #victim = [p for p in admissible_victims if p.player.team == victim_team][1]
         stolen_good = steal_random_resource(victim, player)
     end
-    inner_do_robber_move_theft(board, admissible_victims::Vector{PlayerType}, player, victim_team, new_robber_tile, stolen_good)
+    inner_do_robber_move_theft(board, admissible_victims::AbstractVector{PlayerType}, player, victim_team, new_robber_tile, stolen_good)
 end
 
-function inner_do_robber_move_theft(board, players::Vector{PlayerType}, player::PlayerType, victim_team::Union{Symbol, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
+function inner_do_robber_move_theft(board, players::AbstractVector{PlayerType}, player::PlayerType, victim_team::Union{Symbol, Nothing}, new_robber_tile::Symbol, stolen_good::Union{Symbol,Nothing})
     BoardApi.move_robber!(board, new_robber_tile)
     for p in players
         if p.player.team == victim_team && stolen_good !== nothing
@@ -189,7 +189,7 @@ function inner_do_robber_move_theft(board, players::Vector{PlayerType}, player::
     end
 end
 
-function get_admissible_theft_victims(board::Board, players::Vector{PlayerPublicView}, thief::Player, new_tile)::Vector{PlayerPublicView}
+function get_admissible_theft_victims(board::Board, players::AbstractVector{PlayerPublicView}, thief::Player, new_tile)::Vector{PlayerPublicView}
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team

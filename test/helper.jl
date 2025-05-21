@@ -81,9 +81,9 @@ function test_automated_game(neverend, players, configs::Dict)
     end
 end
 
-function test_player_implementation(T::Type, configs) #where T <: PlayerType
+function test_player_implementation(T::Type, configs) #where {T <: PlayerType}
     private_players = [
-                       T(:Blue, configs),
+                       T(:Blue, configs)::PlayerType,
                DefaultRobotPlayer(:Cyan, configs),
                DefaultRobotPlayer(:Yellow, configs),
                DefaultRobotPlayer(:Red, configs)

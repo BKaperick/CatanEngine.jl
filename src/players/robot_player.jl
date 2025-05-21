@@ -1,45 +1,3 @@
-# mutable struct DefaultRobotPlayer <: RobotPlayer
-#     player::Player
-# end
-# 
-#  Robot Player API.  Your RobotPlayer type can implement these methods.  If any are not implemented, it falls back to the existing implementation
-# 
-# choose_accept_trade(board::Board, player::RobotPlayer, 
-#     from_player::PlayerPublicView, from_goods::Vector{Symbol}, 
-#     to_goods::Vector{Symbol})::Bool
-#
-# choose_building_location(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, 
-#     building_type::Symbol)::Union{Nothing,Tuple{Int,Int}}
-#
-# choose_one_resource_to_discard(player::RobotPlayer)::Symbol
-#
-# choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer)::Symbol
-#
-# choose_next_action(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer, actions::Set{Symbol})
-#
-# choose_place_robber(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer)::Symbol
-#
-# choose_road_location(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}}
-#     )::Union{Nothing,Vector{Tuple{Int, Int}}}
-#
-# choose_robber_victim(board::Board, player::RobotPlayer, potential_victims...
-#     )::PlayerType
-#
-# choose_who_to_trade_with(board::Board, player::RobotPlayer, 
-#     players::Vector{PlayerPublicView})::Symbol
-#
-# choose_year_of_plenty_resources(board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer)::Tuple{Symbol, Symbol}
-#
-# get_legal_action_functions(board::Board, players::Vector{PlayerPublicView}, 
-#     player::RobotPlayer, actions::Set{Symbol})
-#
-
 get_admissible_devcards(player::RobotPlayer) = PlayerApi.get_admissible_devcards(player.player)
 
 """
@@ -52,32 +10,32 @@ function choose_accept_trade(board::Board, player::RobotPlayer, from_player::Pla
     return rand() > .5
 end
 
-function roll_dice(player::RobotPlayer)::Int
-    value = rand(1:6) + rand(1:6)
+function roll_dice(player::RobotPlayer)::Integer
+    value = Int8(rand(1:6) + rand(1:6))
     @info "$(player.player.team) rolled a $value"
     return value
 end
 
 """
-    choose_road_location(board::Board, players::Vector{PlayerPublicView}, 
+    choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, 
     player::RobotPlayer, candidates::Vector{Vector{Tuple{Int, Int}}})
     ::Vector{Tuple{Int, Int}}
 
 `candidates` is guaranteed to be non-empty.  Given all legal road placements, 
 return a `Vector` containing two coordinates signifying the road placement choice.
 """
-function choose_road_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}})::Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}
+function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}})::Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}
     return sample(candidates)
 end
 
 """
-    choose_building_location(board::Board, players::Vector{PlayerPublicView}, 
+    choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, 
     player::RobotPlayer, candidates::Vector{Tuple{Int, Int}}, building_type::Symbol
     )::Tuple{Int,Int}
 
 `candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
 """
-function choose_building_location(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int8, Int8}}, building_type::Symbol)::Tuple{Int8, Int8}
+function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int8, Int8}}, building_type::Symbol)::Tuple{Int8, Int8}
     @debug "$(player.player.team) chooses $building_type location randomly"
     return sample(candidates, 1)[1]
 end
@@ -94,10 +52,10 @@ function choose_one_resource_to_discard(board::Board, player::RobotPlayer)::Symb
 end
 
 """
-    choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, 
+    choose_place_robber(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, 
     candidates::Vector{Symbol})::Union{Nothing, Symbol}
 """
-function choose_place_robber(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Symbol
+function choose_place_robber(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Symbol})::Symbol
     if length(candidates) > 0
         return sample(candidates, 1)[1]
     end
@@ -114,22 +72,22 @@ function choose_card_to_steal(player::RobotPlayer)::Symbol
 end
 
 """
-    choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, 
+    choose_monopoly_resource(board::Board, players::AbstractVector{PlayerPublicView}, 
     player::RobotPlayer)::Symbol
 
 Called during the Monopoly development card action.  Choose the resource to steal from each player based on public information.
 """
-function choose_monopoly_resource(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
+function choose_monopoly_resource(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer)::Symbol
     return get_random_resource()
 end
 
 """
-    choose_resource_to_draw(board, players::Vector{PlayerPublicView}, 
+    choose_resource_to_draw(board, players::AbstractVector{PlayerPublicView}, 
     player::RobotPlayer)::Symbol
 
 Called two times during the Year of Plenty development card action.  TODO inconsistent naming.
 """
-function choose_resource_to_draw(board, players::Vector{PlayerPublicView}, player::RobotPlayer)::Symbol
+function choose_resource_to_draw(board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer)::Symbol
     return get_random_resource()
 end
 
@@ -145,7 +103,7 @@ function choose_robber_victim(board::Board, player::RobotPlayer, potential_victi
     return max_ind
 end
 
-function _choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
+function _choose_play_devcard(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}
     if sum(values(devcards)) > 0 && (rand() > .5)
         return unsafe_random_sample_one_resource(devcards)
         #return random_sample_resources(devcards, 1)[1]
@@ -154,7 +112,7 @@ function _choose_play_devcard(board::Board, players::Vector{PlayerPublicView}, p
 end
 
 """
-    choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, 
+    choose_next_action(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, 
     actions::Set{PreAction})::Function
 
 Given a `Set` of `PreAction` legal move categories, decide what will be taken as the next action.
@@ -162,35 +120,29 @@ The return `Function` needs to accept a `Game, Board, PlayerType` triple.
 
 TODO integrate with `CatanLearning` `Action` type.  This should not be returning a function.
 """
-function choose_next_action(board::Board, players::Vector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::ChosenAction
+function choose_next_action(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::ChosenAction
     rand_action = sample(collect(actions), 1)[1]
     name = rand_action.name
     candidates = rand_action.admissible_args
     if name == :ConstructCity
-        candidates = candidates::Vector{Tuple{Int8, Int8}} #[Int8.(t) for t in candidates]
-        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :City)
+        candidates = candidates::Vector{Tuple{Int8, Int8}}
+        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates, :City)
         return ChosenAction(name, coord)
-        #return (g, b, p) -> construct_city(b, p.player, coord)
     end
     if name == :ConstructSettlement
-        #candidates = [Int8.(t) for t in candidates]
         candidates = candidates::Vector{Tuple{Int8, Int8}} 
-        coord = choose_building_location(board, players::Vector{PlayerPublicView}, player, candidates, :Settlement)
+        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates, :Settlement)
         return ChosenAction(name, coord)
-        #return (g, b, p) -> construct_settlement(b, p.player, coord)
     end
     if name == :ConstructRoad
-        #candidates = [[Int8.(tt) for tt in t] for t in candidates]
         candidates = candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}} 
-        coord = choose_road_location(board, players::Vector{PlayerPublicView}, player, candidates)
+        coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
         return ChosenAction(name, coord1, coord2)
-        #return (g, b, p) -> construct_road(b, p.player, coord1, coord2)
     end
     if name == :BuyDevCard
         return ChosenAction(name)
-        #return (g, b, p) -> draw_devcard(g, b, p.player)
     end
     if name == :PlayDevCard
         devcards = PlayerApi.get_admissible_devcards_with_counts(player.player)
@@ -198,7 +150,6 @@ function choose_next_action(board::Board, players::Vector{PlayerPublicView}, pla
         if card !== nothing
             return ChosenAction(name, card)
         end            
-        #return (g, b, p) -> do_play_devcard(b, g.players, p, card)
     end
     if name == :ProposeTrade
         # We add an additional random filter here to avoid extremely long, uninteresting trade negotiations between DefaultRobotPlayers.
@@ -220,11 +171,11 @@ end
 
 """
     choose_who_to_trade_with(board::Board, player::RobotPlayer, 
-    players::Vector{PlayerPublicView})::Symbol
+    players::AbstractVector{PlayerPublicView})::Symbol
 
 Called when multiple other players have accepted a trade offer via `choose_accept_trade`, and now the trade initiator, `player`, selects which player will be selected.
 """
-function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::Vector{PlayerPublicView})::Symbol
+function choose_who_to_trade_with(board::Board, player::RobotPlayer, players::AbstractVector{PlayerPublicView})::Symbol
     max_ind = player.player
     while max_ind.team == player.player.team
         max_ind = sample(collect(players), 1)[1]

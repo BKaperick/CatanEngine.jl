@@ -93,7 +93,7 @@ function decide_and_assign_largest_army!(board, players)
     BoardApi.assign_largest_army!(board, la_team)
 end
 
-function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{Nothing, Symbol}
+function decide_largest_army(board::Board, players::AbstractVector{PlayerType})::Union{Nothing, Symbol}
     # Gather all players who've played at least three Knights
     max_ct = 3
     player_and_count = Vector{Tuple{PlayerType, Int}}()
@@ -140,9 +140,9 @@ function harvest_one_resource!(board::Board, player::Player, resource::Symbol, c
         end
     end
 end
-function harvest_one_resource(board, players, player_and_types::Vector{Tuple{Player, Symbol}}, resource::Symbol)
+function harvest_one_resource(board, players, player_and_types::AbstractVector{Tuple{Player, Symbol}}, resource::Symbol)
     total_remaining = board.resources[resource]
-    player_and_counts = [(player, t == :Settlement ? 1 : 2) for (player, t) in player_and_types]
+    player_and_counts = [(player, t == :Settlement ? Int8(1) : Int8(2)) for (player, t) in player_and_types]
     total_needed = sum([x[2] for x in player_and_counts])
     if total_needed == 0
         return
@@ -180,7 +180,7 @@ function harvest_resources(board, players, dice_value)
         end
     end
     #println(resource_to_harvest_targets)
-    for r in collect(keys(resource_to_harvest_targets))
+    for r in keys(resource_to_harvest_targets)
         harvest_one_resource(board, players, resource_to_harvest_targets[r], r)
     end
 end
@@ -191,7 +191,7 @@ function decide_and_roll_dice!(game, board, player::PlayerType)
     end
 end
 
-function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, player::PlayerType, value)
+function handle_dice_roll(game, board::Board, players::AbstractVector{PlayerType}, player::PlayerType, value)
     # In all cases except 7, we allocate resources
     if value != 7
         harvest_resources(board, players, value)
@@ -201,13 +201,13 @@ function handle_dice_roll(game, board::Board, players::Vector{PlayerType}, playe
     GameApi.set_dice_true(game)
 end
 
-function first_turn_build_settlement!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType)
+function first_turn_build_settlement!(board::Board, players::AbstractVector{PlayerPublicView}, player::PlayerType)
     candidates = BoardApi.get_admissible_settlement_locations(board, player.player.team, true)
     coord = choose_building_location(board, players, player, candidates, :Settlement)
     BoardApi.build_settlement!(board, player.player.team, coord)
 end
 
-function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
+function choose_validate_build_road!(board::Board, players::AbstractVector{PlayerPublicView}, player::PlayerType, is_first_turn = false)
     candidates = BoardApi.get_admissible_road_locations(board, player.player.team, is_first_turn)
     if length(candidates) == 0
         @debug "Not possible for $(player.player.team) to construct a road at this time"
@@ -219,7 +219,7 @@ function choose_validate_build_road!(board::Board, players::Vector{PlayerPublicV
     end
 end
 
-function do_first_turn_building!(game, board, players::Vector{PlayerType}, player::PlayerType)
+function do_first_turn_building!(game, board, players::AbstractVector{PlayerType}, player::PlayerType)
     players_public = PlayerPublicView.(players)
     settlement = first_turn_build_settlement!(board, players_public, player)
     choose_validate_build_road!(board, players_public, player, true)
