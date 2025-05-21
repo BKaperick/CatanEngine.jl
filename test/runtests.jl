@@ -34,7 +34,9 @@ function test_jet_fails()
 
     #@show length(JET.get_reports(rep))
     #@show rep
-    @test length(JET.get_reports(rep)) <= 17
+    reports = JET.get_reports(rep)
+    @info "length(JET.get_reports(rep)) = {$length(reports)}"
+    @test length(reports) <= 13
 end
 
 function test_actions()
@@ -125,10 +127,10 @@ end
 @test get_road_coords_from_human_tile_description("ccc") == [(1,7),(1,6)]
 @test get_road_coords_from_human_tile_description("aaa") == [(1,2),(1,1)]
 
-#@assert BoardApi.get_neighbors(Tuple{Int8,Int8}((3,10))) == [(3,9),(3,11),(2,9)]
-#@assert BoardApi.get_neighbors((6,3)) == [(6,2),(6,4),(5,4)]
-#@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
-#@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
+@assert BoardApi.get_neighbors(((3,10))) == [(3,9),(3,11),(2,9)]
+@assert BoardApi.get_neighbors((6,3)) == [(6,2),(6,4),(5,4)]
+@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
+@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
 
 function test_misc()
     random_sample_resources(Dict([:Brick => 0]), 1) == nothing
@@ -232,7 +234,7 @@ function test_max_construction(configs)
     @test BoardApi.count_cities(board, player1.player.team) == board.configs["GameSettings"]["MaxComponents"]["CITY"]
     
     for i in 1:(configs["GameSettings"]["MaxComponents"]["ROAD"]-1)
-        coords = BoardApi.get_admissible_road_locations(board, player1.player.team)[1]
+        coords = BoardApi.get_admissible_road_locations(board, player1.player.team, i == 1)[1]
         BoardApi.build_road!(board, :Test1, coords...)
     end
     @test length(BoardApi.get_admissible_road_locations(board, player1.player.team)) > 0
@@ -273,12 +275,9 @@ function test_devcards(configs)
 
     BoardApi.build_settlement!(board, player1.player.team, (2,5))
     players_public = PlayerPublicView.(players)
+    BoardApi.build_road!(board, player1.player.team, (2,4), (2,5))
     Catan.do_road_building_action(board, players_public, player1)
-    @test BoardApi.count_roads(board, player1.player.team) == 2
-    
-    players_public = PlayerPublicView.(players)
-    Catan.do_road_building_action(board, players_public, player1)
-    @test BoardApi.count_roads(board, player1.player.team) == 4
+    @test BoardApi.count_roads(board, player1.player.team) == 3
     
     @test GameRunner.get_total_vp_count(board, player1.player) == 1
     @test GameRunner.get_total_vp_count(board, player2.player) == 0
@@ -663,8 +662,9 @@ function run_tests(neverend = false)
         end
     end
     test_game_api(configs)
-    #Catan.test_player_implementation(HumanPlayer, configs)
+    
     Catan.test_player_implementation(DefaultRobotPlayer, configs)
+    #Catan.test_player_implementation(HumanPlayer, configs)
     test_trading(configs)
     """
     """

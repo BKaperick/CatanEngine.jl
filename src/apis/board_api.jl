@@ -103,12 +103,12 @@ function get_road_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
     [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
 end
 
-function build_city!(board::Board, team::Symbol, coord::Tuple{Int8, Int8})::Building
+function build_city!(board::Board, team::Symbol, coord::Tuple{TInt, TInt})::Building where {TInt <: Integer}
     log_action(board.configs, "board bc", team, coord)
     @info "$team builds city at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_city!(board, team, coord)
 end
-function _build_city!(board, team, coord::Tuple{Int8, Int8})::Building
+function _build_city!(board, team, coord::Tuple{TInt, TInt})::Building where {TInt <: Integer}
     
     # Remove current settlement
     current_settlement = nothing
@@ -126,12 +126,13 @@ function _build_city!(board, team, coord::Tuple{Int8, Int8})::Building
     return city
 end
 
-function build_settlement!(board::Board, team::Symbol, coord::Tuple{Int8, Int8})::Building
+function build_settlement!(board::Board, team::Symbol, coord::Tuple{TInt, TInt})::Building where {TInt <: Integer}
     log_action(board.configs, "board bs", board, team, coord)
     @info "$team builds settlement at intersection of $(join(COORD_TO_TILES[coord], ","))"
     _build_settlement!(board, team, coord)
 end
-function _build_settlement!(board, team, coord::Tuple{Int8, Int8})::Building
+
+function _build_settlement!(board, team, coord::Tuple{TInt, TInt})::Building where {TInt <: Integer}
     building = Building(coord, :Settlement, team)
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
@@ -139,12 +140,12 @@ function _build_settlement!(board, team, coord::Tuple{Int8, Int8})::Building
     return building
 end
 
-function build_road!(board::Board, team::Symbol, coord1::Tuple{Int8, Int8}, coord2::Tuple{Int8, Int8})::Road
+function build_road!(board::Board, team::Symbol, coord1::Tuple{TInt, TInt}, coord2::Tuple{TInt, TInt})::Road where {TInt <: Integer}
     log_action(board.configs, "board br", board, team, coord1, coord2)
     @info "$team builds road at $(join(intersect(COORD_TO_TILES[coord1],COORD_TO_TILES[coord2]), "-"))"
     _build_road!(board, team, coord1, coord2)
 end
-function _build_road!(board, team::Symbol, coord1::Tuple{Int8, Int8}, coord2::Tuple{Int8, Int8})::Road
+function _build_road!(board, team::Symbol, coord1::Tuple{TInt, TInt}, coord2::Tuple{TInt, TInt})::Road where {TInt <: Integer}
     road = Road(coord1, coord2, team)
     push!(board.roads, road)
     for coord in [coord1, coord2]
@@ -390,7 +391,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     return found_neighbor
 end
 
-function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Vector{Tuple{Int8,Int8}}}
+function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Tuple{Tuple{Int8,Int8}, Tuple{Int8,Int8}}}
     if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end
@@ -416,7 +417,7 @@ function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn
         ns = get_neighbors(c)
         for n in ns
             if is_valid_road_placement(board, team, c, n)
-                push!(road_coords, [c,n])
+                push!(road_coords, (c,n))
             end
         end
     end

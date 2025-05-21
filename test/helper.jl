@@ -1,6 +1,6 @@
 global counter = 1
 global base_dir = @__DIR__
-
+using Test
 
 function reset_savefile_with_timestamp(name, configs)
     configs["SAVE_GAME_TO_FILE"] = true
@@ -109,13 +109,21 @@ function test_player_implementation(T::Type, configs) #where T <: PlayerType
     choose_accept_trade(board, player, from_player, from_goods, to_goods)
     coord = choose_building_location(board, players, player, settlement_candidates, :Settlement)
     BoardApi.build_settlement!(board, player.player.team, coord)
-    road_candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
+    road_candidates = BoardApi.get_admissible_road_locations(board, player.player.team, true)
     choose_building_location(board, players, player, [coord], :City)
     choose_one_resource_to_discard(board, player)
     choose_monopoly_resource(board, players, player)
     choose_next_action(board, players, player, actions)
     choose_place_robber(board, players, player, BoardApi.get_admissible_robber_tiles(board))
+    println(road_candidates)
     choose_road_location(board, players, player, road_candidates)
+
+    PlayerApi.give_resource!(player.player, :Brick)
+    PlayerApi.give_resource!(player.player, :Wood)
+    BoardApi.build_road!(board, player.player.team, road_candidates[1][1], road_candidates[1][1])
+    road_candidates = BoardApi.get_admissible_road_locations(board, player.player.team, false)
+    @test ~isempty(road_candidates)
+
     choose_robber_victim(board, player, players[2], players[3])
     choose_who_to_trade_with(board, player, players)
     choose_resource_to_draw(board, players, player)

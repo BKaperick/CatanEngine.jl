@@ -199,6 +199,7 @@ function log_action(configs::Dict, fname::String, args...)::Nothing
         outstring = string(serialized, "\n")
         @debug "outstring = $outstring"
         write(configs["SAVE_FILE_IO"], outstring)
+        return
         #return serialized
     end
     #return

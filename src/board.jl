@@ -24,7 +24,7 @@ function get_empty_spaces(board)::Vector{Tuple{Int8, Int8}}
     return empty[1:next_i]
 end
 
-function get_neighbors(coord::Tuple{Int8, Int8})::Vector{Tuple{Int8, Int8}}
+function get_neighbors(coord::Tuple{Integer, Integer})::Vector{Tuple{Int8, Int8}}
     neighbors = Vector{Tuple{Int8, Int8}}(undef, 3)
     i = Int8(1)
     r,c = coord
