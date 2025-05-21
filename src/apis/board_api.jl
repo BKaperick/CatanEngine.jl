@@ -143,10 +143,7 @@ function _build_settlement!(board, team, coord::Tuple{Integer, Integer})::Buildi
         road_teams = [r.team for r in board.coord_to_roads[coord] if r.team != team]
         if length(road_teams) >= 2
             unique!(road_teams)
-            for t in road_teams
-                board.team_to_road_length[t] = get_max_road_length(board, t)
-                _award_longest_road!(board, team)
-            end
+            _award_longest_road!(board, road_teams...)
         end
     end
     return building
@@ -187,7 +184,7 @@ end
 #TODO is this a bug?
 #_build_road!(board, team, human_coords::String) = _build_settlement!(board, team, get_coords_from_human_tile_description(human_coords)...)
 
-function _award_longest_road!(board, current_team) 
+function _award_longest_road!(board, teams_to_update::Symbol...) 
     road_teams = [r.team for r in board.roads]
     if length(road_teams) < 5
         return
@@ -196,15 +193,15 @@ function _award_longest_road!(board, current_team)
     teams = unique(road_teams)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
+    
+    # Only recompute for the teams_to_update teams, otherwise retrieve the cached value
+    for team in teams_to_update
+        current_len = get_max_road_length(board, team)
+        board.team_to_road_length[team] = current_len
+    end
+
     for team in teams
-        # Only recompute for the current_team, otherwise retrieve the cached value
-        if team == current_team
-            current_len = get_max_road_length(board, team)
-            board.team_to_road_length[team] = current_len
-        else
-            current_len = get_max_road_length(board, team)
-            #current_len = board.team_to_road_length[team]
-        end
+        current_len = board.team_to_road_length[team]
         max_length = current_len > max_length ? current_len : max_length
         team_to_length[team] = current_len 
     end
