@@ -335,6 +335,14 @@ function test_road_hashing()
     println(set)
     @test length(set) == 1
 end
+
+function test_longest_road1(configs)
+    board = read_map(configs)
+    player_blue = DefaultRobotPlayer(:Blue, configs)
+    player_green = DefaultRobotPlayer(:Green, configs)
+    players = Vector{PlayerType}([player_blue, player_green])
+end
+
 function test_longest_road(configs)
     board = read_map(configs)
     player_blue = DefaultRobotPlayer(:Blue, configs)
@@ -345,7 +353,6 @@ function test_longest_road(configs)
     # 31-32-33-34-35-36-37-38-39-3!-3@
     # (9)|  D  |  E  |  F  |  G  |
     #    21-22-23-24-25-26-27-28-29
-    
     BoardApi.build_settlement!(board, :Green, (2,4))
     BoardApi.build_settlement!(board, :Blue, (2,3))
 
@@ -353,13 +360,12 @@ function test_longest_road(configs)
     BoardApi.build_road!(board, :Blue, (2,2), (2,3))
     BoardApi.build_road!(board, :Blue, (2,1), (2,2))
     BoardApi.build_road!(board, :Blue, (2,1), (3,2))
-
-    @test board.longest_road == nothing
+    @test board.longest_road === nothing
     
     
     # Length 5 road, but it's intersected by :Green settlement
     BoardApi.build_road!(board, :Blue, (2,5), (2,4))
-    @test board.longest_road == nothing
+    @test board.longest_road === nothing
 
     # Now player one builds a 5-length road without intersection
     BoardApi.build_road!(board, :Blue, (3,3), (3,2))
@@ -373,8 +379,22 @@ function test_longest_road(configs)
     BoardApi.build_road!(board, :Green, (2,9), (2,8))
     BoardApi.build_road!(board, :Green, (2,8), (2,7))
     
-    # Player green built 6 roads connected, but branched, so still player 1 has longest road
+    # Player green built 6 roads connected, but branched (length 5), so still player 1 has longest road
+    @test BoardApi.get_max_road_length(board, :Green) == board.team_to_road_length[:Green] == 5
     @test board.longest_road == :Blue
+
+    # Now Green builds a settlement that splits the blue road, so Green claims longest road
+    BoardApi.build_settlement!(board, :Green, (2,2))
+    @test BoardApi.get_max_road_length(board, :Blue) == board.team_to_road_length[:Blue] == 3
+    @test board.longest_road === :Green
+
+    # Now Blue builds a settlement that splits the green road, so now noone has longest road
+    board2 = deepcopy(board)
+    BoardApi.build_settlement!(board2, :Blue, (3,9))
+    @test BoardApi.get_max_road_length(board2, :Green) == board2.team_to_road_length[:Green] == 4
+    @test board2.longest_road === nothing
+
+
     
     # Now player green makes a loop, allowing 6 roads continuous
     BoardApi.build_road!(board, :Green, (3,8), (2,7))
@@ -391,8 +411,8 @@ function test_longest_road(configs)
     
     # Two settlements
     @test GameRunner.get_total_vp_count(board, player_blue.player) == 2
-    # Two settlements + Longest road
-    @test GameRunner.get_total_vp_count(board, player_green.player) == 4
+    # Three settlements + Longest road
+    @test GameRunner.get_total_vp_count(board, player_green.player) == 5
 end
 
 function test_ports(configs)
@@ -660,6 +680,7 @@ function run_tests(neverend = false)
             Base.Filesystem.rm("data/$file")
         end
     end
+    test_longest_road(configs)
     test_game_api(configs)
     
     Catan.test_player_implementation(DefaultRobotPlayer, configs)
@@ -682,7 +703,6 @@ function run_tests(neverend = false)
     test_devcards(configs)
     test_do_turn(configs)
     test_call_api(configs)
-    test_longest_road(configs)
     test_robot_game(neverend, configs)
     test_jet_fails()
 end

@@ -37,6 +37,7 @@ mutable struct Board
     coord_to_port::Dict{Tuple{Int8,Int8},Symbol}
     buildings::Array{Building,1}
     roads::Array{Road,1}
+    team_to_road_length::Dict{Symbol, Int8}
     robber_tile::Symbol
     spaces::Vector{Vector{Bool}}
     resources::Dict{Symbol,Int}
@@ -49,7 +50,7 @@ end
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, 
       robber_tile::Symbol, coord_to_port::Dict, configs::Dict) = Board(tile_to_value, 
       dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
-      [], [], robber_tile, 
+      [], [], Dict(), robber_tile, 
       BoardApi.initialize_empty_board(DIMS), 
       Dict([(r, configs["GameSettings"]["MaxComponents"]["RESOURCE"]) for r in RESOURCES]), 
       nothing, nothing, configs)
@@ -65,10 +66,11 @@ function Base.deepcopy(board::Board)
                  deepcopy(board.coord_to_port),
                  deepcopy(board.buildings),
                  deepcopy(board.roads),
+                 deepcopy(board.team_to_road_length),
                  board.robber_tile,
                  deepcopy(board.spaces),
                  deepcopy(board.resources),
-                 board.longest_road,
+                 deepcopy(board.longest_road),
                  board.largest_army,
                  board.configs
                     )

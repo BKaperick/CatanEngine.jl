@@ -137,6 +137,18 @@ function _build_settlement!(board, team, coord::Tuple{Integer, Integer})::Buildi
     push!(board.buildings, building)
     board.coord_to_building[coord] = building
     board.spaces[coord[1]][coord[2]] = true
+
+    # Potentially update longest road if this settlement splits an existing road
+    if haskey(board.coord_to_roads, coord)
+        road_teams = [r.team for r in board.coord_to_roads[coord] if r.team != team]
+        if length(road_teams) >= 2
+            unique!(road_teams)
+            for t in road_teams
+                board.team_to_road_length[t] = get_max_road_length(board, t)
+                _award_longest_road!(board, team)
+            end
+        end
+    end
     return building
 end
 
@@ -156,6 +168,13 @@ function _build_road!(board, team::Symbol, coord1::Tuple{Integer, Integer}, coor
             board.coord_to_roads[coord] = Set([road])
         end
     end
+
+    # If this is the first road for this team, exit immediately
+    if ~haskey(board.team_to_road_length, team)
+        board.team_to_road_length[team] = 1
+        return road
+    end
+
     # We only need to re-assign longest road if:
     # 1. it's currently someone else's (or noone's)
     # 2. this is at least the 5th road being built
@@ -178,14 +197,21 @@ function _award_longest_road!(board, current_team)
     team_to_length = Dict{Symbol, Int}()
     max_length = 4
     for team in teams
-        # TODO try to cache these values
-        current_len = get_max_road_length(board, team)
+        # Only recompute for the current_team, otherwise retrieve the cached value
+        if team == current_team
+            current_len = get_max_road_length(board, team)
+            board.team_to_road_length[team] = current_len
+        else
+            current_len = get_max_road_length(board, team)
+            #current_len = board.team_to_road_length[team]
+        end
         max_length = current_len > max_length ? current_len : max_length
         team_to_length[team] = current_len 
     end
     
     # Do nothing if max road length is <= 4
     if max_length == 4
+        board.longest_road = nothing
         return
     end
     
