@@ -1,6 +1,6 @@
 
 mutable struct Game
-    devcards::Dict{Symbol,Int}
+    devcards::Dict{Symbol,Int8}
     players::Vector{PlayerType}
     # This field is needed in order to reload a game that was saved and quit in the middle of a turn
     already_played_this_turn::Set{Symbol}
@@ -34,13 +34,14 @@ mutable struct Board
     tile_to_resource::Dict{Symbol,Symbol}
     coord_to_building::Dict{Tuple{Int8,Int8},Building}
     coord_to_roads::Dict{Tuple{Int8, Int8}, Set{Road}}
+    coord_to_road_teams::Dict{Tuple{Int8, Int8}, Set{Symbol}}
     coord_to_port::Dict{Tuple{Int8,Int8},Symbol}
     buildings::Array{Building,1}
     roads::Array{Road,1}
     team_to_road_length::Dict{Symbol, Int8}
     robber_tile::Symbol
     spaces::Vector{Vector{Bool}}
-    resources::Dict{Symbol,Int}
+    resources::Dict{Symbol,Int8}
     # Team of player with the longest road card (is nothing if no player has a road at least 5 length)
     longest_road::Union{Nothing, Symbol}
     largest_army::Union{Nothing, Symbol}
@@ -49,9 +50,9 @@ end
 
 Board(tile_to_value::Dict, dicevalue_to_tiles::Dict, tile_to_resource::Dict, 
       robber_tile::Symbol, coord_to_port::Dict, configs::Dict) = Board(tile_to_value, 
-      dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), coord_to_port, 
+      dicevalue_to_tiles, tile_to_resource, Dict(), Dict(), Dict(), coord_to_port, 
       [], [], Dict(), robber_tile, 
-      BoardApi.initialize_empty_board(DIMS), 
+      BoardApi.initialize_empty_board(), 
       Dict([(r, configs["GameSettings"]["MaxComponents"]["RESOURCE"]) for r in RESOURCES]), 
       nothing, nothing, configs)
 Board(csvfile) = BoardApi.Board(csvfile)
@@ -63,6 +64,7 @@ function Base.deepcopy(board::Board)
                  deepcopy(board.tile_to_resource),
                  deepcopy(board.coord_to_building),
                  deepcopy(board.coord_to_roads),
+                 deepcopy(board.coord_to_road_teams),
                  deepcopy(board.coord_to_port),
                  deepcopy(board.buildings),
                  deepcopy(board.roads),

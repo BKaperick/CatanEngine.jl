@@ -131,7 +131,7 @@ function decide_largest_army(board::Board, players::Vector{PlayerType})::Union{N
     end
 end
 
-function harvest_one_resource!(board::Board, player::Player, resource::Symbol, count::Int)
+function harvest_one_resource!(board::Board, player::Player, resource::Symbol, count::Integer)
     @info "$(player.team) harvests $count $resource"
     for i=1:count
         if BoardApi.can_draw_resource(board, resource)

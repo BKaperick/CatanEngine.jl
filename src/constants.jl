@@ -329,7 +329,10 @@ for elem in TILE_TO_COORDS
     end
 end
 
-const DIMS = [7,9,11,11,9,7]
+
+const DIMS = SVector{6, Int8}(7,9,11,11,9,7)
+const DIMS_ROWS = length(DIMS)
+const DIMS_COLS = maximum(DIMS)
 
 const DICEVALUE_TO_PROBA_WEIGHT = Dict(
                                  2 => 1,

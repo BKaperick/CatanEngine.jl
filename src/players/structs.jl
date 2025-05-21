@@ -4,13 +4,13 @@ import Base: deepcopy
 abstract type PlayerType end
 mutable struct Player
     # Private fields (can't be directly accessed by other players)
-    resources::Dict{Symbol,Int}
-    devcards::Dict{Symbol,Int}
+    resources::Dict{Symbol,Int8}
+    devcards::Dict{Symbol,Int8}
     
     # Public fields (can be used by other players to inform their moves)
     team::Symbol
-    devcards_used::Dict{Symbol,Int}
-    ports::Dict{Symbol, Int}
+    devcards_used::Dict{Symbol,Int8}
+    ports::Dict{Symbol, Int8}
     played_devcard_this_turn::Bool
     bought_devcard_this_turn::Union{Nothing,Symbol}
     configs::Dict
@@ -24,7 +24,7 @@ function Player(team::Symbol, configs::Dict)
     :Brick => 4
     :Pasture => 4
     ])
-    return Player(Dict([(r,0) for r in RESOURCES]), Dict(), team, Dict(), default_ports, false, nothing, configs)
+    return Player(Dict([(r,Int8(0)) for r in RESOURCES]), Dict(), team, Dict(), default_ports, false, nothing, configs)
 end
 
 """
@@ -36,13 +36,13 @@ publicly about the private fields.  E.g. everyone knows how many dev cards each 
 mutable struct PlayerPublicView
     # This is the same as the public fields in `Player`
     team::Symbol
-    devcards_used::Dict{Symbol,Int}
-    ports::Dict{Symbol, Int}
+    devcards_used::Dict{Symbol,Int8}
+    ports::Dict{Symbol, Int8}
     played_devcard_this_turn::Bool
     
     # Aggregated fields pertaining to the publicly-known info about the private fields
-    resource_count::Int
-    devcards_count::Int
+    resource_count::Int8
+    devcards_count::Int8
 end
 
 PlayerPublicView(player::PlayerPublicView) = player;

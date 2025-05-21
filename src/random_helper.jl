@@ -1,4 +1,4 @@
-function has_any_elements(sym_dict::Dict{Symbol, Int})
+function has_any_elements(sym_dict::Dict{Symbol, T}) where {T<:Integer}
     return sum(values(sym_dict)) > 0
 end
 

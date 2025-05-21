@@ -4,6 +4,7 @@ using DocStringExtensions
 using Logging
 using Random
 using StatsBase
+using StaticArrays
 
 include("players/structs.jl")
 include("structs.jl")

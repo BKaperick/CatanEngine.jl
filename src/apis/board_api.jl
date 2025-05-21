@@ -88,19 +88,42 @@ function print_board_stats(board::Board, team::Symbol)
 end
 
 function get_building_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
-    [c for (c,b) in board.coord_to_building if b.team == team]
+    return get_building_locations_low_alloc(board, team, nothing)
 end
 
 function get_settlement_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
-    [c for (c,b) in board.coord_to_building if b.team == team && b.type == :Settlement]
+    return get_building_locations_low_alloc(board, team, :Settlement)
 end
 
 function get_city_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
-    [c for (c,b) in board.coord_to_building if b.team == team && b.type == :City]
+    return get_building_locations_low_alloc(board, team, :City)
+end
+
+function get_building_locations_low_alloc(board, team::Symbol, type::Union{Nothing, Symbol})::Vector{Tuple{Int8, Int8}}
+    out = Vector{Tuple{Int8, Int8}}(undef, length(board.buildings))
+    i = Int8(0)
+    for (c,b) in board.coord_to_building
+        if b.team == team && (type === nothing || b.type == type)
+            i += 1
+            out[i] = c
+        end
+    end
+    return out[1:i]
 end
 
 function get_road_locations(board, team::Symbol)::Vector{Tuple{Int8, Int8}}
-    [c for (c,r) in board.coord_to_roads if any([road.team == team for road in r])]
+    if isempty(board.roads)
+        return []
+    end
+    out = Vector{Tuple{Int8, Int8}}(undef, 2*length(board.roads))
+    i = Int8(0)
+    for (c,road_teams) in board.coord_to_road_teams
+        if team in road_teams
+            i += 1
+            out[i] = c
+        end
+    end
+    return out[1:i]
 end
 
 function build_city!(board::Board, team::Symbol, coord::Tuple{Integer, Integer})::Building
@@ -139,11 +162,10 @@ function _build_settlement!(board, team, coord::Tuple{Integer, Integer})::Buildi
     board.spaces[coord[1]][coord[2]] = true
 
     # Potentially update longest road if this settlement splits an existing road
-    if haskey(board.coord_to_roads, coord)
-        road_teams = [r.team for r in board.coord_to_roads[coord] if r.team != team]
-        if length(road_teams) >= 2
-            unique!(road_teams)
-            _award_longest_road!(board, road_teams...)
+    if haskey(board.coord_to_road_teams, coord)
+        # Only recalculate longest road if there are roads touching this one not belonging to `team`
+        if length(board.coord_to_road_teams[coord]) - (team in board.coord_to_road_teams[coord]) > 0
+            _award_longest_road!(board, board.coord_to_road_teams[coord]...)
         end
     end
     return building
@@ -158,6 +180,12 @@ function _build_road!(board, team::Symbol, coord1::Tuple{Integer, Integer}, coor
     road = Road(coord1, coord2, team)
     push!(board.roads, road)
     for coord in [coord1, coord2]
+        if haskey(board.coord_to_road_teams, coord)
+            push!(board.coord_to_road_teams[coord], team)
+        else
+            board.coord_to_road_teams[coord] = Set([team])
+        end
+
         if haskey(board.coord_to_roads, coord)
             @assert coord[1] != 0
             push!(board.coord_to_roads[coord], road)
@@ -401,6 +429,8 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
                 end
             end
         end
+
+        # 1. check each end coord of road
 
         # (This condition is only needed on first turn)
         # 3. If no road neighboring, we at least need a building of this team to be adjacent
