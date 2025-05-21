@@ -48,7 +48,7 @@ function construct_city(board, player::Player, coord::Tuple{Int8, Int8}, first_t
     end
     BoardApi.build_city!(board, player.team, coord)
 end
-function construct_settlement(board, player::Player, coord::Tuple{TInt, TInt}, first_turn = false) where {TInt <: Integer}
+function construct_settlement(board, player::Player, coord::Tuple{Integer, Integer}, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :Settlement)
         BoardApi.pay_construction!(board, :Settlement)

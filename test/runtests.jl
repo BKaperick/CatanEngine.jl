@@ -654,7 +654,6 @@ function run_tests(neverend = false)
     configs = parse_configs("Configuration.toml")
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "./data/sample_2.csv"
-    println("conf $configs")
     
     for file in Base.Filesystem.readdir("data")
         if ~contains(configs["LOAD_MAP"], file) && ~contains(configs["SAVE_MAP"], file) && ~contains(configs["MAP_FILE_2"], file)
