@@ -38,8 +38,8 @@ using ..Catan: Player, PlayerPublicView, RESOURCES, COSTS, RESOURCE_TO_COUNT, lo
 
 # Player API
 
-function get_admissible_devcards(player::Player)
-    return collect(keys(get_admissible_devcards_with_counts(player)))
+function get_admissible_devcards(player::Player)::Vector{Tuple{Symbol}}
+    return [(k,) for k in keys(get_admissible_devcards_with_counts(player))]
 end
 function get_admissible_devcards_with_counts(player::Player)::Dict{Symbol, Int8}
     if player.played_devcard_this_turn

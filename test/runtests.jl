@@ -2,6 +2,7 @@ using Test
 using JET
 using Dates
 using Logging
+using Revise
 using Catan
 using Catan: 
 get_coord_from_human_tile_description,

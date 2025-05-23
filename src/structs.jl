@@ -78,10 +78,19 @@ function Base.deepcopy(board::Board)
                     )
 end
 
-struct PreAction 
+struct PreAction
     name::Symbol
-    admissible_args::Vector
-    PreAction(name::Symbol, admissible_args::Vector) = new(name, unique(admissible_args))
+    admissible_args::Vector{Tuple}
+    function PreAction(name::Symbol, admissible_args::Vector{Tuple})
+        new(name, unique(admissible_args))
+    end
+    function PreAction(name::Symbol, admissible_args::Vector{Tuple{T}}) where {T <: Any}
+        new(name, unique(admissible_args))
+    end
+
+    function PreAction(name::Symbol, admissible_args::Vector{Tuple{T, T}}) where {T <: Any}
+        new(name, unique(admissible_args))
+    end
 end
 
 struct ChosenAction
@@ -90,5 +99,7 @@ struct ChosenAction
     ChosenAction(name::Symbol, args...) = new(name, args)
 end
 
-PreAction(name::Symbol) = PreAction(name, [])
-PreAction(name::Symbol, admissible_args::Set) = PreAction(name, collect(admissible_args))
+PreAction(name::Symbol) = PreAction(name, Vector{Tuple{Any}}())
+PreAction(name::Symbol, arg::Vector{Symbol}) = PreAction(name, [(s,) for s in arg])
+#PreAction(name::Symbol, arg::Vector{Tuple}) = PreAction(name, [(s,) for s in arg])
+#PreAction(name::Symbol, admissible_args::Set) = PreAction(name, collect(admissible_args))

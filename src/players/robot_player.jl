@@ -24,7 +24,7 @@ end
 `candidates` is guaranteed to be non-empty.  Given all legal road placements, 
 return a `Vector` containing two coordinates signifying the road placement choice.
 """
-function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}})::Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}
+function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple})::Tuple
     return sample(candidates)
 end
 
@@ -35,7 +35,7 @@ end
 
 `candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
 """
-function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Int8, Int8}}, building_type::Symbol)::Tuple{Int8, Int8}
+function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Integer, Integer}}, building_type::Symbol)::Tuple{Integer, Integer}
     @debug "$(player.player.team) chooses $building_type location randomly"
     return sample(candidates, 1)[1]
 end
@@ -123,19 +123,21 @@ TODO integrate with `CatanLearning` `Action` type.  This should not be returning
 function choose_next_action(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, actions::Set{PreAction})::ChosenAction
     rand_action = sample(collect(actions), 1)[1]
     name = rand_action.name
+    # candidates is a Vector of argument Tuples.
+    # For example, ConstructSettlement takes a 1-tuple of Tuple{Int8,Int8}, so it is a Vector{Tuple{Tuple{Int8,Int8}}}
     candidates = rand_action.admissible_args
     if name == :ConstructCity
-        candidates = candidates::Vector{Tuple{Int8, Int8}}
-        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates, :City)
+        candidates_unwrapped = [x[1] for x in candidates]
+        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates_unwrapped, :City)
         return ChosenAction(name, coord)
     end
     if name == :ConstructSettlement
-        candidates = candidates::Vector{Tuple{Int8, Int8}} 
-        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates, :Settlement)
+        candidates_unwrapped = [x[1] for x in candidates]
+        coord = choose_building_location(board, players::AbstractVector{PlayerPublicView}, player, candidates_unwrapped, :Settlement)
         return ChosenAction(name, coord)
     end
     if name == :ConstructRoad
-        candidates = candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}} 
+        #candidates = candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}} 
         coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]

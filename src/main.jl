@@ -179,7 +179,6 @@ function harvest_resources(board, players, dice_value)
             end
         end
     end
-    #println(resource_to_harvest_targets)
     for r in keys(resource_to_harvest_targets)
         harvest_one_resource(board, players, resource_to_harvest_targets[r], r)
     end

@@ -332,7 +332,7 @@ Returns a vector of all legal locations to place a settlement:
 2. Must not exceed `board.configs["GameSettings"]["MaxComponents"]["CITY"]`
 3. If it's not the first turn, it must be adjacent to a road of the same team
 """
-function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Int8,Int8}}
+function get_admissible_settlement_locations(board, team::Symbol, first_turn = false)::Vector{Tuple{Integer,Integer}}
 
     # Some quick checks to eliminate most spaces
     if count_settlements(board, team) >= board.configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]
@@ -444,7 +444,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     return found_neighbor
 end
 
-function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Tuple{Tuple{Int8,Int8}, Tuple{Int8,Int8}}}
+function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Tuple} #{Tuple{Int8,Int8}, Tuple{Int8,Int8}}}
     if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end

@@ -158,6 +158,8 @@ function do_action_from_legal_actions(game, board, player, legal_actions::Set{Pr
         return false
     end
     next_action_func! = ACTIONS_DICTIONARY[next_action.name]::Function
+    #TODO Wrapped in one too many tuples
+    @debug next_action
     next_action_func!(game, board, player, next_action.args...)
     do_post_action_step(board, player)
     return true

@@ -41,7 +41,7 @@ function construct_road(board, player::Player, coord1, coord2, first_turn = fals
     BoardApi.build_road!(board, player.team, coord1, coord2)
 end
 
-function construct_city(board, player::Player, coord::Tuple{Int8, Int8}, first_turn = false)
+function construct_city(board, player::Player, coord::Tuple{Integer, Integer}, first_turn = false)
     if ~first_turn
         PlayerApi.pay_construction(player, :City)
         BoardApi.pay_construction!(board, :City)
@@ -218,12 +218,12 @@ function get_legal_actions(game, board, player::Player)::Set{PreAction}
 
     admissible_cities = BoardApi.get_admissible_city_locations(board, player.team)
     if PlayerApi.has_enough_resources(player, COSTS[:City]) && length(admissible_cities) > 0
-        push!(actions, PreAction(:ConstructCity, admissible_cities))
+        push!(actions, PreAction(:ConstructCity, Vector{Tuple{Tuple{Int8,Int8}}}([(c,) for c in admissible_cities])))
     end
 
     admissible_settlements = BoardApi.get_admissible_settlement_locations(board, player.team)
     if PlayerApi.has_enough_resources(player, COSTS[:Settlement]) && length(admissible_settlements) > 0
-        push!(actions, PreAction(:ConstructSettlement, admissible_settlements))
+        push!(actions, PreAction(:ConstructSettlement, Vector{Tuple{Tuple{Int8,Int8}}}([(c,) for c in admissible_settlements])))
     end
 
     admissible_roads = BoardApi.get_admissible_road_locations(board, player.team)
