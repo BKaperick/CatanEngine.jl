@@ -35,7 +35,7 @@ end
 
 `candidates` is guaranteed to be non-empty.  This method is only called if there is a legal placement available.
 """
-function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Integer, Integer}}, building_type::Symbol)::Tuple{Integer, Integer}
+function choose_building_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{TInt, TInt}}, building_type::Symbol)::Tuple{TInt, TInt} where {TInt <: Integer}
     @debug "$(player.player.team) chooses $building_type location randomly"
     return sample(candidates, 1)[1]
 end
@@ -137,7 +137,6 @@ function choose_next_action(board::Board, players::AbstractVector{PlayerPublicVi
         return ChosenAction(name, coord)
     end
     if name == :ConstructRoad
-        #candidates = candidates::Vector{Tuple{Tuple{Int8, Int8}, Tuple{Int8, Int8}}} 
         coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates)
         coord1 = coord[1]
         coord2 = coord[2]
