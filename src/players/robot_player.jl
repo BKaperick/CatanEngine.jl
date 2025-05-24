@@ -24,7 +24,7 @@ end
 `candidates` is guaranteed to be non-empty.  Given all legal road placements, 
 return a `Vector` containing two coordinates signifying the road placement choice.
 """
-function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple})::Tuple
+function choose_road_location(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, candidates::Vector{Tuple{Tuple{TInt, TInt}, Tuple{TInt, TInt}}})::Union{Nothing,Tuple{Tuple{TInt, TInt}, Tuple{TInt, TInt}}} where {TInt <: Integer}
     return sample(candidates)
 end
 
@@ -137,7 +137,10 @@ function choose_next_action(board::Board, players::AbstractVector{PlayerPublicVi
         return ChosenAction(name, coord)
     end
     if name == :ConstructRoad
-        coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates)
+        println(candidates)
+        println(typeof(candidates))
+        candidates_unwrapped = [x::Tuple{Tuple{Int8,Int8}, Tuple{Int8, Int8}} for x in candidates]
+        coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates_unwrapped)
         coord1 = coord[1]
         coord2 = coord[2]
         return ChosenAction(name, coord1, coord2)

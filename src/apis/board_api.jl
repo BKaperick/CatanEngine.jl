@@ -444,7 +444,7 @@ function is_valid_road_placement(board, team::Symbol, coord1, coord2)::Bool
     return found_neighbor
 end
 
-function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Tuple} #{Tuple{Int8,Int8}, Tuple{Int8,Int8}}}
+function get_admissible_road_locations(board::Board, team::Symbol, is_first_turn = false)::Vector{Tuple{Tuple{Int8,Int8}, Tuple{Int8,Int8}}}
     if count_roads(board, team) >= board.configs["GameSettings"]["MaxComponents"]["ROAD"]
         return []
     end

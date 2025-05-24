@@ -20,7 +20,7 @@ act_propose_trade_goods(game::Game, board::Board, player::PlayerType, coords::Ve
 act_draw_devcard(game::Game, board::Board, player::PlayerType, coords::Vector, trade_amount_flag::Int = 0, resources::Union{Vector, Nothing} = nothing, card = nothing) = @safeact draw_devcard(game, board, player.player)
 act_play_devcard(game::Game, board::Board, player::PlayerType, coords::Vector, trade_amount_flag::Int = 0, resources::Union{Vector, Nothing} = nothing, card = nothing) = @safeact do_play_devcard(board, game.players, player, card)
 
-PLAYER_ACTIONS = Dict([
+const PLAYER_ACTIONS = Dict{Symbol, Function}([
     :ConstructSettlement    => act_construct_settlement,
     :ConstructCity          => act_construct_city,
     :ConstructRoad          => act_construct_road,

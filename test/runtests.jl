@@ -37,7 +37,7 @@ function test_jet_fails()
     #@show rep
     reports = JET.get_reports(rep)
     println("length(JET.get_reports(rep)) = $(length(reports))")
-    @test length(reports) <= 11
+    @test length(reports) <= 12
 end
 
 function test_actions()

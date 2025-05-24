@@ -68,7 +68,7 @@ function choose_card_to_steal(player::HumanPlayer)::Symbol
     parse_resources(player.io, "$(player.player.team) lost his:", player.player.configs)[1]
 end
 
-function choose_next_action(board, players, player::HumanPlayer, actions)::Function
+function choose_next_action(board::Board, players::AbstractVector{PlayerPublicView}, player::HumanPlayer, actions::Set{PreAction})::ChosenAction
     header = "What does $(player.player.team) do next?\n"
     full_options = string(header, [ACTION_TO_DESCRIPTION[a.name] for a in actions]..., "\n[E]nd turn")
     action_and_args = parse_action(player.io, full_options, board.configs)
@@ -76,8 +76,9 @@ function choose_next_action(board, players, player::HumanPlayer, actions)::Funct
         return Returns(nothing)
     end
     @warn keys(PLAYER_ACTIONS)
-    func = PLAYER_ACTIONS[action_and_args[1]]
-    return (game, b, p) -> func(game, b, p, action_and_args[2:end]...)
+    #func = ACTIONS_DICTIONARY[action_and_args[1]]
+    return ChosenAction(action_and_args[1], action_and_args[2:end]...)
+    #return (game, b, p) -> func(game, b, p, action_and_args[2:end]...)
 end
 
 function choose_steal_random_resource(from_player, to_player)

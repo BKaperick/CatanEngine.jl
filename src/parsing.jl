@@ -64,36 +64,36 @@ function _parse_yesno(io, desc, configs::Dict)
     return human_response[1] == 'y'
 end
 
-function _parse_action(io, descriptor, configs::Dict)
-    human_response = lowercase(input(io, descriptor, configs::Dict))
-    if (human_response[1] == 'e')
-        return (:EndTurn)
-    end
-    out_str = split(human_response, " ")
-    fname = out_str[1]
-    
-    func = HUMAN_ACTIONS[fname]
+function _parse_action(io, descriptor, configs::Dict)::Tuple
+    while true
+        human_response = lowercase(input(io, descriptor, configs::Dict))
+        if (human_response[1] == 'e')
+            return (:EndTurn)
+        end
+        out_str = split(human_response, " ")
+        fname = out_str[1]
+        
+        func = HUMAN_ACTIONS[fname]
 
-    if fname == "bs" || fname == "bc"
-        human_coords = out_str[2]
-        @info human_coords
-        return (func, [get_coord_from_human_tile_description(human_coords)])
-    elseif fname == "br"
-        human_coords = out_str[2]
-        @info human_coords
-        @info [get_road_coords_from_human_tile_description(human_coords)]
-        return (func, [get_road_coords_from_human_tile_description(human_coords)...])
-    elseif fname == "pt" # pt 2 w w g g
-        amount_are_mine = parse(Int, out_str[2])
-        goods = join(out_str[3:end], " ")
-        return (func, [], amount_are_mine, [_parse_resources_str(goods)...])
-    elseif fname == "bd"
-        return (func, [])
-    elseif fname == "pd"
-        return (func, [], 0, nothing, _parse_symbol(out_str[2], configs))
+        if fname == "bs" || fname == "bc"
+            human_coords = out_str[2]
+            @info human_coords
+            return (func, [get_coord_from_human_tile_description(human_coords)])
+        elseif fname == "br"
+            human_coords = out_str[2]
+            @info human_coords
+            @info [get_road_coords_from_human_tile_description(human_coords)]
+            return (func, [get_road_coords_from_human_tile_description(human_coords)...])
+        elseif fname == "pt" # pt 2 w w g g
+            amount_are_mine = parse(Int, out_str[2])
+            goods = join(out_str[3:end], " ")
+            return (func, [], amount_are_mine, [_parse_resources_str(goods)...])
+        elseif fname == "bd"
+            return (func, [])
+        elseif fname == "pd"
+            return (func, [], 0, nothing, _parse_symbol(out_str[2], configs))
+        end
     end
-
-    ArgumentError("\"$human_response\" was not a valid command.")
 end
 
 function _parse_teams(io, descriptor, configs::Dict)
