@@ -1,4 +1,5 @@
-# ![photo](https://github.com/BKaperick/Catan.jl/blob/master/logo_with_text.svg) CatanEngine.jl 
+#CatanEngine.jl
+ ![photo](https://github.com/BKaperick/Catan.jl/blob/master/logo.jpg)  
 
 A full Julia engine for playing the extremely popular board game [Settlers of Catan](https://www.catan.com/) with a mixture of human and custom scripted players.
 
