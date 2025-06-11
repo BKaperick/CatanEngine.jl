@@ -381,18 +381,18 @@ function test_longest_road(configs)
     BoardApi.build_road!(board, :Green, (2,8), (2,7))
     
     # Player green built 6 roads connected, but branched (length 5), so still player 1 has longest road
-    @test BoardApi.get_max_road_length(board, :Green) == board.team_to_road_length[:Green] == 5
+    @test BoardApi._calculate_max_road_length(board, :Green) == board.team_to_road_length[:Green] == 5
     @test board.longest_road == :Blue
 
     # Now Green builds a settlement that splits the blue road, so Green claims longest road
     BoardApi.build_settlement!(board, :Green, (2,2))
-    @test BoardApi.get_max_road_length(board, :Blue) == board.team_to_road_length[:Blue] == 3
+    @test BoardApi._calculate_max_road_length(board, :Blue) == board.team_to_road_length[:Blue] == 3
     @test board.longest_road === :Green
 
     # Now Blue builds a settlement that splits the green road, so now noone has longest road
     board2 = deepcopy(board)
     BoardApi.build_settlement!(board2, :Blue, (3,9))
-    @test BoardApi.get_max_road_length(board2, :Green) == board2.team_to_road_length[:Green] == 4
+    @test BoardApi._calculate_max_road_length(board2, :Green) == board2.team_to_road_length[:Green] == 4
     @test board2.longest_road === nothing
 
 

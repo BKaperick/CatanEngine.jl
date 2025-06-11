@@ -1,4 +1,5 @@
 function has_any_elements(sym_dict::Dict{Symbol, T}) where {T<:Integer}
+    @debug "has any elements? $sym_dict"
     return sum(values(sym_dict)) > 0
 end
 
@@ -12,7 +13,7 @@ function unsafe_random_sample_one_resource(resources::Dict{Symbol, T}, replace=f
     return sample(items, 1, replace=replace)[1]
 end
 
-function random_sample_resources(resources::Dict{Symbol, Int}, count::Int, replace=false)::Union{Nothing,Vector{Symbol}}
+function random_sample_resources(resources::Dict{Symbol, Int}, count::Int, replace=false)::Vector{Symbol}
     items = Vector{Symbol}()
     for (r,c) in resources
         if c > 0
@@ -20,10 +21,8 @@ function random_sample_resources(resources::Dict{Symbol, Int}, count::Int, repla
         end
     end
     @debug resources
-    if length(items) == 0
-        return nothing
-    end
-    return sample(items, count, replace=replace)
+    real_count = min(count, length(items))
+    return sample(items, real_count, replace=replace)
 end
 
 function get_random_tile(board)::Symbol

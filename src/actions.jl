@@ -5,7 +5,8 @@ ALL_ACTIONS = Set([
 :ProposeTrade,
 :BuyDevCard,
 :PlayDevCard,
-:PlaceRobber
+:PlaceRobber #FromKnight,
+#:PlaceRobberFromSeven
 ])
 
 """
@@ -75,8 +76,8 @@ end
 
 function do_play_devcard(board::Board, players, player, card::Union{Nothing,Symbol})
     if card !== nothing
-        do_devcard_action(board, players, player, card)
         PlayerApi.play_devcard!(player.player, card)
+        do_devcard_action(board, players, player, card)
         decide_and_assign_largest_army!(board, players)
         # Note: longest road is assigned within the build road call
     end
@@ -193,6 +194,7 @@ function get_admissible_theft_victims(board::Board, players::AbstractVector{Play
     admissible_victims = []
     for c in [cc for cc in TILE_TO_COORDS[new_tile] if haskey(board.coord_to_building, cc)]
         team = board.coord_to_building[c].team
+        @debug team
         victim = [p for p in players if p.team == team][1]
         if PlayerApi.has_any_resources(victim) && (team != thief.team)
             push!(admissible_victims, victim)

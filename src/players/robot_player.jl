@@ -98,9 +98,9 @@ end
 The robber has already been placed, so here `player` decided which adjacent player to steal from.
 """
 function choose_robber_victim(board::Board, player::RobotPlayer, potential_victims::PlayerPublicView...)::PlayerPublicView
-    max_ind = sample(collect(potential_victims), 1)[1]
-    @info "$(player.player.team) decided it is wisest to steal from the $(max_ind.team) player"
-    return max_ind
+    random_player = sample(collect(potential_victims), 1)[1]
+    @info "$(player.player.team) decided it is wisest to steal from the $(random_player.team) player"
+    return random_player
 end
 
 function _choose_play_devcard(board::Board, players::AbstractVector{PlayerPublicView}, player::RobotPlayer, devcards::Dict)::Union{Symbol,Nothing}

@@ -212,6 +212,14 @@ end
 #TODO is this a bug?
 #_build_road!(board, team, human_coords::String) = _build_settlement!(board, team, get_coords_from_human_tile_description(human_coords)...)
 
+function get_max_road_length(board, team)
+    if haskey(board.team_to_road_length, team)
+        return board.team_to_road_length[team]
+    else
+        return 0
+    end
+end
+
 function _award_longest_road!(board, teams_to_update::Symbol...) 
     road_teams = [r.team for r in board.roads]
     if length(road_teams) < 5
@@ -224,7 +232,7 @@ function _award_longest_road!(board, teams_to_update::Symbol...)
     
     # Only recompute for the teams_to_update teams, otherwise retrieve the cached value
     for team in teams_to_update
-        current_len = get_max_road_length(board, team)
+        current_len = _calculate_max_road_length(board, team)
         board.team_to_road_length[team] = current_len
     end
 
@@ -253,7 +261,7 @@ function _award_longest_road!(board, teams_to_update::Symbol...)
     end
 end
 
-function get_max_road_length(board, team)
+function _calculate_max_road_length(board, team)
     team_roads = [r for r in board.roads if r.team == team]
     if length(team_roads) == 0
         return 0
