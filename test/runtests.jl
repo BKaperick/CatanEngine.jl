@@ -762,11 +762,13 @@ function run_tests(neverend = false)
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "./data/sample_2.csv"
     
+    #=
     for file in Base.Filesystem.readdir("data")
         if ~contains(configs["LOAD_MAP"], file) && ~contains(configs["SAVE_MAP"], file) && ~contains(configs["MAP_FILE_2"], file)
             Base.Filesystem.rm("data/$file")
         end
     end
+    =#
     
     @run_package_tests filter=ti->doset(ti)
     
