@@ -58,7 +58,7 @@ using Catan:
     reset_savefile_with_timestamp,
     RESOURCES,
     parse_configs
-    configs = parse_configs("./Configuration.toml")
+    configs = parse_configs("_tmp_Configuration.toml")
     
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
@@ -757,8 +757,22 @@ end
 end
 
 function run_tests(neverend = false)
-    configs = parse_configs("./test/Configuration.toml")
     
+    io = open("_tmp_Configuration.toml", "w");
+    write(io, """SAVE_GAME_TO_FILE = true
+SAVE_FILE = "data/savefile.txt"
+LOAD_MAP = "data/sample.csv"
+#LOG_OUTPUT = "./data/oneoff_test_log.txt"
+LOG_LEVEL = "Logging.Warn"
+PRINT_BOARD = false
+MAX_TURNS = 500
+
+[GameSettings]
+[PlayerSettings]
+              """)
+    close(io)
+
+    configs = parse_configs("_tmp_Configuration.toml")
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
     
@@ -771,7 +785,7 @@ function run_tests(neverend = false)
     =#
     
     @run_package_tests filter=ti->doset(ti)
-    
+    rm("_tmp_Configuration.toml")
     #Catan.test_player_implementation(HumanPlayer, configs)
 end
 
