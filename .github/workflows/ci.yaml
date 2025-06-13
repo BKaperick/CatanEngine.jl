@@ -1,0 +1,40 @@
+name: CI
+on:
+  push:
+    branches: [master]
+    tags: ["*"]
+  pull_request:
+
+env:
+  PYTHON: ~
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - t=${{ matrix.threads }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1'
+        os:
+          - ubuntu-latest
+        threads:
+          - '4'
+        arch:
+          - x64
+        include:
+          - arch: aarch64
+            os: macos-latest
+            version: '1'
+            threads: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        env:
+          JULIA_NUM_THREADS: ${{ matrix.threads }}
