@@ -61,7 +61,7 @@ using Catan:
     configs = parse_configs("_tmp_Configuration.toml")
     
     # Only difference is some changing of dice values for testing
-    configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
+    configs["MAP_FILE_2"] = "sample_2.csv"
 end
 
 function doset(ti)
@@ -761,7 +761,7 @@ function run_tests(neverend = false)
     io = open("_tmp_Configuration.toml", "w");
     write(io, """SAVE_GAME_TO_FILE = true
 SAVE_FILE = "data/savefile.txt"
-LOAD_MAP = "data/sample.csv"
+LOAD_MAP = "sample.csv"
 #LOG_OUTPUT = "./data/oneoff_test_log.txt"
 LOG_LEVEL = "Logging.Warn"
 PRINT_BOARD = false
@@ -774,7 +774,7 @@ MAX_TURNS = 500
     generate_map_files()
     configs = parse_configs("_tmp_Configuration.toml")
     # Only difference is some changing of dice values for testing
-    configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
+    configs["MAP_FILE_2"] = "sample_2.csv"
     
     #=
     for file in Base.Filesystem.readdir("data")
