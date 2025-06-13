@@ -771,7 +771,7 @@ MAX_TURNS = 500
 [PlayerSettings]
               """)
     close(io)
-
+    generate_map_files()
     configs = parse_configs("_tmp_Configuration.toml")
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
@@ -787,6 +787,62 @@ MAX_TURNS = 500
     @run_package_tests filter=ti->doset(ti)
     rm("_tmp_Configuration.toml")
     #Catan.test_player_implementation(HumanPlayer, configs)
+end
+
+function generate_map_files()
+    io = open("sample.csv", "w");
+    write(io, """A,11,g
+B,4,w
+C,8,p
+D,3,b
+E,2,w
+F,10,g
+G,11,w
+H,6,s
+I,5,p
+J,7,d
+K,9,g
+L,12,p
+M,4,b
+N,3,p
+O,8,b
+P,10,s
+Q,6,w
+R,5,g
+S,9,s
+3,p
+5,s
+6,g
+8,w
+9,b
+""")
+    close(io)
+    io = open("sample_2.csv", "w");
+    write(io, """A,11,g
+B,4,w
+C,8,p
+D,3,b
+E,2,w
+F,10,g
+G,11,w
+H,6,s
+I,5,p
+J,7,d
+K,10,g
+L,12,p
+M,4,b
+N,3,p
+O,8,b
+P,9,s
+Q,6,w
+R,5,g
+S,9,s
+3,p
+5,s
+6,g
+8,w
+9,b""")
+    close(io)
 end
 
 run_tests(false)
