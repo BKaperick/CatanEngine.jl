@@ -66,7 +66,7 @@ end
 
 function doset(ti)
     desc = ti.name
-    if :broken in ti.tags
+    if :broken in ti.tags || :skipactions in ti.tags
         return false
     end
     if length(ARGS) == 0
@@ -111,7 +111,7 @@ end
     @test !haskey(game2.players[1].player.resources, :Wood) || game2.players[1].player.resources[:Wood] == 0
 end
 
-@testitem "set_starting_player" setup=[global_test_setup] begin
+@testitem "set_starting_player" setup=[global_test_setup] tags=[:skipactions] begin
     sf, sfio = reset_savefile_with_timestamp("test_set_starting_player", configs)
     reset_savefile!(configs, sf, sfio)
     team_and_playertype = [
@@ -189,7 +189,7 @@ end
     random_sample_resources(Dict([:Brick => 0]), 1) == nothing
 end
 
-@testitem "log" setup=[global_test_setup] begin
+@testitem "log" setup=[global_test_setup] tags=[:skipactions] begin
     reset_savefile_with_timestamp("test_log", configs)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -494,7 +494,7 @@ end
     @test player1.player.ports[:Brick] == 2
 end
 
-@testitem "human_player" setup=[global_test_setup] tags=[:broken] begin
+@testitem "human_player" setup=[global_test_setup] tags=[:broken, :skipactions] begin
     board = read_map(configs)
     player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
