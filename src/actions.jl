@@ -131,7 +131,7 @@ end
 
 function do_robber_move(board, players::AbstractVector{PlayerType}, player)
     for p in players
-        do_robber_move_discard(board, player)
+        do_robber_move_discard(board, p)
     end
     do_robber_move_theft(board, players, player)
 end

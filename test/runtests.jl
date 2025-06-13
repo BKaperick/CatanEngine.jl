@@ -3,33 +3,83 @@ using JET
 using Dates
 using Logging
 using Revise
+using TestItems
+using TestItemRunner
 using Catan
 using Catan: 
-get_coord_from_human_tile_description,
-get_road_coords_from_human_tile_description,
-read_map,
-load_gamestate!,
-reset_savefile!,
-random_sample_resources,
-decide_and_assign_largest_army!,
-get_admissible_theft_victims,
-choose_road_location,
-first_turn_build_settlement!,
-choose_validate_build_road!,
-do_robber_move_theft,
-inner_do_robber_move_theft,
-do_monopoly_action,
-harvest_resources,
-roll_dice,
-PLAYER_ACTIONS,
-setup_players,
-setup_and_do_robot_game,
-test_automated_game,
-reset_savefile_with_timestamp,
-RESOURCES,
-parse_configs
+    get_coord_from_human_tile_description,
+    get_road_coords_from_human_tile_description,
+    read_map,
+    load_gamestate!,
+    reset_savefile!,
+    random_sample_resources,
+    decide_and_assign_largest_army!,
+    get_admissible_theft_victims,
+    choose_road_location,
+    first_turn_build_settlement!,
+    choose_validate_build_road!,
+    do_robber_move_theft,
+    inner_do_robber_move_theft,
+    do_monopoly_action,
+    harvest_resources,
+    roll_dice,
+    PLAYER_ACTIONS,
+    setup_players,
+    setup_and_do_robot_game,
+    test_automated_game,
+    reset_savefile_with_timestamp,
+    RESOURCES,
+    parse_configs
 
-function test_jet_fails()
+
+@testsnippet global_test_setup begin
+    using JET
+    using Catan: 
+    get_coord_from_human_tile_description,
+    get_road_coords_from_human_tile_description,
+    read_map,
+    load_gamestate!,
+    reset_savefile!,
+    random_sample_resources,
+    decide_and_assign_largest_army!,
+    get_admissible_theft_victims,
+    choose_road_location,
+    first_turn_build_settlement!,
+    choose_validate_build_road!,
+    do_robber_move_theft,
+    inner_do_robber_move_theft,
+    do_monopoly_action,
+    harvest_resources,
+    roll_dice,
+    PLAYER_ACTIONS,
+    setup_players,
+    setup_and_do_robot_game,
+    test_automated_game,
+    reset_savefile_with_timestamp,
+    RESOURCES,
+    parse_configs
+    configs = parse_configs("Configuration.toml")
+    
+    # Only difference is some changing of dice values for testing
+    configs["MAP_FILE_2"] = "./data/sample_2.csv"
+end
+
+function doset(ti)
+    desc = ti.name
+    if :broken in ti.tags
+        return false
+    end
+    if length(ARGS) == 0
+        return true
+    end
+    for a in ARGS
+        if occursin(lowercase(a), lowercase(descr))
+            return true
+        end
+    end
+    return false
+end
+@testitem "jet_fails" tags=[:slow] setup=[global_test_setup] begin
     rep = report_package(Catan;
     ignored_modules=())
 
@@ -40,11 +90,11 @@ function test_jet_fails()
     @test length(reports) <= 12
 end
 
-function test_actions()
+@testitem "actions" setup=[global_test_setup] begin
     @test length(keys(PLAYER_ACTIONS)) == 6
 end
 
-function test_deepcopy(configs)
+@testitem "deepcopy" setup=[global_test_setup] begin
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
                           (:cyan, DefaultRobotPlayer),
@@ -61,7 +111,7 @@ function test_deepcopy(configs)
     @test !haskey(game2.players[1].player.resources, :Wood) || game2.players[1].player.resources[:Wood] == 0
 end
 
-function test_set_starting_player(configs)
+@testitem "set_starting_player" setup=[global_test_setup] begin
     sf, sfio = reset_savefile_with_timestamp("test_set_starting_player", configs)
     reset_savefile!(configs, sf, sfio)
     team_and_playertype = [
@@ -98,46 +148,48 @@ function test_set_starting_player(configs)
     #players: green, red, 
 end
 
-@test get_coord_from_human_tile_description("ab") == (1,3)
-@test get_coord_from_human_tile_description("bc") == (1,5)
-@test get_coord_from_human_tile_description("nqr") == (5,4)
-@test get_coord_from_human_tile_description("nqr") == (5,4)
-@test get_coord_from_human_tile_description("qqm") == (6,1)
-@test get_coord_from_human_tile_description("qqr") == (6,2)
-@test get_coord_from_human_tile_description("gcc") == (1,7)
-@test get_coord_from_human_tile_description("ada") == (1,1)
-@test get_coord_from_human_tile_description("bbb") == (1,4)
-@test get_coord_from_human_tile_description("ggg") == (2,9)
-@test get_coord_from_human_tile_description("llg") == (3,11)
-@test get_coord_from_human_tile_description("klp") == (4,9)
-@test get_road_coords_from_human_tile_description("nq") == [(5,3),(5,4)]
-@test get_road_coords_from_human_tile_description("jk") == [(3,7),(4,7)]
-@test get_road_coords_from_human_tile_description("bf") == [(2,5),(2,6)]
-@test get_road_coords_from_human_tile_description("qqr") == [(6,2),(6,3)]
-@test get_road_coords_from_human_tile_description("qqm") == [(6,1),(5,2)]
-@test get_road_coords_from_human_tile_description("qmq") == [(6,1),(5,2)]
-@test get_road_coords_from_human_tile_description("mqq") == [(6,1),(5,2)]
-@test get_road_coords_from_human_tile_description("ssp") == [(6,7),(5,8)]
-@test get_road_coords_from_human_tile_description("ssr") == [(6,6),(6,5)]
-@test get_road_coords_from_human_tile_description("ppl") == [(5,9),(4,10)]
-@test get_road_coords_from_human_tile_description("hhd") == [(3,1),(3,2)]
-@test get_road_coords_from_human_tile_description("qqq") == [(6,2),(6,1)]
-@test get_road_coords_from_human_tile_description("hhh") == [(3,1),(4,1)]
-@test get_road_coords_from_human_tile_description("sss") == [(6,7),(6,6)]
-@test get_road_coords_from_human_tile_description("lll") == [(3,11),(4,11)]
-@test get_road_coords_from_human_tile_description("ccc") == [(1,7),(1,6)]
-@test get_road_coords_from_human_tile_description("aaa") == [(1,2),(1,1)]
+@testitem "human_tile_description" setup=[global_test_setup] begin
+    @test get_coord_from_human_tile_description("ab") == (1,3)
+    @test get_coord_from_human_tile_description("bc") == (1,5)
+    @test get_coord_from_human_tile_description("nqr") == (5,4)
+    @test get_coord_from_human_tile_description("nqr") == (5,4)
+    @test get_coord_from_human_tile_description("qqm") == (6,1)
+    @test get_coord_from_human_tile_description("qqr") == (6,2)
+    @test get_coord_from_human_tile_description("gcc") == (1,7)
+    @test get_coord_from_human_tile_description("ada") == (1,1)
+    @test get_coord_from_human_tile_description("bbb") == (1,4)
+    @test get_coord_from_human_tile_description("ggg") == (2,9)
+    @test get_coord_from_human_tile_description("llg") == (3,11)
+    @test get_coord_from_human_tile_description("klp") == (4,9)
+    @test get_road_coords_from_human_tile_description("nq") == [(5,3),(5,4)]
+    @test get_road_coords_from_human_tile_description("jk") == [(3,7),(4,7)]
+    @test get_road_coords_from_human_tile_description("bf") == [(2,5),(2,6)]
+    @test get_road_coords_from_human_tile_description("qqr") == [(6,2),(6,3)]
+    @test get_road_coords_from_human_tile_description("qqm") == [(6,1),(5,2)]
+    @test get_road_coords_from_human_tile_description("qmq") == [(6,1),(5,2)]
+    @test get_road_coords_from_human_tile_description("mqq") == [(6,1),(5,2)]
+    @test get_road_coords_from_human_tile_description("ssp") == [(6,7),(5,8)]
+    @test get_road_coords_from_human_tile_description("ssr") == [(6,6),(6,5)]
+    @test get_road_coords_from_human_tile_description("ppl") == [(5,9),(4,10)]
+    @test get_road_coords_from_human_tile_description("hhd") == [(3,1),(3,2)]
+    @test get_road_coords_from_human_tile_description("qqq") == [(6,2),(6,1)]
+    @test get_road_coords_from_human_tile_description("hhh") == [(3,1),(4,1)]
+    @test get_road_coords_from_human_tile_description("sss") == [(6,7),(6,6)]
+    @test get_road_coords_from_human_tile_description("lll") == [(3,11),(4,11)]
+    @test get_road_coords_from_human_tile_description("ccc") == [(1,7),(1,6)]
+    @test get_road_coords_from_human_tile_description("aaa") == [(1,2),(1,1)]
 
-@assert BoardApi.get_neighbors(((3,10))) == [(3,9),(3,11),(2,9)]
-@assert BoardApi.get_neighbors((6,3)) == [(6,2),(6,4),(5,4)]
-@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
-@assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
+    @assert BoardApi.get_neighbors(((3,10))) == [(3,9),(3,11),(2,9)]
+    @assert BoardApi.get_neighbors((6,3)) == [(6,2),(6,4),(5,4)]
+    @assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
+    @assert BoardApi.get_neighbors((1,7)) == [(1,6),(2,8)]
+end
 
-function test_misc()
+@testitem "misc" setup=[global_test_setup] begin
     random_sample_resources(Dict([:Brick => 0]), 1) == nothing
 end
 
-function test_log(configs)
+@testitem "log" setup=[global_test_setup] begin
     reset_savefile_with_timestamp("test_log", configs)
     team_and_playertype = [
                           (:blue, DefaultRobotPlayer),
@@ -176,7 +228,7 @@ function test_log(configs)
     rm(configs["SAVE_FILE"])
 end
 
-function test_do_turn(configs)
+@testitem "do_turn" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -187,7 +239,7 @@ function test_do_turn(configs)
     GameRunner.do_turn(game, board, player1)
 end
 
-function test_robber(configs)
+@testitem "robber" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -215,7 +267,7 @@ function test_robber(configs)
     @test board.robber_tile == :S
 end
 
-function test_max_construction(configs)
+@testitem "max_construction" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     for i in 1:(configs["GameSettings"]["MaxComponents"]["SETTLEMENT"]-1)
@@ -245,15 +297,16 @@ function test_max_construction(configs)
     @test BoardApi.count_roads(board, player1.player.team) == configs["GameSettings"]["MaxComponents"]["ROAD"]
 end
 
-function test_resource_conservation(game, board)
-    for r in RESOURCES
-        println(r)
-        @test board.resources[r] + sum([p.player.resources[r] for p in game.players]) == 25
-    end
-end
-
 # API Tests
-function test_devcards(configs)
+@testitem "devcards" setup=[global_test_setup] begin
+
+    function test_resource_conservation(game, board)
+        for r in RESOURCES
+            println(r)
+            @test board.resources[r] + sum([p.player.resources[r] for p in game.players]) == 25
+        end
+    end
+
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -284,7 +337,7 @@ function test_devcards(configs)
     @test GameRunner.get_total_vp_count(board, player2.player) == 0
 end
 
-function test_largest_army(configs)
+@testitem "largest_army" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -326,7 +379,7 @@ function test_largest_army(configs)
     @test GameRunner.get_total_vp_count(board, player2.player) == 2
 end
 
-function test_road_hashing()
+@testitem "road_hashing" setup=[global_test_setup] begin
     road1 = Road((2,3), (2,4), :Blue)
     road2 = Road((2,3), (2,4), :Blue)
     set = Set{Road}()
@@ -337,14 +390,14 @@ function test_road_hashing()
     @test length(set) == 1
 end
 
-function test_longest_road1(configs)
+@testitem "longest_road1" setup=[global_test_setup] begin
     board = read_map(configs)
     player_blue = DefaultRobotPlayer(:Blue, configs)
     player_green = DefaultRobotPlayer(:Green, configs)
     players = Vector{PlayerType}([player_blue, player_green])
 end
 
-function test_longest_road(configs)
+@testitem "longest_road" setup=[global_test_setup] begin
     board = read_map(configs)
     player_blue = DefaultRobotPlayer(:Blue, configs)
     player_green = DefaultRobotPlayer(:Green, configs)
@@ -416,7 +469,7 @@ function test_longest_road(configs)
     @test GameRunner.get_total_vp_count(board, player_green.player) == 5
 end
 
-function test_ports(configs)
+@testitem "ports" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -441,7 +494,7 @@ function test_ports(configs)
     @test player1.player.ports[:Brick] == 2
 end
 
-function test_human_player(configs)
+@testitem "human_player" setup=[global_test_setup] tags=[:broken] begin
     board = read_map(configs)
     player1 = HumanPlayer(:Test1, open("human_test_player1.txt", "r"))
     player2 = HumanPlayer(:Test2, open("human_test_player2.txt", "r"))
@@ -451,7 +504,7 @@ function test_human_player(configs)
     GameRunner.initialize_and_do_game!(game)
 end
 
-function test_game_api(configs)
+@testitem "game_api" setup=[global_test_setup] begin
     players = setup_players(configs) # blue, green, cyan
     game = Game(players, configs)
     configs_2 = deepcopy(configs)
@@ -509,7 +562,7 @@ function test_game_api(configs)
     @test board.resources[:Brick] == 0
 end
 
-function test_board_api(configs)
+@testitem "board_api" setup=[global_test_setup] begin
 
     @test length(BoardApi.get_neighbors((3,8))) == 3
     @test length(BoardApi.get_neighbors((3,11))) == 2
@@ -539,7 +592,7 @@ function test_board_api(configs)
     @test BoardApi.get_public_vp_count(board, :Test1) == 4
 end
 
-function test_call_api(configs)
+@testitem "call_api" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -614,7 +667,7 @@ function test_call_api(configs)
 end
 
 
-function test_assign_largest_army(configs)
+@testitem "assign_largest_army" setup=[global_test_setup] begin
     board = Catan.read_map(configs)
     player_blue = Catan.DefaultRobotPlayer(:Blue, configs)
     player_green = DefaultRobotPlayer(:Green, configs)
@@ -653,12 +706,13 @@ function test_assign_largest_army(configs)
     @test board.largest_army == :Green
 end
     
-function test_robot_game(neverend, configs)
+@testitem "robot_game" setup=[global_test_setup] begin
+    neverend = false
     players = setup_players(configs["PlayerSettings"])
     test_automated_game(neverend, players, configs)
 end
 
-function test_trading(configs)
+@testitem "trading" setup=[global_test_setup] begin
     board = read_map(configs)
     player1 = DefaultRobotPlayer(:Test1, configs)
     player2 = DefaultRobotPlayer(:Test2, configs)
@@ -671,8 +725,40 @@ function test_trading(configs)
     @test next_action !== nothing 
 end
 
+@testitem "handle_dice_roll_robber" setup=[global_test_setup] begin
+    #function test_handle_dice_roll_robber(configs)
+    #configs = parse_configs("Configuration.toml")
+    board = read_map(configs)
+    player1 = DefaultRobotPlayer(:Test1, configs)
+    player2 = DefaultRobotPlayer(:Test2, configs)
+    player3 = DefaultRobotPlayer(:Test3, configs)
+    players = Vector{PlayerType}([player1, player2, player3])
+    game = Game(players, configs)
+    players_public = PlayerPublicView.(players)
+    init_board_robber_tile = board.robber_tile
+    for _ = 1:9
+        PlayerApi.give_resource!(player2.player, :Brick)
+    end
+    for _ = 1:7
+        PlayerApi.give_resource!(player3.player, :Brick)
+    end
+    Catan.handle_dice_roll(game, board, players, player1, 7)
+
+    @test PlayerApi.count_resource(player2.player, :Brick) == 5
+    @test PlayerApi.count_resource(player3.player, :Brick) == 7
+    @test init_board_robber_tile != board.robber_tile
+end
+@testitem "robot_player_implementation" setup=[global_test_setup] begin
+    Catan.test_player_implementation(DefaultRobotPlayer, configs)
+end
+
+@testitem "human_player_implementation" setup=[global_test_setup] tags=[:broken] begin
+    Catan.test_player_implementation(HumanPlayer, configs)
+end
+
 function run_tests(neverend = false)
     configs = parse_configs("Configuration.toml")
+    
     # Only difference is some changing of dice values for testing
     configs["MAP_FILE_2"] = "./data/sample_2.csv"
     
@@ -681,45 +767,10 @@ function run_tests(neverend = false)
             Base.Filesystem.rm("data/$file")
         end
     end
-    test_longest_road(configs)
-    test_game_api(configs)
     
-    Catan.test_player_implementation(DefaultRobotPlayer, configs)
+    @run_package_tests filter=ti->doset(ti)
+    
     #Catan.test_player_implementation(HumanPlayer, configs)
-    test_trading(configs)
-    """
-    """
-    test_assign_largest_army(configs)
-    test_road_hashing()
-    test_deepcopy(configs)
-    test_actions()
-    test_set_starting_player(configs)
-    test_log(configs)
-    test_misc()
-    test_max_construction(configs)
-    test_board_api(configs)
-    test_largest_army(configs)
-    test_ports(configs)
-    test_robber(configs)
-    test_devcards(configs)
-    test_do_turn(configs)
-    test_call_api(configs)
-    test_robot_game(neverend, configs)
-    test_jet_fails()
-end
-if abspath(PROGRAM_FILE) == @__FILE__
-    if (length(ARGS) > 0)
-        if ARGS[1] == "--neverend"
-            run_tests(true)
-        else
-            # Explicit save file passed as arg
-            setup_and_do_robot_game(ARGS[1])
-        end
-    else
-        run_tests(false)
-    end
 end
 
-#statprofilehtml(from_c=true)
-#Profile.print()
-
+run_tests(false)

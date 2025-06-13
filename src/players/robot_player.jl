@@ -137,8 +137,6 @@ function choose_next_action(board::Board, players::AbstractVector{PlayerPublicVi
         return ChosenAction(name, coord)
     end
     if name == :ConstructRoad
-        println(candidates)
-        println(typeof(candidates))
         candidates_unwrapped = [x::Tuple{Tuple{Int8,Int8}, Tuple{Int8, Int8}} for x in candidates]
         coord = choose_road_location(board, players::AbstractVector{PlayerPublicView}, player, candidates_unwrapped)
         coord1 = coord[1]
