@@ -4,7 +4,7 @@ using Test
 
 function reset_savefile_with_timestamp(name, configs)
     configs["SAVE_GAME_TO_FILE"] = true
-    savefile = "data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
+    savefile = "$(@__DIR__)/data/_$(name)_$(Dates.format(now(), "yyyymmdd_HHMMSS"))_$counter.txt"
     configs["SAVE_FILE"] = savefile
     global counter += 1
     reset_savefile!(configs, savefile)
@@ -63,7 +63,7 @@ function test_automated_game(neverend, players, configs::Dict)
             try
                 setup_and_do_robot_game(players)
             catch e
-                Base.Filesystem.cp(configs["SAVE_FILE"], "./data/last_save.txt", force=true)
+                Base.Filesystem.cp(configs["SAVE_FILE"], "$(@__DIR__)/data/last_save.txt", force=true)
             end
 
             # Then immediately try to replay the game from its save file
@@ -71,7 +71,7 @@ function test_automated_game(neverend, players, configs::Dict)
             try
                 setup_and_do_robot_game(players, configs["SAVE_FILE"])
             catch e
-                Base.Filesystem.cp(configs["SAVE_FILE"], "./data/last_save.txt", force=true)
+                Base.Filesystem.cp(configs["SAVE_FILE"], "$(@__DIR__)/data/last_save.txt", force=true)
             end
 
             # Now move the latest save file to a special `last_save` file for easy retrieval

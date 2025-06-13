@@ -58,10 +58,10 @@ using Catan:
     reset_savefile_with_timestamp,
     RESOURCES,
     parse_configs
-    configs = parse_configs("Configuration.toml")
+    configs = parse_configs("./Configuration.toml")
     
     # Only difference is some changing of dice values for testing
-    configs["MAP_FILE_2"] = "./data/sample_2.csv"
+    configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
 end
 
 function doset(ti)
@@ -757,10 +757,10 @@ end
 end
 
 function run_tests(neverend = false)
-    configs = parse_configs("Configuration.toml")
+    configs = parse_configs("./test/Configuration.toml")
     
     # Only difference is some changing of dice values for testing
-    configs["MAP_FILE_2"] = "./data/sample_2.csv"
+    configs["MAP_FILE_2"] = "$(@__DIR__)/data/sample_2.csv"
     
     #=
     for file in Base.Filesystem.readdir("data")
